@@ -8,7 +8,8 @@ import type { AgencyCall } from "./agency";
 import type { LocalAi, LocalAiAsk, LocalAiView } from "#shared/local-ai";
 import type { H3Event } from "h3";
 
-// A person's own local AI on the console's server (docs/web.md, 「Settings」, the supply section's local AIs, and 「The
+// A person's own local AI on the console's server (docs/web.md, 「Organisation」, the supply tab's local AIs at the
+// reader's own node, and 「The
 // start guide」): the agency's `/personal-models` and its test, asked in the signed-in person's own name, so the agency
 // keeps every call to their own (its `docs/supply.md`, 「A person's local AI」). A local AI is tried from their PC
 // before it is kept, and one that does not answer is never kept.

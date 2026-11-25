@@ -20,8 +20,8 @@ import { globalsRestoredAfter } from "../../support/globals";
 import type { ClaudeAccountView } from "../../../apps/web/shared/types";
 import type { GatewayMember, SupplySourceState } from "../../../apps/web/shared/supply";
 
-// Supply as the console's screens read it (docs/web.md, 「Settings」, the supply section; 「Organisation」, the plans
-// tab; 「Administration」, the providers and credits tabs): how the reader's order stands and what a change of it
+// Supply as the console's screens read it (docs/web.md, 「Organisation」, the supply tab at the reader's own
+// node and the plans tab; 「Administration」, the providers and credits tabs): how the reader's order stands and what a change of it
 // writes, whose a road or an account is, and an organisation's plans.
 
 // The host's zone a plan's days are read in, as the app's settings carry it.

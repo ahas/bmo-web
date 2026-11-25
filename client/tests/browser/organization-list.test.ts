@@ -15,7 +15,7 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
 // whose a gateway road and a Claude account are; the platform's ledger and audit stand last, one at a time by their
 // switch, and read their next page as its end comes into view, a failed page read again from its retry; and the
-// settings' supply section stands what the platform locks. Each is read at a desk's width and a phone's.
+// reader's own supply tab stands what the platform locks. Each is read at a desk's width and a phone's.
 //
 // The account service's plan, unit supply, supply reach, platform and personal supply routes are answered by a
 // stand-in on the page, so what they hold is the test's own; the organisations are the console's own, made for this
@@ -786,7 +786,7 @@ describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () 
   }
 });
 
-// --- The settings' supply section, on a stand-in of the reader's own supply ---
+// --- The reader's own supply tab, on a stand-in of their own supply ---
 
 interface MeSource {
   source: string;
@@ -832,12 +832,12 @@ function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: {
   return null;
 }
 
-// The reader's own supply section at their own node, on a stand-in of the account service's view: the order of the
+// The reader's own supply tab at their own node, on a stand-in of the account service's view: the order of the
 // sources stands only where the reader may change it — the platform leaves the order to them and at least two
 // sources stand open for them to place. Where the platform holds the order, or the chain above leaves one source
 // standing, the order stands nowhere: no arrows, no end of the fall, no line saying the order is fixed, and the
 // group takes the sources' own name. The switches and the personal credits' cap keep their place throughout.
-describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
+describe.skipIf(!origin || !touchReady())("the reader's own supply order", () => {
   const ME_SOURCES: MeSource[] = [
     { source: "personal", allowed: true, off: false, locked: false },
     { source: "global", allowed: false, off: true, locked: false, own: "on", reason: "not-in-plan" },

@@ -6,7 +6,8 @@ import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
-// A person's own local AI (docs/web.md, 「The start guide」 and 「Settings」, the supply section's local AIs), worked as a
+// A person's own local AI (docs/web.md, 「The start guide」 and 「Organisation」, the supply tab's local AIs at
+// the reader's own node), worked as a
 // hand works it at a phone's width and a desk's, in Korean: a member whose own supply is all that carries their runs
 // picks the local AI in the start guide's provider step, gives an address their PC does not reach and is told so, gives the
 // one it does and walks on to its test; and in their own supply settings adds another, which is tried before it is

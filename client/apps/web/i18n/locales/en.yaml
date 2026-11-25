@@ -1849,7 +1849,6 @@ settings:
   title:
     settings: Settings
   label:
-    own_agents: "My agents"
     account: Account
     agent: My BMO
     briefing: Voice briefing
@@ -1862,8 +1861,6 @@ settings:
     machine: Machine
     desktop: Desktop
     secrets: Secrets
-    supply: Supply
-    apps: "My apps, tools & skills"
     personal_apps: My personal apps
     skills: My skills
     supervisor_none: No supervisor

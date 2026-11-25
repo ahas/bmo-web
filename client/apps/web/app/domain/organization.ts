@@ -63,8 +63,9 @@ export interface OrganizationTab {
   // Its name in the language pack.
   label: string;
   icon: string;
-  // Whether a reader opens it: each tab says so for itself.
-  opens: (reader: OrganizationReader) => boolean;
+  // Whether a reader opens it at the node chosen, `link` naming the link of the chain chosen or null for a company or
+  // a unit of one: each tab says so for itself.
+  opens: (reader: OrganizationReader, link: LinkNode | null) => boolean;
   // The keys of the address the tab owns besides `tab`, which go when the reader moves to another tab.
   keys: readonly string[];
   // Whether its content is laid across the whole body, unpadded and scrolling its own regions, rather than standing in
@@ -77,10 +78,16 @@ export interface OrganizationTab {
   links?: Partial<Record<LinkNode, () => Promise<{ default: Component }>>>;
 }
 
-// Every reader the screen stands for: the administrator, and a member who heads a unit, whose invitations tab says so
-// where they head none.
+// Every reader the screen stands for, wherever they stand in its tree.
 function everyReaderOpens(): boolean {
   return true;
+}
+
+// The invitations tab's readers: every reader, at a company or a unit of one alone. What it sets is a link made into a
+// unit of the organisation chosen and the asks to share a machine into that company, so it holds nothing of its own at
+// a link of the chain, where it could only say so (docs/web.md, 「Organisation」, the invitations tab).
+function organisationNodeOnly(_reader: OrganizationReader, link: LinkNode | null): boolean {
+  return link === null;
 }
 
 // The administrator, and a member who heads a company (docs/web.md, 「Organisation」, the people tab).
@@ -114,7 +121,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
   { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
   { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
-  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
+  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: organisationNodeOnly, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
@@ -135,8 +142,10 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
 // dialog over this screen, and the providers and the secret kinds on the administrator's screen. `carries` names the
 // keys of the old address the new one keeps, such as the person it was open at.
 const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; carries?: readonly string[] }>> = {
-  // A company's BMO default and who may personalise a BMO stand on the agents tab, and the plans on the supply tab.
+  // A company's BMO default, and an address still naming the reader's own agents `agent` or `own-agents`, stand on the
+  // agents tab, and the plans on the supply tab.
   agent: { path: ORGANIZATION_PATH, query: { tab: "agents" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
+  "own-agents": { path: ORGANIZATION_PATH, query: { tab: "agents" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
   plans: { path: ORGANIZATION_PATH, query: { tab: "supply" }, carries: [ORGANIZATION_KEY, UNIT_KEY] },
   research: { path: "/research", query: { tab: "settings" } },
   briefing: { path: ORGANIZATION_PATH, query: { [SETTINGS_QUERY]: "briefing" } }
@@ -174,7 +183,7 @@ export function organizationMovedAway(key: unknown, query: LocationQuery = {}): 
 // Whether a reader opens a tab at the node chosen: by its own say, or, at a link node, because it declares a view of
 // that link, which stands for every reader the node does.
 function opensAt(tab: OrganizationTab, reader: OrganizationReader, link: LinkNode | null): boolean {
-  return tab.opens(reader) || (link !== null && tab.links?.[link] !== undefined);
+  return tab.opens(reader, link) || (link !== null && tab.links?.[link] !== undefined);
 }
 
 /** The tabs a reader opens at the node chosen, each by its own say; at a link node, every tab declaring that link as
@@ -381,18 +390,6 @@ export function memberOrganizations(inviteUnits: readonly InviteUnit[], ...more:
 /** The tab of the organisation screen a key names, where it names one. */
 export function organizationTabNamed(key: string): OrganizationTab | null {
   return ORGANIZATION_TABS.find((tab) => tab.value === key) ?? null;
-}
-
-/**
- * Whether the reader keeps something of a unit, as the console's server answers: the administrator always, a member
- * where they head a unit, so may invite into it, or write a unit's org memory. Such a member is listed the
- * organisation screen (docs/web.md, 「Organisation」). Read once for the shell and kept while it stands.
- */
-export function useKeepsUnits(): ComputedRef<boolean> {
-  const headed = useHeadedUnits();
-  const { units } = useOrgMemoryUnits();
-
-  return computed(() => headed.units.value.length > 0 || units.value.length > 0);
 }
 
 /**

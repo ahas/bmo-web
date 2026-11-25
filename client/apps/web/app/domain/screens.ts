@@ -7,8 +7,9 @@ import { roomFace } from "./agent-face";
 import { COUNT_BADGE, countText } from "./numbers";
 import { presenceChip, roomPresence, typingPeople } from "./presence";
 import { unreadLabel, unreadShown } from "./room-list";
-import { sectionsOfPath } from "#shared/sections";
+import { screenMayRead, sectionsOfPath } from "#shared/sections";
 
+import type { SectionAccessMap } from "#shared/sections";
 import type { AvatarIndex } from "./avatars";
 import type { RoomsPresent } from "./presence";
 import type { RoomReading } from "./room-list";
@@ -49,14 +50,12 @@ export interface Screen {
   brought?: true;
   // The tabs a screen keeps in its address as `?tab=`. The first is the screen's own address.
   tabs?: readonly ScreenTab[];
-  // Whether a member's shell lists it only for a member who keeps something of a unit — heads one, so may invite into
-  // it, or writes a unit's org memory — rather than by a section of their permission (docs/web.md, 「Organisation」).
-  unitKeepers?: true;
   // Whether the screen is the administrator's alone, so no member's shell lists it and no section grants it
   // (docs/web.md, 「Administration」).
   administrator?: true;
-  // Whether every person with a user opens the screen, what it shows being their own account's, so no section grants
-  // it (docs/web.md, 「App catalogue」).
+  // Whether the member's shell lists it for every person with a user of the account service and for nobody else, what
+  // it shows being their own account's and their own link of the organisation's, so no section grants it
+  // (docs/web.md, 「App catalogue」, 「Organisation」).
   everyone?: true;
   // Whether the screen's entry carries a sidebar count, which the console reads itself (bmo-ui's
   // `docs/console-bundles.md`, the sidebar count; docs/web.md, 「Sidebar」). Only a screen a unit brings whose
@@ -115,8 +114,9 @@ export const SCREENS: readonly Screen[] = [
   // Every machine's hardware, bmo-node's, and the card master's board of every node's card, a tab each. Each
   // machine's own monitor stands below its address.
   { label: "screens.label.monitor", to: "/monitor", icon: "i-material-symbols-monitor-heart-outline", nested: true, tabs: MONITOR_TABS, feature: "monitor", section: "administration" },
-  // The organisation and the people in it, a tab to a section.
-  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "administration" },
+  // The organisation and the people in it, a tab to a section. The screen holds every reader's own link of the
+  // delegation chain, so its entry stands for every person with a user of the account service.
+  { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, everyone: true, feature: "organizations", section: "administration" },
   // The store: the personal apps the reader's company shares, as the reader may see them: browsed, installed, turned on for a unit
   // and recalled.
   { label: "screens.label.catalogue", to: "/store", icon: "i-material-symbols-storefront-outline", nested: false, everyone: true, feature: "organizations", section: "administration" },
@@ -141,6 +141,21 @@ export function featureLeftOut(features: ConsoleFeatures, path: string, screens:
 
     return isScreenActive({ ...screen, nested: true }, path) || (own.length === 1 && asked.length === 1 && own[0] === asked[0]);
   });
+}
+
+/**
+ * Whether the member's shell lists a screen (docs/web.md, 「Sidebar」, 「Access」): never the administrator's own; a
+ * screen every person with a user of the account service opens only for a reader who holds one, since what it shows
+ * is their own account's and their own link of the organisation's; a screen standing under no console section by
+ * nothing of its own, the manifest's role having opened it; and any other by their permission on its section.
+ */
+export function memberListsScreen(screen: Screen, access: SectionAccessMap, ready: boolean, user: boolean): boolean {
+  if (screen.administrator === true) return false;
+  if (screen.everyone === true) return user;
+  if (sectionsOfPath(screen.to).length === 0) return true;
+  if (!ready) return false;
+
+  return screenMayRead(access, screen.to);
 }
 
 /**

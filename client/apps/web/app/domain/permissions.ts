@@ -47,9 +47,8 @@ export function permissionSections(bundles: readonly ConsoleScreen[], features: 
   const leftOut = new Set(SCREENS.filter((screen) => screen.feature !== undefined && !features[screen.feature]).flatMap((screen) => sectionsOfPath(screen.to)));
 
   for (const screen of screensWithBundles(bundles, featuredScreens(features))) {
-    // A screen a member opens by keeping something of a unit, or as every person does, rather than by a section is no
-    // section to grant.
-    if (screen.unitKeepers === true || screen.administrator === true || screen.everyone === true) continue;
+    // A screen a member opens as every person with a user does, rather than by a section, is no section to grant.
+    if (screen.administrator === true || screen.everyone === true) continue;
 
     const sections = sectionsOfPath(screen.to);
     const id = sections[0];

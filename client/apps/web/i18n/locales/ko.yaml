@@ -1872,7 +1872,6 @@ settings:
   title:
     settings: 설정
   label:
-    own_agents: "내 에이전트"
     account: 계정
     agent: 내 BMO
     briefing: 보이스브리핑
@@ -1885,8 +1884,6 @@ settings:
     machine: 기기
     desktop: 데스크톱
     secrets: 비밀 보관함
-    supply: 공급
-    apps: 내 앱·도구·스킬
     personal_apps: 내 개인 앱
     skills: 내 스킬
     supervisor_none: 감독관 없음

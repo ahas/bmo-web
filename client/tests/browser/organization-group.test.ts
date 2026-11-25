@@ -8,8 +8,8 @@ import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
 
 // The sidebar's organisation entry and the agents tab (docs/web.md, 「Sidebar」 and 「Organisation」, the agents and
 // supply tabs), and what a company decided read at a person's own node. The entry stands among the administrator
-// services by its name, alone under their heading for a head who opens no other of them, and opens the organisation
-// screen, which keeps its own tab row; the agents tab sets a company's instructions, persona and repositories, each with
+// services by its name, under their heading beside the store for a member who opens no other of them, and opens the
+// organisation screen, which keeps its own tab row; the agents tab sets a company's instructions, persona and repositories, each with
 // what the units below may do; and a person under the company reads the persona it locked as decided by the company,
 // named, with nothing to change, and the supply its policy closed as closed by the organisation. Each is worked as a hand
 // works it at a phone's width and a desk's: what a press lands on is the control it names, nothing runs off the side,
@@ -286,7 +286,7 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
       }
     }, 120_000);
 
-    test(`a person under the company reads the persona and the supply it decided as the company's, with nothing to change, and a head's sidebar stands the organisation entry, at ${width}px`, async () => {
+    test(`a person under the company reads the persona and the supply it decided as the company's, with nothing to change, and the sidebar stands the organisation entry for them before and after they head a unit, at ${width}px`, async () => {
       const context = await contextFor(PERSON.name, width);
 
       try {
@@ -324,16 +324,23 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
         expect(await source.locator("button, [role='switch'], input").count()).toBe(0);
         expect(await overflows(page)).toBe(false);
 
-        // A head of the team who opens no other administrator service: the section stands for them under its heading,
-        // the organisation entry its one row.
+        // The entry stands for them already, heading nothing of the company: the screen holds their own link of the
+        // chain, whose agents and supply tabs they have just read (docs/web.md, 「Sidebar」).
+        await page.goto(`${origin}/rooms`, { waitUntil: "load" });
+        await standing(page);
+        await organizationSection(page, width);
+
+        // A head of the team who opens no other administrator service: the section stands for them under its heading
+        // with the organisation entry and the store, every reader with a user's two rows.
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(person)}`, "PUT");
         await page.goto(`${origin}/rooms`, { waitUntil: "load" });
         await standing(page);
 
         const section = await organizationSection(page, width);
+        const rows = [wording("screens.label.catalogue"), wording("screens.label.organization")];
 
-        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual([wording("screens.label.organization")]);
-        expect((await section.innerText()).split("\n").map((one) => one.trim()).filter((one) => one !== "")).toEqual([wording("screens.label.section_administration"), wording("screens.label.organization")]);
+        expect((await section.getByRole("link").allInnerTexts()).map((one) => one.trim())).toEqual(rows);
+        expect((await section.innerText()).split("\n").map((one) => one.trim()).filter((one) => one !== "")).toEqual([wording("screens.label.section_administration"), ...rows]);
         expect(await sectionNames(page)).not.toContain(wording("screens.label.organization"));
       } finally {
         await context.close();

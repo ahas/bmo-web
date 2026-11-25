@@ -1,13 +1,11 @@
 import { expect, test } from "bun:test";
 
 import { appTitle, choiceWord, flagChoices, ON_WORDS, ownAppLine, platformAppLine, unitAppChoice, unitAppChoices, unitAppLine, wordFor } from "../../../apps/web/app/domain/apps";
-import { sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 
 import type { OwnApp, PlatformApp, UnitApp } from "../../../apps/web/shared/apps";
 
-// The apps a reader turns on and off as their rows read (docs/web.md, 「Organisation」, the apps tab at a unit and at
-// the platform, and 「Settings」, the own apps section): the line saying how an app stands, the choice a word stands at,
-// and the section shown to a reader with a user alone.
+// The apps a reader turns on and off as their rows read (docs/web.md, 「Organisation」, the apps tab at a unit, at the
+// platform and at the reader's own node): the line saying how an app stands and the choice a word stands at.
 
 const t = (key: string, named?: Record<string, unknown>) => (named === undefined ? key : `${key} ${JSON.stringify(named)}`);
 
@@ -46,11 +44,6 @@ test("a reader's row says whether their organisation locks it, they set it or th
   expect(ownAppLine(t, { ...OWN, locked: true, locker: { by: "unit", name: null }, own: true })).toBe("org_agents.label.decided_unit");
   expect(ownAppLine(t, { ...OWN, own: false })).toBe("apps.label.own");
   expect(ownAppLine(t, OWN)).toBe("apps.label.follows_organization");
-});
-
-test("the own apps section stands for a reader with a user alone", () => {
-  expect(sectionsFor(false, true).map((one) => one.key)).toContain("apps");
-  expect(sectionsFor(false, false).map((one) => one.key)).not.toContain("apps");
 });
 
 const PLATFORM: PlatformApp = {

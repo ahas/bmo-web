@@ -278,7 +278,8 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
     ]
   })),
   // The person who brings a local AI of their own, whose own supply is all that carries their runs and whose PC the
-  // agency reaches (docs/web.md, 「The start guide」 and 「Settings」, the supply section's local AIs).
+  // agency reaches (docs/web.md, 「The start guide」 and 「Organisation」, the supply tab's local AIs at the
+  // reader's own node).
   {
     name: "local-ai-member",
     password: "fixture-password-4203",

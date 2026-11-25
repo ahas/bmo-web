@@ -222,8 +222,8 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
 import { useConfirm } from "~/domain/confirm";
+import { PERSON_NODE, organizationLinkAddress } from "~/domain/organization";
 import { costText, creditsText, keyStatus, loginStatus, meSetting, movedSourceOrder, orderIsOverridable, orderRows, roadLabel, sourceLabel, sourceReasonText, SUPPLY_ROADS } from "~/domain/supply";
-import { openSettings, useSettings } from "~/domain/settings-dialog";
 
 import { loginNumbers, loginText, nextLoginNumber } from "#shared/claude-logins";
 import { localAiNamed } from "#shared/local-ai";
@@ -233,13 +233,12 @@ import type { LocalAi, LocalAiView } from "#shared/local-ai";
 import type { ClaudeAccountView, ClaudeLoginStarted, FallbackView, KeptSecret, SecretList } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
-// The reader's own supply, read whole when the section opens and written one setting at a time (docs/web.md,
-// 「Settings」, the supply section). Every refusal is the agency's or the account service's, said by the pack's
-// sentence for its code; nothing is decided here.
+// The reader's own supply, read whole when the tab opens and written one setting at a time (docs/web.md,
+// 「Organisation」, the supply tab with the reader's own node chosen). Every refusal is the agency's or the account
+// service's, said by the pack's sentence for its code; nothing is decided here.
 
 const { t } = useI18n();
 const confirm = useConfirm();
-const dialog = useSettings();
 
 const me = ref<SupplyMe | null>(null);
 const logins = ref<ClaudeAccountView[] | null>(null);
@@ -503,10 +502,11 @@ function openKeyAdd(): void {
   addingKey.value = true;
 }
 
-// The form with nothing to pick points at the secret store instead, which opens as a section of this dialog.
+// The form with nothing to pick points at the secret store instead, the organisation screen's secrets tab at the
+// reader's own link of the chain.
 function openStore(): void {
   addingKey.value = false;
-  openSettings(dialog, "secrets");
+  void navigateTo(organizationLinkAddress(PERSON_NODE, {}, "secrets"));
 }
 
 async function addKey(): Promise<void> {

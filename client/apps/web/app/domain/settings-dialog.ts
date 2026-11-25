@@ -4,10 +4,10 @@ import type { Component, Ref } from "vue";
 import type { LocationQuery, RouteLocationRaw } from "vue-router";
 
 // The settings dialog (docs/web.md, 「Settings」): one dialog over whatever screen is open, a list of sections beside
-// the open one, each what a person sets for themselves alone, their own secrets and the voice briefing spoken to the
-// administrator among them. Each section is a component of its own; this is only the order they are listed in and what the list shows of
-// each. What is set for the whole deployment or for other people is the organisation settings screen's
-// (domain/organization).
+// the open one, each what a person sets for themselves alone, the voice briefing spoken to the administrator among
+// them. Each section is a component of its own; this is only the order they are listed in and what the list shows of
+// each. What is set for the whole deployment, for other people, or for the reader's own link of the delegation chain,
+// their agents, secrets, supply and apps among them, is the organisation screen's (domain/organization).
 
 export interface SettingsSection {
   // Its key in an address, `?settings=<key>`.
@@ -22,24 +22,14 @@ export interface SettingsSection {
   // Whether it stands only in the desktop app's window, what it sets being the app's (docs/web.md, 「Settings」, the
   // desktop section).
   app?: boolean;
-  // The section's own component, loaded when it is first opened, and what it is handed.
+  // The section's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;
-  props?: Record<string, unknown>;
-  // The keys of sections that once stood apart and are this one now, so an address naming one still opens it.
-  aliases?: readonly string[];
 }
-
-// A door to a tab of the organisation screen at the reader's own node (docs/web.md, 「Settings」).
-const door = (): Promise<{ default: Component }> => import("~/components/SettingsDoor.vue");
 
 export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "account", label: "settings.label.account", icon: "i-material-symbols-person-outline", administrator: false, user: false, load: () => import("~/components/SettingsAccount.vue") },
-  { key: "own-agents", label: "settings.label.own_agents", icon: "i-material-symbols-smart-toy-outline", administrator: false, user: true, load: door, props: { tab: "agents", label: "org_agents.label.tab" }, aliases: ["agent"] },
   { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "desktop", label: "settings.label.desktop", icon: "i-material-symbols-desktop-windows-outline", administrator: false, user: false, app: true, load: () => import("~/components/SettingsDesktop.vue") },
-  { key: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", administrator: false, user: true, load: () => import("~/components/SettingsSecrets.vue") },
-  { key: "supply", label: "settings.label.supply", icon: "i-material-symbols-bolt-outline", administrator: false, user: true, load: door, props: { tab: "supply", label: "supply.label.tab" } },
-  { key: "apps", label: "settings.label.apps", icon: "i-material-symbols-apps", administrator: false, user: true, load: door, props: { tab: "apps", label: "apps.label.tab" } },
   { key: "personal-apps", label: "settings.label.personal_apps", icon: "i-material-symbols-widgets-outline", administrator: false, user: true, load: () => import("~/components/SettingsPersonalApps.vue") },
   { key: "skills", label: "settings.label.skills", icon: "i-material-symbols-menu-book-outline", administrator: false, user: true, load: () => import("~/components/SettingsSkills.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
@@ -57,9 +47,10 @@ export function sectionsFor(administrator: boolean, user: boolean, app = false):
   return SETTINGS_SECTIONS.filter((section) => (administrator || !section.administrator) && (user || !section.user) && (app || section.app !== true));
 }
 
-// The section a key names among those a reader may open, the first of them where it names none.
+// The section a key names among those a reader may open, the first of them where it names none. A key of a section
+// that stands on another screen now is taken there before this is asked (domain/organization).
 export function sectionOf(key: unknown, sections: readonly SettingsSection[]): SettingsSection {
-  return sections.find((section) => section.key === key || (typeof key === "string" && (section.aliases ?? []).includes(key))) ?? sections[0]!;
+  return sections.find((section) => section.key === key) ?? sections[0]!;
 }
 
 // The address that opens the dialog at a section: the reader's home, the administrator's or a member's, with the key.

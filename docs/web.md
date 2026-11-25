@@ -589,7 +589,7 @@ nothing.
   never leads back to the address refused: where the first one they may open is that address, as for a member who
   reads no section at all, it stands, and its routes answer as if nothing stood there.
 - **A member's console stands in a shell of its own.** Its sidebar is the console's mark, the console's own
-  sections they may read, the 조직 entry under 시스템 서비스 where they head a unit or write a unit's org memory, and the
+  sections they may read, the 조직 and 스토어 entries under 시스템 서비스 where they hold a user of the account service, and the
   screens units bring that they may open, in the sidebar's sections (「Sidebar」), their rooms and the user menu: no agents
   block, nodes or search, no queue panel, question bar or briefing player, and nothing in it reports which room
   the tab shows. Its sidebar hears the bot's stream for
@@ -1639,9 +1639,10 @@ Four groups.
     machines' (원격) among them.
   - **조직** is one entry of 시스템 서비스, the organisation screen (「Organisation」), which leads to the screen and is lit
     on any of its tabs; the screen's tabs are its own tab row's, never entries of the sidebar. The entry stands for the
-    administrator and for a member the screen stands for — one who heads a unit or writes a unit's org memory — and for
-    nobody else, so a member who heads nothing meets no entry there. A member it stands for who opens no other
-    administrator service meets 시스템 서비스 under its heading with 조직 its one entry.
+    administrator, and for every member with a user of the account service, the screen holding that reader's own link of
+    the delegation chain whether or not they head a unit; a reader with no such user is listed no entry, having nothing
+    to set anywhere on the screen. A member who opens no other administrator service meets 시스템 서비스 under its heading
+    with 조직 and 스토어 in it.
   - **스토어** is one entry of 시스템 서비스 that stands for every person with a user of the account service, so every
     such person meets 시스템 서비스 under its heading with 스토어 in it.
   - **애플리케이션** holds every screen a unit brings that names no other section: mail, 파일,
@@ -7841,25 +7842,27 @@ the screen, the screen's whole width on a phone, opened to every signed-in perso
 ### Settings
 
 The settings are one large dialog over whatever screen is open, opened by 설정 in the user menu at the
-sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account, what this browser
-shows them, and the voice briefing, which is spoken to the administrator alone and so is theirs to
-switch. What is set for other people stands on 조직 (「Organisation」), what is set for the platform itself on 플랫폼 설정
-(「Administration」), and what the research unit's runs are held to on the research screen (「Research
+sidebar's foot (「Sidebar」). They hold what a person sets for themselves alone: their account and their machine, the
+apps and the skills their own BMO made on it, what this browser shows them, and the voice briefing, which is spoken to
+the administrator alone and so is theirs to switch. What is set for other people, and what is set for the reader's own
+link of the delegation chain — their agents, their secrets, their supply and their apps — stands on 조직
+(「Organisation」), which the sidebar lists for every reader who holds such a link. What is set for the platform itself
+stands on 플랫폼 설정 (「Administration」), and what the research unit's runs are held to on the research screen (「Research
 screen」). The dialog is no screen of its own: `/account` takes the reader home with the dialog open at 계정.
 
 - **The dialog is a list of sections and the open section beside it.** The list stands in a column at
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 내 에이전트, 기기, 데스크톱, 비밀 보관함, 공급, 내 앱·도구·스킬, 내 개인 앱, 내 스킬, 테마, 대화방,
-    알림 and 보이스브리핑. A member is shown 계정, 내 에이전트, 기기, 비밀 보관함, 공급, 내 앱·도구·스킬, 내 개인 앱, 내 스킬, 테마
-    and 대화방; 데스크톱 stands for any reader, but only in the desktop
+  - The sections are 계정, 기기, 데스크톱, 내 개인 앱, 내 스킬, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
+    내 개인 앱, 내 스킬, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
-    briefings for the administrator alone. A login with no user of the account service, which holds no secret space and no machine, is not
-    shown 기기 or 비밀 보관함, and 내 에이전트, 공급, 내 앱·도구·스킬, 내 개인 앱 and 내 스킬 are no sections for it either, what they set standing against that
-    user.
-  - **내 에이전트, 공급 and 내 앱·도구·스킬 are doors** (「Doors to the organisation screen」): what they set is the reader's own
-    link of settings 조직's tabs draw at every link, so it stands there, at 나, and the section only leads to it.
+    briefings for the administrator alone. A login with no user of the account service, which holds no machine and made
+    nothing of its own, is not shown 기기, 내 개인 앱 or 내 스킬, what they set standing against that user.
+  - **Every section is the reader's own.** The settings hold no door to 조직: a reader's BMO and their agents, their
+    own logins, keys and the order their runs fall through, the apps turned on for them and their own secret space all
+    stand on the matching tab of 조직 at 나, and the sidebar's 조직 entry leads them to the screen (「Organisation」). The
+    console search finds each of those tabs as it finds every screen's.
   - A section's content stands in groups under small headings, each group a column of rows parted by
     hairlines. A row carries its name and, where the name needs it, one muted line under it at the
     left, and its control at the right: a choice of two or three a segmented control, a longer one a
@@ -7871,13 +7874,14 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 - **On a narrow screen the dialog fills the screen** and opens on the list of sections alone, over the
   sidebar drawer it was opened from (「Floating things」). A tap on one goes into it: the head then carries
   a back arrow before the section's name, and the arrow or the back gesture returns to the list. The close mark stands at the head's right end on both.
-- **An address opens it at one section:** `?settings=` and a section's key — `account`, `own-agents` (`agent` naming it as well), `machine`, `desktop`, `secrets`, `supply`, `apps`, `personal-apps`, `skills`, `theme`,
-  `palette`, `notifications`, `briefing` — on any address of the console opens the dialog at that
-  section, gone into on a narrow screen, and at the first section the reader may open where the key
+- **An address opens it at one section:** `?settings=` and a section's key — `account`, `machine`, `desktop`,
+  `personal-apps`, `skills`, `theme`, `palette`, `notifications`, `briefing` — on any address of the console opens the
+  dialog at that section, gone into on a narrow screen, and at the first section the reader may open where the key
   names none of them. A member sent on from an address they may not open to their own home is sent with the key, so
-  the dialog opens there. A key that names none of the dialog's sections but a tab of 조직 — `organization`,
-  `invites`, `permissions` — or of 플랫폼 설정 — `providers`, `secret-kinds` — takes the reader to that tab instead, and
-  `research` to the research screen's 설정 tab, so a link made before a
+  the dialog opens there. A key that names none of the dialog's sections but a tab of 조직 — `secrets`, `supply` and
+  `apps` among its own keys, and `organization`, `invites`, `permissions` — or of 플랫폼 설정 — `providers`,
+  `secret-kinds` — takes the reader to that tab instead, as do `agent` and `own-agents`, which lead to the agents tab
+  keeping the node the address named, and `research` leads to the research screen's 설정 tab, so a link made before a
   section moved still lands where it stands now. The key is
   taken off the address as the dialog opens: what
   is open over a screen is not a place (「Floating things」), so the back gesture closes the dialog, or leaves
@@ -7949,14 +7953,6 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   heading opens a form of one 내용, several lines, its line saying that it holds only what the organisation may know,
   such as the reader's role, duties or how they prefer to be reached, and never their circumstances or health; 저장 is
   open once it holds words. With none it says 공유한 정보 없음. A person in no unit is shown no such group.
-
-#### Doors to the organisation screen
-
-내 에이전트, 공급 and 내 앱·도구·스킬 are each one row naming a tab of 조직 — 에이전트, 공급 and 앱·도구·스킬 — with 열기, which opens that tab
-with 나 chosen, the dialog left behind as the address moves. Every person with a user of the account service sees them,
-the organisation screen standing for every such reader at 나 whether or not the sidebar lists it. What each sets of the
-reader's own — their BMO and their agents, their own logins, keys and the order their runs fall through, their apps —
-stands in that tab's view of 나 (「Organisation」, 「에이전트」, 「공급」 and 「앱·도구·스킬」).
 
 #### 기기
 
@@ -8033,10 +8029,10 @@ platform administrator, the folder every unit reads the deployment's secrets fro
 `env/users/<user>/` for anyone else. From then on an agent or a unit's settings is given the name alone. Each
 person sees their own space and nobody else's, the administrator included.
 
-- **The section is a door** to 조직's 비밀 보관함 at 나, the administrator's at 플랫폼 전체, the space every
-  platform administrator holds (「Organisation」, 「비밀 보관함」), where the reader's space is listed, a secret replaced or
-  deleted and a new one added: one row, 비밀 보관함, with 열기, the dialog closing as it is followed. The secret form
-  (below) is the one that list, the composer's clip and an agent's request open.
+- **The list of a space, with its add, its replace and its delete, stands on 조직's 비밀 보관함** at 나, the
+  administrator's own space standing at 플랫폼 전체 (「Organisation」, 「비밀 보관함」); the settings dialog holds no section
+  for it, and the sidebar's 조직 entry leads there. The secret form (below) is the one that list, the composer's clip
+  and an agent's request open.
 - The kinds the form asks in are the deployment's, kept on 플랫폼 설정's 비밀 종류 (「Administration」).
 - **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
   foot.
@@ -8250,12 +8246,14 @@ written here, at one link of the chain at a time: the tree at the screen's left 
 may write — 플랫폼 전체 for the administrator, the companies and units they head, and 나, their own link, for every
 reader with a user — and the tab at its right shows the link chosen: each value, where it comes from (위를 따름 or
 직접 정함), and a lock above it, which leaves the value standing and its control disabled. The same tab draws the same
-setting for every reader, one node at a time, and no list names the companies or units a value is set for; another
-screen that sets the same thing for a reader is a door to this one (「Settings」). What else is set for the
+setting for every reader, one node at a time, and no list names the companies or units a value is set for; where
+another screen reaches the same setting it is a door to this one (「App catalogue」), and the settings dialog holds none
+(「Settings」). What else is set for the
 platform itself — the providers every run goes out on, switched on and off with what they have left, and the kinds
 every person's secret form asks in — is the administrator's screen, 플랫폼 설정 (「Administration」). What this browser
-shows a person and the voice briefing are the settings dialog's (「Settings」), whose sections for the reader's own
-agents, supply, apps and secrets are doors to 나 here, and the research supervisor stands with the research unit's
+shows a person, the apps and the skills their own BMO made on their PC, and the voice briefing are the settings
+dialog's (「Settings」); the reader's own agents, supply, apps and secrets are set here, at 나, and the sidebar lists
+조직 for every reader who holds such a link (「Sidebar」). The research supervisor stands with the research unit's
 settings on the research screen (「Research screen」).
 
 - **It stands at `/organization`: one tree of the organisations at its left, the node chosen at its right.**
@@ -8307,37 +8305,42 @@ settings on the research screen (「Research screen」).
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 조직, among
   the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
 - **With a link node chosen, every tab stands for that link of its settings.** The row keeps the tabs the reader
-  opens there — those they open anywhere, and every tab that declares a view of that link, which stands for every
-  reader the node does — and the tab open stays as a link node is chosen and as a company or a unit is chosen from
-  it, so one tab is read node by node down the tree. Each tab says for itself what it shows at each link node: a view
+  opens at that node — each tab says for itself whether it stands at a link of the chain — and every tab that declares
+  a view of that link, which stands for every reader the node does — and the tab open stays as a link node is chosen
+  and as a company or a unit is chosen from it, so one tab is read node by node down the tree. Each tab says for itself what it shows at each link node: a view
   of its own that reads and writes that link of the kinds the tab sets — the platform's, the administrator's alone, or
   the reader's own — in the centred reading column; a tab that declares none for the node shows one muted line there,
   이 탭에는 플랫폼 설정이 없습니다 or 이 탭에는 개인 설정이 없습니다, and nothing else. A tab takes a link node on by declaring
   its view, and nothing outside the tab changes. 에이전트 (「에이전트」), 앱·도구·스킬 (「앱·도구·스킬」), 비밀 보관함 (「비밀 보관함」) and
-  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안 (「보안」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 초대, 아티팩트 저장
-  and 권한 declare neither. An address naming a link node beside a unit loses the unit, replaced with no step.
+  공급 (「공급」) declare both, and 조직 기억 (「조직 기억」), 메일 서버 (「메일 서버」) and 보안 (「보안」) declare 플랫폼 전체; 조직도, 사용자, 직책·종류, 아티팩트 저장
+  and 권한 declare neither. 초대 declares neither and stands at a company or a unit alone, what it sets being a link
+  made into a unit of the organisation chosen and the asks to share a machine into that company, so it has nothing to
+  say at a link of the chain (「초대」). An address naming a link node beside a unit loses the unit, replaced with no step.
 - **A lock above the node is said by who holds it.** Wherever a setting stands locked by a link above the node — a
   row's line, a group's line — it reads 조직이 정함 · and the locking unit's name, which the console's server reads off
   the account service for the link the lock stands at; 조직이 정함 alone where the unit cannot be named, and 전역 설정으로
   정함 where the platform holds it. The control the lock holds stands disabled showing what the lock holds.
 - **A key of a section that moved away leads to where it stands now,** so a link made before it moved still lands
-  on it: `agent` to 에이전트 and `plans` to 공급, each keeping the node the address named, `research` to the research
+  on it: `agent` and `own-agents` to 에이전트 and `plans` to 공급, each keeping the node the address named, `research` to the research
   screen's 설정 tab, `briefing` to the settings dialog's 보이스브리핑 over this screen, `providers` and `secret-kinds` to
   those tabs of 플랫폼 설정, and a person's 권한 on 사용자 (`pane=permissions`) to 권한 with that person open, the person
   its `user=` named and the organisation still chosen (「권한」). The address is replaced
   rather than stepped, so the back gesture does not return to the old key.
-- **Who opens it.** The administrator opens every tab, and the sidebar lists 조직 for them among the 시스템 서비스. A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a person's
-  machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
+- **Who opens it.** The administrator opens every tab. The sidebar lists 조직 among the 시스템 서비스 for the
+  administrator and for every member with a user of the account service, the screen holding 나, that reader's own link,
+  for each of them (「Sidebar」). A member who heads a unit may invite into it (`docs/accounts.md`, 「Invitations and a
+  person's machine」), sets who under it may personalise their BMO (`docs/accounts.md`, 「A person's BMO profile」) and which
   apps stand on under it (「앱·도구·스킬」), sets the agents of the people under it (「에이전트」) and where their documents are kept
   (「아티팩트 저장」), sets the mail servers offered to them (「메일 서버」), keeps the unit's secrets (「비밀 보관함」) and gives its
-  people console sections (「권한」), so their shell's sidebar lists 조직 under 시스템 서비스 and the screen holds 초대, 에이전트,
+  people console sections (「권한」), so their screen holds 초대, 에이전트,
   앱·도구·스킬, 아티팩트 저장, 메일 서버, 비밀 보관함, 조직 기억 and 권한, 에이전트, 아티팩트 저장, 메일 서버, 비밀 보관함 and 권한 standing
   where they head a unit of the organisation chosen, and
   사용자 and 직책·종류 where they head a company
   (「사용자」, 「직책·종류」). A member granted a unit's org memory write without heading one (`docs/accounts.md`, 「A unit's
-  org memory」) is listed 조직 as well, with the companies of those units, and the screen holds 조직 기억 for them beside
-  the tabs every member opens (「조직 기억」); a member who heads none and holds no such grant is listed no entry, and the
-  address shows them the tree of 나 alone, the settings dialog's doors leading them to it (「Settings」). 공급 stands for
+  org memory」) is listed the companies of those units in the tree as well, and the screen holds 조직 기억 for them
+  beside the tabs every member opens (「조직 기억」). A member who heads none and holds no such grant has no company in
+  their tree at all: the address shows them the tree of 나 alone, holding their own agents, apps, secrets and supply
+  (「Sidebar」). 공급 stands for
   the reader the account service's supply reach says holds any part of the supply of the organisation chosen — its
   policy and credits, or those of a unit under it, as a credit manager or a head, or its plan, as its subscription
   manager — for the administrator wherever it stands, and for every reader at 나; a reader the reach says nothing for
@@ -8901,7 +8904,7 @@ a persona, the agents the unit supplies them and on which roads, what they may c
 the repositories their work stands on. The same settings stand at every link: a company's or a unit's view below, the
 platform's at 플랫폼 전체 and the reader's own at 나 (both below). At a company or a unit the administrator opens it, and
 so does a member who heads a unit of the organisation chosen, its company or a unit below it; at 나 every reader with a
-user of the account service, and 설정's 내 에이전트 is a door to it (「Settings」). Each agent setting is a kind the agency declares on the chain (the
+user of the account service, the sidebar's 조직 entry being how such a reader reaches it (「Sidebar」). Each agent setting is a kind the agency declares on the chain (the
 agency's `docs/prompt-layers.md`, `docs/role-agents.md` and `docs/repositories.md`) and each BMO setting one of the
 account service's (`docs/accounts.md`, 「A person's BMO profile」), read and written as the reader on the chain's own
 routes, the account service's or the agency's, so who may change the node's link, and a lock above
@@ -9267,8 +9270,8 @@ alone: no route of the console or of the account service answers a value.
   /api/organization/units/{unit}/secrets/{name}`, each handing the account service the reader in `Owner-Key`, so the
   service judges who holds the space; a reader it refuses is told in one line that they may not set this unit's
   secrets, and nothing else.
-- **At 나** the space is the reader's own, `env/users/<user>/`, through the same `/api/secrets` routes; the settings
-  dialog's 비밀 보관함 is a door to it. The administrator's own space is the platform's, so for them 나 holds one line
+- **At 나** the space is the reader's own, `env/users/<user>/`, through the same `/api/secrets` routes; the sidebar's
+  조직 entry is how a reader reaches it. The administrator's own space is the platform's, so for them 나 holds one line
   saying so with 열기, which chooses 플랫폼 전체.
 - **The value goes nowhere but the store,** as the secret form keeps it (「Settings」, 비밀 보관함).
 
@@ -9394,7 +9397,7 @@ node.
 
 The supply of the node chosen: what runs there go out on, the plan it stands on, and the credits that pay for them.
 The same settings stand at every link: a company's or a unit's view here, the platform's at 플랫폼 전체 and the reader's
-own at 나 (both below), 설정's 공급 being a door to the last (「Settings」). The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
+own at 나 (both below), the sidebar's 조직 entry being how a reader reaches their own (「Sidebar」). The account service holds every one of these and owns every refusal (`docs/accounts.md`); the tab
 is read and written on its routes through the console's relay (`/api/supply/org/{unit}` and its `credits`, and
 `/api/supply/units` for the units the tab may stand for — the companies the account service's `GET /supply/units`
 says the reader holds a part of the supply of: every company for the administrator, and for anyone else each company
@@ -10821,8 +10824,9 @@ title bar」), its people directory and the members of the reader's company.
     meets that refusal at its next call, and its address, opened again, leads a member to their home as any address
     they may not open does (「Access」).
   - **Where an app is turned on and off** is 「Organisation」's 앱·도구·스킬 tab alone, one node of the tree at a time: the
-    platform, with its recall, a company or a unit and those under it, and the reader's own at 나, the settings
-    dialog's 내 앱·도구·스킬 being a door to it.
+    platform, with its recall, a company or a unit and those under it, and the reader's own at 나, which the sidebar's
+    조직 entry leads a reader to. The apps and the skills their own BMO made, with their share into the company's
+    catalogue, stay in the settings dialog's 내 개인 앱 and 내 스킬 (「Settings」).
 - **A screen's module is loaded the first time its path is opened.** The browser reads the module through the
   relay and, before it runs, points every import of a shared library at the console's own copy. A file of the
   bundle the module imports is read the same way, one imported only when it is reached at the moment it is

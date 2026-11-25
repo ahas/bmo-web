@@ -36,11 +36,11 @@ const EXPECTED = {
     [APPLICATION, BROUGHT]
   ],
   [SECTION_READER.name]: [
-    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "agents", "siren"].map((key) => wording(`screens.label.${key}`))],
+    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren"].map((key) => wording(`screens.label.${key}`))],
     [APPLICATION, BROUGHT]
   ],
   [ROOM_READER.name]: [
-    [ADMINISTRATION, [STORE]],
+    [ADMINISTRATION, [STORE, wording("screens.label.organization")]],
     [APPLICATION, BROUGHT]
   ]
 } as const;

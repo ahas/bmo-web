@@ -28,6 +28,7 @@ const ADMINISTRATION = wording("screens.label.section_administration");
 const APPLICATION = wording("screens.label.section_application");
 const BROUGHT = [...HARNESS_SCREEN_UNITS];
 const STORE = wording("screens.label.catalogue");
+const ORGANIZATION = wording("screens.label.organization");
 const ADMINISTRATOR_SCREENS = [
   ...["db", "research", "monitor", "documents", "catalogue", "agents", "organization", "siren", "admin"].map((key) => wording(`screens.label.${key}`)),
   harnessNamedTitle("administrator")
@@ -214,10 +215,10 @@ describe.skipIf(!origin || !touchReady())("the sidebar after a sign-in", () => {
         await signOut(page, first, ADMINISTRATOR.name);
         await signInToShell(page, tab, MEMBER, viewport.phone);
 
-        // The member's shell holds the member's screens alone: the store among the administrator services, and the
-        // screens units bring.
+        // The member's shell holds the member's screens alone: the store and the organisation entry among the
+        // administrator services, and the screens units bring.
         expect(await sections(await sidebar(page, viewport.phone))).toEqual([
-          [ADMINISTRATION, [STORE]],
+          [ADMINISTRATION, [STORE, ORGANIZATION]],
           [APPLICATION, sorted(BROUGHT)]
         ]);
         expect(reloads).toBe(0);
@@ -266,7 +267,7 @@ describe.skipIf(!origin || !touchReady())("the sidebar after a sign-in", () => {
         await page.waitForURL((url) => !url.pathname.endsWith("/start"), { timeout: 20_000 });
 
         expect(await sections(await sidebar(page, viewport.phone))).toEqual([
-          [ADMINISTRATION, [STORE]],
+          [ADMINISTRATION, [STORE, ORGANIZATION]],
           [APPLICATION, sorted(BROUGHT)]
         ]);
       } finally {

@@ -309,23 +309,17 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
       }
     }, 120_000);
 
-    test(`a member reaches their own node through the settings door and turns the app off for themselves, at ${viewport.width}px`, async () => {
+    test(`a member opens their own node and turns the app off for themselves, at ${viewport.width}px`, async () => {
       const member = await contextFor(MEMBER.name, viewport.width, viewport.height, viewport.phone);
 
       try {
         const page = await member.newPage();
 
-        await page.goto(`${origin}/?settings=apps`, { waitUntil: "load" });
+        // The organisation entry stands for a reader with a user, and the screen opens at their own link of the chain
+        // on the tab the address names (docs/web.md, 「Sidebar」, 「Organisation」, the apps tab).
+        await page.goto(`${origin}/organization?company=me&tab=apps`, { waitUntil: "load" });
         await standing(page);
-
-        const door = page.locator('[data-settings-door="apps"]');
-
-        await door.waitFor({ timeout: 20_000 });
-        await press(page, door, viewport.phone);
-        await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("company") === "me" && url.searchParams.get("tab") === "apps", { timeout: 15_000 });
         await page.locator('[data-organization-node="me"]').waitFor({ timeout: 10_000 });
-        // The dialog is left behind as the address moves.
-        await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
 
         const row = await appRow(page);
         const toggle = row.locator("[data-app-switch]");

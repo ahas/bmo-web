@@ -135,7 +135,7 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/account\/(?:supply-sources|agent-persona)$/, scope: "user" },
   { method: "PUT", path: /^\/api\/account\/agent-persona$/, scope: "user" },
   // The reader's own agents and instructions: every signed-in login asks for their own, the agency judging by the
-  // delegation chain what they may change (docs/web.md, 「Settings」, the own-agents section).
+  // delegation chain what they may change (docs/web.md, 「Organisation」, the agents tab at the reader's own node).
   { method: "GET", path: /^\/api\/account\/(?:own-agents|own-instructions)$/, scope: "user" },
   { method: "GET", path: /^\/api\/account\/own-agents\/models\/[^/]+$/, scope: "user" },
   { method: "POST", path: /^\/api\/account\/own-agents(?:\/[^/]+\/back)?$/, scope: "user" },

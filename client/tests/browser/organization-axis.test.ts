@@ -276,26 +276,19 @@ describe.skipIf(!origin || !touchReady())("one setting on one tab, drawn by the 
       }
     }, 120_000);
 
-    test(`a member follows the settings' doors to their own agents and supply, at ${viewport.width}px`, async () => {
+    test(`a member opens their own agents and supply at their own node, at ${viewport.width}px`, async () => {
       const member = await contextFor(MEMBER.name, viewport.width, viewport.height, viewport.phone);
 
       try {
         const page = await member.newPage();
 
-        for (const { key, tab, view } of [
-          { key: "agent", tab: "agents", view: "[data-org-person-agents]" },
-          { key: "supply", tab: "supply", view: "[data-org-person-supply]" }
+        for (const { tab, view } of [
+          { tab: "agents", view: "[data-org-person-agents]" },
+          { tab: "supply", view: "[data-org-person-supply]" }
         ]) {
-          await page.goto(`${origin}/?settings=${key}`, { waitUntil: "load" });
+          await page.goto(`${origin}/organization?company=me&tab=${tab}`, { waitUntil: "load" });
           await standing(page);
-
-          const door = page.locator(`[data-settings-door="${tab}"]`);
-
-          await door.waitFor({ timeout: 20_000 });
-          await press(page, door, viewport.phone);
-          await page.waitForURL((url) => url.pathname.endsWith("/organization") && url.searchParams.get("company") === "me" && url.searchParams.get("tab") === tab, { timeout: 15_000 });
           await page.locator('[data-organization-node="me"]').waitFor({ timeout: 20_000 });
-          await page.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
           await page.locator(view).waitFor({ timeout: 20_000 });
           expect(await overflow(page)).toBeLessThanOrEqual(0);
         }

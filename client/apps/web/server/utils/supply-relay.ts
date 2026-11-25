@@ -240,7 +240,8 @@ async function keys(event: H3Event, method: string, parts: string[], body: Recor
   throw absent();
 }
 
-// The reader's own local AIs, at the agency (docs/web.md, 「Settings」, the supply section's local AIs).
+// The reader's own local AIs, at the agency (docs/web.md, 「Organisation」, the supply tab's local AIs at the reader's
+// own node).
 async function localAi(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<unknown> {
   if (parts.length === 0) {
     if (method === "GET") return await localAis(event);
@@ -321,9 +322,9 @@ async function logins(event: H3Event, method: string, body: Record<string, unkno
   return { ok: true };
 }
 
-// A person's own sign-in: started, answered with its page's code, or given up (docs/web.md, the settings' supply
-// section). A new login's start may name no name, the agency then naming it past every account's names, which the
-// person cannot see. The address and the code pass through and are kept by neither.
+// A person's own sign-in: started, answered with its page's code, or given up (docs/web.md, 「Organisation」, the
+// supply tab at the reader's own node). A new login's start may name no name, the agency then naming it past every
+// account's names, which the person cannot see. The address and the code pass through and are kept by neither.
 async function signIn(event: H3Event, method: string, parts: string[], body: Record<string, unknown>): Promise<ClaudeLoginStarted | null> {
   if (parts.length === 0) {
     if (method !== "POST") throw absent();

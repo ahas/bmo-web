@@ -109,8 +109,8 @@
   설정 권한, each row 허용, 막음 or 상위 조직 따름 (전역 설정 따름 on a company), a following row saying 상위 조직을 따라 허용 or
   상위 조직을 따라 막음 (전역 설정을 따라 허용 or 막음 on a company); the platform's own row → 자기 BMO 설정, its choices
   기본값을 따름, 허용 and 막음. Never 개인화 권한, 커스터마이즈.
-- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 조직 and 내 앱·도구·스킬
-  in 설정, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
+- a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 조직, at every node
+  of its tree 나 among them, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
   back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
   locks it as every lock line does (below); the platform letting a company use one → 제공, one it does not →
@@ -272,8 +272,8 @@
 - put a file of the reader's into a note → 업로드: 업로드, `{size}보다 작은 파일만 업로드할 수 있습니다` for a file over the
   largest the note takes. Never 올리기, 업로드 한도 or 최대 용량.
 - secret, a value a unit reads by its file name → 비밀; the console's store of them, each person's own → 비밀 보관함,
-  and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. A unit's and the platform's stand
-  on 조직's 비밀 보관함 under the same words. Never 시크릿, 키 보관소, 개인 금고.
+  and one's own → 내 비밀; putting a value in place of the one a name holds → 교체. A unit's, the platform's and the
+  reader's own all stand on 조직's 비밀 보관함 under the same words, the reader's at 나. Never 시크릿, 키 보관소, 개인 금고.
 - which console sections a unit's people use → 권한, each person's sections 읽기 and 쓰기; the list's search 이름으로 찾기,
   찾은 사람 없음, 사람 없음. Never 역할 for a section, 접근 제어.
 - the shape a secret is asked in → 비밀 종류; one of its fields → 항목, its key 키 and its label 이름; fields put

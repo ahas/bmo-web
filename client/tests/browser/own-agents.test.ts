@@ -72,7 +72,7 @@ async function pick(page: Page, select: Locator, choice: string, phone: boolean)
   else await option.click();
 }
 
-describe.skipIf(!origin || !touchReady())("the own-agents section", () => {
+describe.skipIf(!origin || !touchReady())("the reader's own agents tab", () => {
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
     test(`shows the supplied agents and lays the reader's changes over them, ${width}px wide`, async () => {
       const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });

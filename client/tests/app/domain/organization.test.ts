@@ -34,19 +34,29 @@ import { ADMIN_MOVED_TO_PLATFORM, ADMIN_PATH } from "../../../apps/web/app/domai
 import { SETTINGS_SECTIONS, sectionsFor } from "../../../apps/web/app/domain/settings-dialog";
 import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
-// The settings dialog holds what a person sets for themselves alone, their secrets and the voice briefing among it, and the organisation
-// settings screen what is set for the whole deployment or for other people, a tab to a section; the research
-// supervisor stands on the research screen (docs/web.md, 「Settings」 and 「Organisation settings」).
+// The settings dialog holds what a person sets for themselves alone, their own apps and skills and the voice briefing
+// among it, and the organisation screen what is set for other people and for the reader's own link of the delegation
+// chain, a tab to a section; the research supervisor stands on the research screen (docs/web.md, 「Settings」 and
+// 「Organisation」).
 
 describe("the settings dialog", () => {
-  test("holds the personal sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "own-agents", "machine", "desktop", "secrets", "supply", "apps", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
+  test("holds the reader's own sections alone, the voice briefing under its own name", () => {
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
-  test("shows a member their account, machine, secrets, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "own-agents", "machine", "secrets", "supply", "apps", "personal-apps", "skills", "theme", "palette"]);
-    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "own-agents", "machine", "secrets", "supply", "apps", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
+  test("holds no section that only led to the organisation screen", () => {
+    const keys = SETTINGS_SECTIONS.map((section) => section.key);
+
+    expect(keys).not.toContain("own-agents");
+    expect(keys).not.toContain("secrets");
+    expect(keys).not.toContain("supply");
+    expect(keys).not.toContain("apps");
+  });
+
+  test("shows a member their account, machine, own apps, skills, theme and palette, and the administrator the notifications and the player too", () => {
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "skills", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
   });
 
   test("shows the desktop app's section only in the app's window, to every reader", () => {
@@ -54,12 +64,15 @@ describe("the settings dialog", () => {
       expect(sectionsFor(administrator, user).map((section) => section.key)).not.toContain("desktop");
       expect(sectionsFor(administrator, user, true).map((section) => section.key)).toContain("desktop");
     }
-    expect(sectionsFor(false, true, true).map((section) => section.key)).toEqual(["account", "own-agents", "machine", "desktop", "secrets", "supply", "apps", "personal-apps", "skills", "theme", "palette"]);
+    expect(sectionsFor(false, true, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "skills", "theme", "palette"]);
   });
 
-  test("shows no secrets and no machine to a login with no user, which holds no space and no machine", () => {
-    expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("secrets");
-    expect(sectionsFor(true, false).map((section) => section.key)).not.toContain("machine");
+  test("shows no machine and no own apps to a login with no user, which holds no machine and made nothing", () => {
+    const keys = sectionsFor(true, false).map((section) => section.key);
+
+    expect(keys).not.toContain("machine");
+    expect(keys).not.toContain("personal-apps");
+    expect(keys).not.toContain("skills");
   });
 
   test("leads every key that moved to its tab of the organisation screen or the administrator's, and keeps its own keys", () => {
@@ -105,8 +118,9 @@ describe("the organisation screen", () => {
     }
   });
 
-  test("leads the BMO and plans keys to the tabs they stand on now, keeping the node", () => {
+  test("leads the BMO, own-agents and plans keys to the tabs they stand on now, keeping the node", () => {
     expect(organizationMovedAway("agent", { company: "3", unit: "5", tab: "agent" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "3", unit: "5", tab: "agents" } });
+    expect(organizationMovedAway("own-agents", { company: "me" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "me", tab: "agents" } });
     expect(organizationMovedAway("plans", { company: "3" })).toEqual({ path: ORGANIZATION_PATH, query: { company: "3", tab: "supply" } });
   });
 
@@ -129,8 +143,18 @@ describe("the organisation screen", () => {
   });
 
   test("opens at a link node every tab declaring a view of it, for every reader the node stands for", () => {
-    expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["invites", "agents", "apps", "secrets", "supply"]);
+    expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "secrets", "supply"]);
+    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).toEqual(["agents", "apps", "storage", "mail-servers", "secrets", "memory", "permissions", "supply", "security"]);
     expect(organizationTabsFor(MEMBER, null).map((tab) => tab.value)).toEqual(["invites", "apps"]);
+  });
+
+  test("stands the invitations tab at a company or a unit alone, where its links and machine-share asks are set", () => {
+    expect(organizationTabsFor(MEMBER, null).map((tab) => tab.value)).toContain("invites");
+    expect(organizationTabsFor(COMPANY_HEAD, null).map((tab) => tab.value)).toContain("invites");
+    expect(organizationTabsFor(ADMINISTRATOR, null).map((tab) => tab.value)).toContain("invites");
+    expect(organizationTabsFor(MEMBER, PERSON_NODE).map((tab) => tab.value)).not.toContain("invites");
+    expect(organizationTabsFor(UNIT_HEAD, PERSON_NODE).map((tab) => tab.value)).not.toContain("invites");
+    expect(organizationTabsFor(ADMINISTRATOR, PLATFORM_NODE).map((tab) => tab.value)).not.toContain("invites");
   });
 
   test("opens the first tab a reader may for a key naming none of theirs", () => {
@@ -138,6 +162,9 @@ describe("the organisation screen", () => {
     expect(organizationTabOf("people", MEMBER)?.value).toBe("invites");
     expect(organizationTabOf(undefined, ADMINISTRATOR)?.value).toBe("organization");
     expect(organizationTabOf(undefined, COMPANY_HEAD)?.value).toBe("people");
+    // The reader's own node opens on their agents, the first tab standing there, never on a tab holding nothing.
+    expect(organizationTabOf(undefined, MEMBER, PERSON_NODE)?.value).toBe("agents");
+    expect(organizationTabOf("invites", MEMBER, PERSON_NODE)?.value).toBe("agents");
   });
 
   test("draws no tab a member is not yet known to open, and the one they are, before the roster answers", () => {
@@ -184,7 +211,7 @@ describe("the organisation screen", () => {
     const admin = SCREENS.find((one) => one.to === ADMIN_PATH)!;
 
     expect(screen.to).toBe(ORGANIZATION_PATH);
-    expect(screen.unitKeepers).toBe(true);
+    expect(screen.everyone).toBe(true);
     expect(screen.tabs?.map((tab) => tabAddress(screen, tab))).toEqual(["/organization", "/organization?tab=people", "/organization?tab=catalogue", "/organization?tab=invites", "/organization?tab=agents", "/organization?tab=apps", "/organization?tab=storage", "/organization?tab=mail-servers", "/organization?tab=secrets", "/organization?tab=memory", "/organization?tab=permissions", "/organization?tab=supply", "/organization?tab=security"]);
     expect(admin.to).toBe(ADMIN_PATH);
     expect(admin.administrator).toBe(true);

@@ -81,7 +81,7 @@
 import { provideConsolePeople } from "~/domain/people-offer";
 import { provideConsoleTitleBar, useTitleBarTarget } from "~/domain/title-bar";
 import { useDesktopApp } from "~/domain/desktop-app";
-import { MEMBER_HOME } from "~/domain/access";
+import { MEMBER_HOME, useSignedUser } from "~/domain/access";
 import { consoleName } from "#shared/agent-names";
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { SCREEN_FRAME } from "bmo-ui/app/domain/screen";
@@ -90,14 +90,13 @@ import { useRoomList, useRoomReading } from "~/domain/room-list";
 import { useRoomsPresent } from "~/domain/presence";
 import { useConsoleScreens } from "~/domain/console-screens";
 import { useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
-import { featuredScreens, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
+import { featuredScreens, memberListsScreen, namedWhenFolded, roomItems, screensWithBundles, sectionItems } from "~/domain/screens";
 import { namedBy, withReadNames } from "~/domain/own-screen-names";
 import { useReadScreenNames } from "~/domain/own-screen-readings";
 import { useConsoleFeatures } from "~/domain/console-features";
 import { SIDEBAR_GROUP, SIDEBAR_WIDTH } from "~/domain/sidebar-width";
 import { useSidebarUnread } from "~/domain/sidebar-unread";
-import { useKeepsUnits } from "~/domain/organization";
-import { accessOf, homeFor, screenMayRead, sectionsOfPath } from "#shared/sections";
+import { accessOf, homeFor } from "#shared/sections";
 
 import type { NavigationMenuItem } from "@nuxt/ui";
 import type { AvatarIndex } from "~/domain/avatars";
@@ -155,18 +154,9 @@ async function roomOpened(room: RoomAdded): Promise<void> {
   await refreshNuxtData("rooms");
   await navigateTo(`/rooms/${room.chatId}`);
 }
-// The organisation screen stands for a member who heads a unit or writes a unit's org memory (docs/web.md,
-// 「Organisation」).
-const keepsUnits = useKeepsUnits();
+const signedUser = useSignedUser();
 const screens = computed(() =>
-  screensWithBundles(bundles.value, featuredScreens(features.value)).filter((screen) => {
-    if (screen.administrator === true) return false;
-    if (screen.unitKeepers === true) return keepsUnits.value;
-    if (sectionsOfPath(screen.to).length === 0) return true;
-    if (!accessReady.value) return false;
-
-    return screenMayRead(access.value, screen.to);
-  })
+  screensWithBundles(bundles.value, featuredScreens(features.value)).filter((screen) => memberListsScreen(screen, access.value, accessReady.value, signedUser.value !== null))
 );
 // The counts the bundles declare, read for this reader while the sidebar stands (docs/web.md, 「Sidebar」).
 const unread = useSidebarUnread();

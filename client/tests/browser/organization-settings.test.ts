@@ -28,9 +28,30 @@ const MEMBER = { name: "org-member", password: "fixture-password-2667" };
 const MOVERS = ["org-move-a", "org-move-b", "org-move-c"];
 const RUN = Date.now().toString(36);
 
-const PERSONAL = ["settings.label.account", "settings.label.secrets", "settings.label.supply", "settings.label.theme", "settings.label.palette"];
+// The names the settings dialog is asked about: the reader's own sections, in the order the list stands them, then the
+// labels of the tabs of the organisation screen and of the administrator's screen that the dialog holds no section
+// for. A name standing in the dialog that no reader's expectation lists is a finding (docs/web.md, 「Settings」).
+const SECTION_POOL = [
+  "settings.label.account",
+  "settings.label.machine",
+  "settings.label.personal_apps",
+  "settings.label.skills",
+  "settings.label.theme",
+  "settings.label.palette",
+  "settings.label.notifications",
+  "settings.label.briefing",
+  "settings.label.secrets",
+  "org_agents.label.tab",
+  "apps.label.tab",
+  "supply.label.tab",
+  "settings.label.invites",
+  "settings.label.permissions",
+  "settings.label.providers",
+  "secrets.label.kinds",
+  "research.title.supervisor"
+];
+const PERSONAL = ["settings.label.account", "settings.label.machine", "settings.label.personal_apps", "settings.label.skills", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
-const MOVED = ["settings.label.invites", "settings.label.permissions", "settings.label.providers", "secrets.label.kinds", "research.title.supervisor"];
 const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"];
 const ADMIN_TABS = ["settings.label.providers", "secrets.label.kinds", "security.label.mail_tab"];
 
@@ -116,7 +137,7 @@ async function dialogSections(page: Page, home: string): Promise<string[]> {
   await dialog.waitFor({ timeout: 20_000 });
   await dialog.getByText(wording("settings.label.account"), { exact: true }).first().waitFor({ timeout: 10_000 });
 
-  const named = [...ADMINISTRATOR_PERSONAL, ...MOVED].map((key) => wording(key));
+  const named = SECTION_POOL.map((key) => wording(key));
   const shown: string[] = [];
 
   for (const name of named) {
@@ -331,6 +352,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
             pathLines: Math.round(box("[data-unit-path]")!.height / parseFloat(getComputedStyle(document.querySelector("[data-unit-path]")!).lineHeight)),
             name: box("[data-unit-chosen] h2"),
             edit: box("[data-unit-edit]"),
+            remove: box("[data-unit-delete]"),
             heading: box("[data-unit-chosen] h3"),
             addHead: box("[data-unit-add-head]"),
             // A row's own height, its hairline above it left out.
@@ -342,11 +364,13 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           };
         });
 
-        // The path stands whole, wrapping on a phone; the name takes its own row, and the edit button the row under it.
+        // The path stands whole, wrapping on a phone; the name takes its own row, and the act row under it ends on the
+        // column's edge, the administrator's taking of the unit standing last among its buttons.
         expect(shape.pathCut).toBe(false);
         if (width < 1024) expect(shape.pathLines).toBeGreaterThan(1);
         expect(shape.edit!.top).toBeGreaterThanOrEqual(shape.name!.bottom);
-        expect(Math.abs(shape.edit!.right - shape.column!.right)).toBeLessThanOrEqual(1);
+        expect(shape.remove!.left).toBeGreaterThan(shape.edit!.right);
+        expect(Math.abs(shape.remove!.right - shape.column!.right)).toBeLessThanOrEqual(1);
 
         // A head's row and a person's row stand at one height.
         expect(shape.rows[0]).toBe(shape.rows[1]);
@@ -700,12 +724,33 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
 
           expect(await dialogSections(page, "/rooms")).toEqual(PERSONAL.map((key) => wording(key)));
 
-          // The sidebar's organisation entry, among the administrator services.
+          // The sidebar's organisation entry, among the administrator services: it stands for every reader with a
+          // user of the account service, a member who heads nothing among them, the screen holding their own link of
+          // the chain for each of them (docs/web.md, 「Sidebar」, 「Organisation」).
           // An invitation's dialog may still stand over the page as the entry is looked for, which hides the sidebar from
           // the page's roles, so the entry is found by its section's own label and its address.
           const entry = page.locator(`nav[aria-label="${wording("screens.label.section_administration")}"] a[href$="/organization"]`);
 
-          if (width >= 1024) expect(await entry.count()).toBe(0);
+          if (width >= 1024) {
+            expect(await entry.count()).toBe(1);
+
+            // Chosen at their own link of the chain, the screen holds the tabs that set that link and no invitations
+            // tab, which stands at a company or a unit alone: the row it opens on is the row it shows, and it shows a
+            // tab's own content rather than the line saying the tab holds nothing here (docs/web.md, 「Organisation」,
+            // the invitations tab, and 「Settings」).
+            await page.goto(`${origin}/organization?company=me`, { waitUntil: "load" });
+            await standing(page);
+            const row = await tabNames(page);
+            const selected = page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"][aria-selected="true"]`);
+
+            await selected.first().waitFor({ timeout: 20_000 });
+
+            expect(row).not.toContain(wording("settings.label.invites"));
+            expect((await selected.allInnerTexts()).map((one) => one.trim())).toEqual([row[0]!]);
+            expect(await page.locator("[data-organization-link-none]").count()).toBe(0);
+            expect(await page.locator("[data-organization-body]").count()).toBe(1);
+            expect(await overflow(page)).toBeLessThanOrEqual(0);
+          }
 
           await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "PUT");
           await page.goto(`${origin}/organization`, { waitUntil: "load" });

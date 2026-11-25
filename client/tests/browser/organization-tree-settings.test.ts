@@ -248,7 +248,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's tree settin
       }
     }, 120_000);
 
-    test(`shows a head their unit's secrets and a member their own through the settings door, at ${width}px`, async () => {
+    test(`shows a head their unit's secrets and a member their own at their own node, at ${width}px`, async () => {
       const head = await contextFor(HEAD.name, width, height, phone);
       const member = await contextFor(MEMBER.name, width, height, phone);
 
@@ -264,13 +264,9 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's tree settin
 
         const own = await member.newPage();
 
-        await visit(own, "/?settings=secrets");
-
-        const door = own.locator('[data-settings-door="secrets"]');
-
-        await door.waitFor({ timeout: 20_000 });
-        await press(own, door, phone);
-        await own.waitForURL((url) => url.searchParams.get("company") === "me" && url.searchParams.get("tab") === "secrets", { timeout: 15_000 });
+        // Their own space stands at their own link of the chain, which the sidebar's organisation entry leads a
+        // reader to.
+        await visit(own, "/organization?company=me&tab=secrets");
         await own.locator('[data-secret-space="own"]').waitFor({ timeout: 10_000 });
         expect(await own.locator("[data-secret-space-note]").innerText()).toBe(wording("secrets.label.note"));
         expect(await overflow(own)).toBeLessThanOrEqual(0);

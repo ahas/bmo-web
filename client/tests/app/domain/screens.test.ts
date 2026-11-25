@@ -2,9 +2,10 @@ import { expect, test } from "bun:test";
 
 import { wording } from "../../../apps/web/shared/wording";
 
-import { ACCOUNT_ITEM_SLOT, accountItems, accountScreens, accountUnread, broughtScreens, isScreenActive, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
+import { ACCOUNT_ITEM_SLOT, accountItems, accountScreens, accountUnread, broughtScreens, isScreenActive, memberListsScreen, namedWhenFolded, SCREENS, screenItems, screenSections, screensWithBundles, sectionItems, sidebarOrder, tabAddress } from "../../../apps/web/app/domain/screens";
 
 import type { Screen } from "../../../apps/web/app/domain/screens";
+import type { SectionAccessMap } from "../../../apps/web/shared/sections";
 import KO from "../../fixtures/app/domain/screens.test.ko.json";
 import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 
@@ -20,6 +21,28 @@ test("every screen of the console's own is listed, named from the pack, and stan
 
 // The organisation screen, an entry of the administrator services among the others.
 const ORGANIZATION = SCREENS.find((screen) => screen.to === "/organization")!;
+
+// Whom the member's shell lists each screen for (docs/web.md, 「Sidebar」, 「Access」).
+const ADMIN = SCREENS.find((screen) => screen.to === "/admin")!;
+const STORE = SCREENS.find((screen) => screen.to === "/store")!;
+const DOCUMENTS = SCREENS.find((screen) => screen.to === "/documents")!;
+const READS_DOCUMENTS: SectionAccessMap = { documents: { read: true, write: false } };
+const HOLDS_DOCUMENTS: SectionAccessMap = { documents: { read: false, write: false } };
+
+test("lists a member the organisation screen and the store for a reader with a user of the account service alone, whatever their sections", () => {
+  expect(memberListsScreen(ORGANIZATION, {}, false, true)).toBe(true);
+  expect(memberListsScreen(STORE, {}, false, true)).toBe(true);
+  expect(memberListsScreen(ORGANIZATION, HOLDS_DOCUMENTS, true, false)).toBe(false);
+  expect(memberListsScreen(STORE, HOLDS_DOCUMENTS, true, false)).toBe(false);
+  expect(memberListsScreen(ADMIN, READS_DOCUMENTS, true, true)).toBe(false);
+});
+
+test("lists a member any other screen only once its section's read answers them, and reads it alone", () => {
+  expect(memberListsScreen(DOCUMENTS, READS_DOCUMENTS, false, true)).toBe(false);
+  expect(memberListsScreen(DOCUMENTS, READS_DOCUMENTS, true, true)).toBe(true);
+  expect(memberListsScreen(DOCUMENTS, HOLDS_DOCUMENTS, true, true)).toBe(false);
+  expect(memberListsScreen(DOCUMENTS, HOLDS_DOCUMENTS, true, false)).toBe(false);
+});
 
 test("the organisation screen stands among the administrator services by its name, and alone under their heading where it is the reader's only one, lit on any of its tabs", () => {
   const menus = sectionItems(wording, "/", undefined, false, SCREENS);

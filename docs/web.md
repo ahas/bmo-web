@@ -572,8 +572,8 @@ nothing.
   console screen belongs to the section its address names, agent management's and the monitor's as their parts
   stand, and a member opens every one of them whose section they read, each screen holding back by itself what
   is the administrator's alone, as the research screen's 리서치 감독관. A screen whose address names no section
-  opens to a member only where it says a member may: the settings sections their account reads and 조직's
-  초대 where they head a unit. Beside them stand the rooms they may read, and the screens units bring whose
+  opens to a member only where it says a member may: the store (「App catalogue」), the settings sections their
+  account reads and 조직's 초대 where they head a unit. Beside them stand the rooms they may read, and the screens units bring whose
   manifest's role is `member` and whose section the administrator has left read — and, where the manifest asks
   for the owner key, only when their login has a user.
 - **What a tab knows of its reader belongs to the login it was read for.** The screens they may open (「Screens a
@@ -9639,8 +9639,9 @@ a personal app another person's BMO made on their PC, a skill, the instructions 
 server, put on a PC as a personal app is and reaching a remote server or running one there. The reader installs one for
 themselves, a head turns it on for a unit and recalls it there on 조직's 앱·도구·스킬 (「앱·도구·스킬」); a skill and an
 MCP server reach only the agents the reader attaches them to (「내 에이전트」). Every mechanism below holds for every kind
-unless it says otherwise. Nothing of another company stands in it. It stands at `/app-catalogue` in
-the sidebar's 시스템 서비스 as 스토어 and opens to every person with a user of the account service; the console reads and changes it
+unless it says otherwise. Nothing of another company stands in it. It stands at `/store` in the sidebar's 시스템
+서비스 as 스토어, its entry opening it there, and opens to every person with a user of the account service, a member in
+their own shell; `/app-catalogue` forwards to `/store` with the query it carries. The console reads and changes it
 through its own routes under `/api/account/app-catalogue`, which ask the agency for the account the reader's user is,
 so a reader sees and does what their own account may alone, and the agency's word is what every control shows.
 

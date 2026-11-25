@@ -119,7 +119,7 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.organization", to: ORGANIZATION_PATH, icon: "i-material-symbols-domain", nested: false, tabs: ORGANIZATION_TABS, unitKeepers: true, feature: "organizations", section: "administration" },
   // The store: the personal apps the reader's company shares, as the reader may see them: browsed, installed, turned on for a unit
   // and recalled.
-  { label: "screens.label.catalogue", to: "/app-catalogue", icon: "i-material-symbols-storefront-outline", nested: false, everyone: true, feature: "organizations", section: "administration" },
+  { label: "screens.label.catalogue", to: "/store", icon: "i-material-symbols-storefront-outline", nested: false, everyone: true, feature: "organizations", section: "administration" },
   // What is set for the platform itself, the administrator's alone: the providers and the secret kinds.
   { label: "screens.label.admin", to: ADMIN_PATH, icon: "i-material-symbols-shield-person-outline", nested: false, tabs: ADMIN_TABS, administrator: true, section: "administration" }
 ];

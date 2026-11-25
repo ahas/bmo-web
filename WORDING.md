@@ -216,6 +216,9 @@
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
+- a received schedule's detail on the calendar → its rows 제목, 일시, 담당자 (the person it is assigned to) and 출처 (the
+  source it came from, by its name), with 종일 after ` · ` for an all-day one; the way to the item it stands for, offered
+  on the reader's own schedule alone → 열기. Never 날짜와 시간 or 일정 시간 for 일시, and never 소스, 원본 or 보낸 곳 for 출처.
 - a date picker's paging buttons → 이전 달, 다음 달 among the days; 이전 연도, 다음 연도 among the months and on the
   outer pair; 이전 연도 범위, 다음 연도 범위 among a run of years. Never 지난달, 저번 달, 전년, 다음 해, 이전 연대.
 - a select's list, the same on every screen → its search field 검색; nothing matching what was typed → 찾은 항목
@@ -655,6 +658,8 @@
   시간.
 - the attendance screen → 근태; its views → 근무계획, 휴가, 업무 기록, 조직 근무계획 (a head's view of a unit), 설정. Never
   출퇴근, 근무 관리.
+- a person's month the reader may not read, opened at that person's address → 이 사람의 근태는 볼 수 없습니다, said on the
+  message island while the reader's own month opens. Never 찾을 수 없습니다 or 권한이 없습니다 for it.
 - a month's plan of one person → 근무계획: 작성 전, 작성 중, 제출됨, and its act 제출, since it has no approver; its changes →
   근무계획 이력. A day the plan does not cover yet → 미설정, a state of the day rather than an empty cell: 미설정, 미설정 {n}일,
   미설정인 날 in a sentence, and writing them all → 미설정 채우기. Never 상신 for a plan, 빈 날, 미입력, 누락일.
@@ -791,5 +796,6 @@
 - 아티팩트 → artifact / アーティファクト / 制品.
 - 인물 (the person an org memory is about) → person / 人物 / 人员.
 - 전역 베이스 → global base / グローバルベース / 全局库.
+- 출처 → Source / 提供元 / 来源.
 - 스토어 → Store / ストア / 应用商店; 회수 → recall / 回収 / 收回; 복제 → clone / 複製 / 复制.
 - 스킬 → skill / スキル / 技能; 붙이다 → attach / 付ける / 附加.

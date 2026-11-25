@@ -159,7 +159,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.goto(`${origin}/store`, { waitUntil: "load" });
 
         const weeklyRow = page.locator("[data-catalogue-app='17-weekly']");
         const ratesRow = page.locator("[data-catalogue-app='21-rates']");
@@ -236,7 +236,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.goto(`${origin}/store`, { waitUntil: "load" });
 
         const ratesRow = page.locator("[data-catalogue-app='21-rates']");
 
@@ -349,7 +349,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.goto(`${origin}/store`, { waitUntil: "load" });
         await page.locator("[data-catalogue-app='17-weekly']").waitFor({ timeout: 30_000 });
         expect(asked[0]).toBe("GET  company=");
         expect(await page.locator("[data-catalogue-company]").count()).toBe(0);
@@ -384,7 +384,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.goto(`${origin}/store`, { waitUntil: "load" });
 
         const row = (id: string) => page.locator(`[data-catalogue-app='${id}']`);
 
@@ -484,7 +484,7 @@ describe.skipIf(!origin || !touchReady())("the app catalogue", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+        await page.goto(`${origin}/store`, { waitUntil: "load" });
 
         const weeklyRow = page.locator("[data-catalogue-app='17-weekly']");
         const ratesRow = page.locator("[data-catalogue-app='21-rates']");

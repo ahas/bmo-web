@@ -12,7 +12,7 @@ import type { ConsoleScreen } from "../../../apps/web/shared/console-bundles";
 // its section by the name the reader sees, lit on its own address and, where it is nested, on the pages below it.
 
 test("every screen of the console's own is listed, named from the pack, and stands always", () => {
-  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/app-catalogue", "/db", "/documents", "/monitor", "/organization", "/research", "/siren"]);
+  expect(SCREENS.map((screen) => screen.to).sort()).toEqual(["/admin", "/agents", "/db", "/documents", "/monitor", "/organization", "/research", "/siren", "/store"]);
   expect(SCREENS.some((screen) => screen.brought === true)).toBe(false);
   expect(screensWithBundles([]).map((screen) => screen.to)).toEqual(SCREENS.map((screen) => screen.to));
   expect(screenItems(wording, "/").map((item) => item.label)).toEqual(SCREENS.map((screen) => wording(screen.label)));

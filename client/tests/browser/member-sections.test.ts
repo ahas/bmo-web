@@ -1,13 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
 import type { Browser, BrowserContext, Page } from "playwright-core";
 
 // A member opens each of the console's own screens whose section they read, in the member's shell, and an address
 // they may not open takes them to the first screen they may, never round again to itself (docs/web.md, 「Access」).
-// The research screen holds back its research supervisor, the administrator's alone. Its two members are the test
+// The research screen holds back its research supervisor, the administrator's alone. The store opens to them at its own
+// address, from its entry and from its other address (「App catalogue」). Its two members are the test
 // console's own, each with the sections tests/support/browser-console.ts writes for them.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up.
@@ -87,6 +89,27 @@ describe.skipIf(!origin || !touchReady())("a member's own console screens", () =
       }
     }, 120_000);
   }
+
+  test("the store opens to a member at /store, its entry leading there and its other address forwarding there", async () => {
+    const context = await contextFor(SECTION_READER.name, 1280, 800);
+
+    try {
+      const page = await context.newPage();
+
+      expect(await opened(page, "/store")).toEqual({ status: 200, path: "/store" });
+      expect(await page.locator(MEMBER_SHELL).count()).toBe(1);
+
+      const entry = page.locator(`nav[aria-label="${wording("screens.label.section_administration")}"] a`, { hasText: wording("screens.label.catalogue") });
+
+      await entry.waitFor({ timeout: 20_000 });
+      expect(new URL(await entry.evaluate((link) => (link as HTMLAnchorElement).href)).pathname.replace(/^\/console/, "")).toBe("/store");
+
+      expect((await opened(page, "/app-catalogue?from=link")).path).toBe("/store");
+      expect(new URL(page.url()).searchParams.get("from")).toBe("link");
+    } finally {
+      await context.close();
+    }
+  }, 120_000);
 
   test("each of the console's own screens opens to a member who reads its section, in the member's shell", async () => {
     const context = await contextFor(SECTION_READER.name, 1280, 800);

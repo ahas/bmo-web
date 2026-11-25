@@ -136,7 +136,7 @@ describe.skipIf(!origin || !touchReady())("the store in a reader's own language"
         try {
           const page = await context.newPage();
 
-          await page.goto(`${origin}/app-catalogue`, { waitUntil: "load" });
+          await page.goto(`${origin}/store`, { waitUntil: "load" });
 
           // The page speaks the reader's language.
           await expect(page.locator("html").getAttribute("lang")).resolves.toBe(reader.locale);

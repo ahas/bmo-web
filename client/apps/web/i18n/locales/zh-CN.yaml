@@ -8,7 +8,7 @@ app:
     auto_translate_description: 打开用其他语言写的报告和指令时立即翻译显示。随时可以通过“查看原文”切换回来。
     color_mode: 显示模式
     language: 语言
-    language_description: 界面和通知使用的语言。适用于用此账号打开的所有设备。
+    language_description: "界面和通知使用的语言。\n适用于用此账号打开的所有设备。"
     manifest_name: "{agent}"
     mode_dark: 深色
     mode_light: 浅色

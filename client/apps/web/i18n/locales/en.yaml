@@ -8,7 +8,7 @@ app:
     auto_translate_description: Reports and instructions written in another language are translated as soon as you open them. You can switch back with Show original at any time.
     color_mode: Appearance
     language: Language
-    language_description: The language of the screens and notices. It applies on every device this account opens the console on.
+    language_description: "The language of the screens and notices.\nIt applies on every device this account opens the console on."
     manifest_name: "{agent}"
     mode_dark: Dark
     mode_light: Light

@@ -8,7 +8,7 @@ import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { ConsoleLanguage } from "../../apps/web/shared/languages";
 
-// The console read in four languages (docs/web.md, 「Wording and the language pack」 and 「Settings」, the theme section): an account
+// The console read in four languages (docs/web.md, 「Wording and the language pack」 and 「Settings」, the account section): an account
 // that chose none reads it in its browser's language, and one chosen in the settings' list, each language named in its
 // own script, takes the whole page at once — its words, the document's `lang` — is kept against the account, so a
 // reload and another browser asking for another language read it still, and the dialog stands inside the screen in
@@ -45,9 +45,9 @@ async function contextFor(account: string, browserLocale: string, { width, heigh
   return context;
 }
 
-// The theme section of the settings, where the language is chosen.
+// The account section of the settings, where the language is chosen.
 async function openLanguageRow(page: Page, language: ConsoleLanguage): Promise<void> {
-  await page.goto(`${origin}/siren?settings=theme`, { waitUntil: "load" });
+  await page.goto(`${origin}/siren?settings=account`, { waitUntil: "load" });
   await page.locator("[data-language-choice]").waitFor({ timeout: 30_000 });
   await page.getByText(wordingIn(language)("app.label.language"), { exact: true }).first().waitFor({ timeout: 10_000 });
 }
@@ -113,7 +113,7 @@ describe.skipIf(!origin || !touchReady())("the console's language", () => {
         expect(names.map((name) => name.trim())).toEqual(["ko", "en", "ja", "zh-CN"].map((one) => ownName(one as ConsoleLanguage)));
 
         await page.getByRole("option", { name: ownName("en") }).click();
-        await page.getByText(wordingIn("en")("app.label.color_mode"), { exact: true }).first().waitFor({ timeout: 10_000 });
+        await page.getByText(wordingIn("en")("app.label.language"), { exact: true }).first().waitFor({ timeout: 10_000 });
         await page.waitForFunction(() => document.documentElement.lang === "en-US", null, { timeout: 10_000 });
         await standsInside(page);
 

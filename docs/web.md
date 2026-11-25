@@ -800,7 +800,7 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   `docs/boundary.md`, 「What the host owes」): no locale prefix in the address, the packs in YAML under
   `client/apps/web/i18n/locales/`, each locale declared with the `language` tag the document's `lang` is written
   as. A key a pack lacks reads as the Korean's.
-- **A reader reads the console in their account's language,** chosen on 설정's 테마 (「Settings」) and kept against
+- **A reader reads the console in their account's language,** chosen on 설정's 계정 (「Settings」) and kept against
   the account on the server, so it follows the person to every browser and device. An account that chose none,
   and a page read before anyone signs in, reads it in the language the browser asks for: the first of the browser's
   languages whose primary subtag is `ko`, `ja` or `zh` — Chinese of any region taking `zh-CN` — or `en`, and
@@ -7848,6 +7848,13 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
 
 #### 계정
 
+- **The section stands in this order:** 프로필 사진; then one group of 로그인 정보, 프로필, 언어 and 접속 상태 공개,
+  its rows parted by hairlines; then 시작 안내 다시 보기; then 보안 with its groups; then 조직에 공유한 내 정보. A
+  row or a group the reader is not shown leaves the rest in that order. A save of the login form or the profile form
+  says 계정 정보를 변경했습니다 directly under that group, until either form is opened again.
+- **프로필 사진** heads the section, a group under that name holding the reader's own picture in the shape every
+  picture set in the console takes (「Profile photos」, a picture set in the console): the sender linked to the
+  account, the owner's for the administrator. A login with no sender linked to it is shown no such group.
 - **로그인 정보** carries the account's login as its line and 변경, which opens the form: the current
   password, the new login and the new password, which may be left empty. The current password must be
   entered for either change, and 저장 is open only while the name or the password differs; closing
@@ -7864,13 +7871,12 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   account's identity on the record road takes the name it is now shown by, the person's name or the login where
   none stands (`docs/accounts.md`, 「Users and senders」), so the people of a room and a forward name the person by it
   before their next words.
-- **조직에 공유한 내 정보** stands for a person who stands in a unit: what their organisation may know of them, the shared
-  memories about them in their home unit's org memory (`docs/accounts.md`, 「A unit's org memory」), read and written
-  through the console's own routes (`/api/organization/memory/own`). One row each, the text whole and, muted, the
-  day it was written; 정보 삭제 at the row's end, asked first, moves it to `invalidated`. 정보 추가 at the group's
-  heading opens a form of one 내용, several lines, its line saying that it holds only what the organisation may know,
-  such as the reader's role, duties or how they prefer to be reached, and never their circumstances or health; 저장 is
-  open once it holds words. With none it says 공유한 정보 없음. A person in no unit is shown no such group.
+- **언어** is the account's language (「Wording and the language pack」), chosen from a list of the four the console
+  speaks, each named in its own script — 한국어, English, 日本語, 简体中文 — so a reader finds theirs whatever the
+  console speaks now. Its muted line says that it is the language of the screens and notices on every device the
+  account opens the console on. A choice takes effect on the whole console at once, a bundle's screens with it, and
+  is kept against the account as it is made; a refusal puts back what stood and says why under the row's name in the
+  error colour, in place of its muted line.
 - **접속 상태 공개** is the account's presence switch (「Presence and typing」, 「The switch」): one row with its switch,
   on unless the account turned it off, and one muted line saying what turning it off hides. It takes effect as it
   is switched. A console login standing before the account model, which has no account, is shown no such row.
@@ -7898,6 +7904,13 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
     address coarsened, a failure in the error colour; 기록 없음 where none stands.
 - **A changed password ends every other session.** The password form's 저장 says so in its muted line, and the seal
   takes the fresh session the service answers.
+- **조직에 공유한 내 정보** stands for a person who stands in a unit: what their organisation may know of them, the shared
+  memories about them in their home unit's org memory (`docs/accounts.md`, 「A unit's org memory」), read and written
+  through the console's own routes (`/api/organization/memory/own`). One row each, the text whole and, muted, the
+  day it was written; 정보 삭제 at the row's end, asked first, moves it to `invalidated`. 정보 추가 at the group's
+  heading opens a form of one 내용, several lines, its line saying that it holds only what the organisation may know,
+  such as the reader's role, duties or how they prefer to be reached, and never their circumstances or health; 저장 is
+  open once it holds words. With none it says 공유한 정보 없음. A person in no unit is shown no such group.
 
 #### Doors to the organisation screen
 
@@ -8131,11 +8144,6 @@ their own skills alone; whether they may make one is the delegation chain's `per
 
 #### 테마
 
-- **언어** is the account's language (「Wording and the language pack」), chosen from a list of the four the console
-  speaks, each named in its own script — 한국어, English, 日本語, 简体中文 — so a reader finds theirs whatever the
-  console speaks now. Its muted line says that it is the language of the screens and notices on every device the
-  account opens the console on. A choice takes effect on the whole console at once, a bundle's screens with it, and
-  is kept against the account as it is made; a refusal puts back what stood and says why under the section.
 - **화면 모드** chooses 시스템, 밝게 or 어둡게 for this browser, the same choice the user menu offers.
 - **자동 번역**, a switch for this browser, on unless it is turned off: whether a text a worker or a job wrote in
   another language than the reader's opens already read in the reader's (「The original, and its translation in

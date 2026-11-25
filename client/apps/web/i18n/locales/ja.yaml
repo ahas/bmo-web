@@ -8,7 +8,7 @@ app:
     auto_translate_description: 別の言語で書かれた報告や指示書を開くと、すぐに翻訳して表示します。「原文を表示」でいつでも元に戻せます。
     color_mode: 表示モード
     language: 言語
-    language_description: 画面と通知の言語です。このアカウントで開くすべての機器に適用されます。
+    language_description: "画面と通知の言語です。\nこのアカウントで開くすべての機器に適用されます。"
     manifest_name: "{agent}"
     mode_dark: ダーク
     mode_light: ライト

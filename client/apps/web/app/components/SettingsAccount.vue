@@ -1,18 +1,21 @@
 <template>
-  <!-- The account section (docs/web.md, 「Settings」): the account's login and the way to its form, the login and
-       the password, which is a dialog of its own with its own save; the profile, the person's name, job title and
-       contact details in a dialog of their own; the switch to show one's presence (「Presence and typing」); what one's
-       organisation may know of one, as shared memories of one's home unit; and one's own
-       picture, the sender's linked to the account, set in the console (「Profile photos」). -->
+  <!-- The account section (docs/web.md, 「Settings」), in its order: one's own picture, the sender's linked to the
+       account, set in the console (「Profile photos」); one group of the account's login and the way to its form, a
+       dialog of its own with its own save, the profile, the person's name, job title and contact details in a dialog of
+       their own, the account's language and the switch to show one's presence (「Presence and typing」); the start guide
+       opened again; the account's security; and what one's organisation may know of one, as shared memories of one's
+       home unit. -->
   <div class="flex flex-col gap-6">
-    <SettingsGroup>
+    <SettingsGroup v-if="ownSender !== null" :title="$t('picture.label.own')" data-own-picture>
+      <PictureSetting class="py-3" kind="person" :subject="ownSender" :avatar="ownPicture" />
+    </SettingsGroup>
+
+    <SettingsGroup data-account-group>
       <SettingsRow :label="$t('account.title.login')" :description="user?.name">
         <UButton color="neutral" variant="outline" :label="$t('account.action.change')" @click="editing = true" />
       </SettingsRow>
-    </SettingsGroup>
 
-    <SettingsGroup v-if="account !== undefined">
-      <SettingsRow data-profile-row :label="$t('account.label.profile')">
+      <SettingsRow v-if="account !== undefined" data-profile-row :label="$t('account.label.profile')">
         <template #description>
           <SkeletonStatus v-if="profileReading" :label="$t('account.status.profile_loading')">
             <SkeletonBar class="block h-4 w-32" />
@@ -23,10 +26,10 @@
         <UButton v-if="profileFailed !== ''" color="neutral" variant="outline" :label="$t('account.action.retry')" @click="void readProfile()" />
         <UButton v-else color="neutral" variant="outline" :label="$t('account.action.change')" :disabled="profile === null" @click="openProfile()" />
       </SettingsRow>
-    </SettingsGroup>
 
-    <SettingsGroup v-if="account !== undefined">
-      <SettingsRow data-presence-row :label="$t('account.label.presence_shown')">
+      <SettingsLanguageRow />
+
+      <SettingsRow v-if="account !== undefined" data-presence-row :label="$t('account.label.presence_shown')">
         <template #description>
           <span v-if="presenceFailed !== ''" class="text-sm text-error">{{ presenceFailed }}</span>
           <span v-else class="text-sm text-muted">{{ $t("account.label.presence_shown_description") }}</span>
@@ -46,18 +49,14 @@
       </SettingsRow>
     </SettingsGroup>
 
+    <!-- What the login form or the profile form saved, said under the group they are opened from. -->
+    <UAlert v-if="done" color="success" variant="subtle" :description="$t('account.message.saved')" data-account-saved />
+
     <SettingsGuideRow v-if="account !== undefined" />
 
     <SettingsSecurity v-if="account !== undefined" />
 
     <SettingsSharedInfo v-if="account !== undefined" />
-
-    <div v-if="ownSender !== null" class="flex flex-col gap-2">
-      <h3 class="text-sm font-medium text-highlighted">{{ $t("picture.label.own") }}</h3>
-      <PictureSetting kind="person" :subject="ownSender" :avatar="ownPicture" />
-    </div>
-
-    <UAlert v-if="done" color="success" variant="subtle" :description="$t('account.message.saved')" />
 
     <SettingsDialog v-model:open="editing" :title="$t('account.title.login')" :dirty="changes">
       <UForm id="account-form" :state="form" class="flex flex-col gap-4" @submit="submit">

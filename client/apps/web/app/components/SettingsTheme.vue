@@ -1,13 +1,9 @@
 <template>
-  <!-- The theme section (docs/web.md, 「Settings」): the account's language, the screen mode, whether a text in another
-       language opens translated, the account's theme, its preview and the way back. A choice takes effect at once and is
-       kept as it is made. -->
+  <!-- The theme section (docs/web.md, 「Settings」): the screen mode, whether a text in another language opens
+       translated, the account's theme, its preview and the way back. A choice takes effect at once and is kept as it is
+       made. -->
   <div class="flex flex-col gap-6">
     <SettingsGroup>
-      <SettingsRow :label="$t('app.label.language')" :description="$t('app.label.language_description')">
-        <ChoiceSelect v-model="spoken" :items="languageItems" value-key="value" class="w-36" :aria-label="$t('app.label.language')" data-language-choice />
-      </SettingsRow>
-
       <SettingsRow :label="$t('app.label.color_mode')">
         <SettingsSegment v-model="mode" :items="modeItems" :label="$t('app.label.color_mode')" />
       </SettingsRow>
@@ -46,8 +42,6 @@
       <ThemePreview class="my-3" :theme="themeOf(preview.shown.value)" :scheme="previewScheme" />
     </SettingsGroup>
 
-    <UAlert v-if="languageFailure" color="error" variant="subtle" :description="languageFailure" />
-
     <UAlert v-if="failure" color="error" variant="subtle" :description="failure" />
 
     <div class="flex justify-end">
@@ -69,9 +63,7 @@ import { DEFAULT_THEME, THEMES, themeOf } from "bmo-ui/shared/themes";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { PREVIEW_ITEM, useListPreview } from "bmo-ui/app/domain/list-preview";
 import { usePageScheme, usePreviewScheme } from "bmo-ui/app/domain/scheme";
-import { CONSOLE_LANGUAGES, ownName } from "#shared/languages";
 
-import { chooseLanguage, useLanguage } from "~/domain/language";
 import { chooseTheme, useTheme } from "~/domain/theme";
 import { useAutoTranslate } from "~/domain/text-reading";
 
@@ -91,21 +83,6 @@ const modeItems = computed(() => [
   { label: t("app.label.mode_light"), value: "light" },
   { label: t("app.label.mode_dark"), value: "dark" }
 ]);
-
-// The account's language, each named in its own script so a reader finds theirs whatever the console speaks now; taken
-// at once and kept as it is chosen, a refusal putting back what was read and saying why.
-const language = useLanguage();
-const languageFailure = ref("");
-const languageItems = CONSOLE_LANGUAGES.map((one) => ({ label: ownName(one), value: one }));
-const spoken = computed({
-  get: () => language.value,
-  set: (chosen: (typeof CONSOLE_LANGUAGES)[number]) => {
-    languageFailure.value = "";
-    chooseLanguage(language, chosen).catch((error: unknown) => {
-      languageFailure.value = failureText(error, t("account.error.language_failed"));
-    });
-  }
-});
 
 // The account's theme, taken at once and kept as it is chosen; a refusal puts back what was kept
 // and says why under the preview.

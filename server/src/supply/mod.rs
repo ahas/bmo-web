@@ -329,6 +329,7 @@ pub fn policy_kind() -> ChainKind {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
     unit_permission: CREDIT.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 
@@ -348,6 +349,7 @@ pub fn own_kind() -> ChainKind {
     levels: vec![ChainLevel::Person],
     unit_permission: CREDIT.to_owned(),
     person_writer: ChainPersonWriter::Own,
+    person_raises: false,
   }
 }
 
@@ -366,6 +368,7 @@ pub fn allowance_kind() -> ChainKind {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
     unit_permission: CREDIT.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 
@@ -388,6 +391,7 @@ pub fn organisation_kind() -> ChainKind {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit],
     unit_permission: crate::units::HEADS.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 

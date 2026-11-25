@@ -12,18 +12,22 @@ import KO from "../fixtures/browser/sidebar-sections.test.ko.json";
 // holds the links the reader may write, and the apps tab draws the link chosen. The administrator chooses the platform
 // node from a company and the tab stays open on the platform's own word, where an app is recalled from everyone, asked
 // first on its row, and lifted again; a tab declaring nothing at the platform says so in one line. At a company the
-// administrator's offer switch withholds the app from it and gives it back. A member opens the settings dialog's door
-// and lands on their own node, where they turn the app off for themselves and take their word back. Each change
-// is read where it lands: the member's sidebar and the relay's answer. Every press lands on what the browser draws at
-// that point, a finger's tap at a phone's width and a mouse's click at a desk's, and nothing runs past the screen
-// sideways.
+// administrator's offer switch withholds the app from it and gives it back. A member opens their own node, where they
+// turn the app off for themselves and take their word back. The same member finds the row taken out of their hands
+// the moment the company's head switches the app on: it says who decided it, its switch stands disabled with nothing
+// beside it to press, and a word of the member's own changes nothing until the head lets go, when it stands again.
+// Each change is read where it lands: the member's sidebar and the relay's answer. Every press lands on what the
+// browser draws at that point, a finger's tap at a phone's width and a mouse's click at a desk's, and nothing runs
+// past the screen sideways.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up, whose second
-// stand-in screen is an app offered and on wherever nobody says otherwise.
+// stand-in screen is an app offered and on wherever nobody says otherwise, its `on` kind raising at a person's own
+// link alone.
 
 const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ADMINISTRATOR = { name: "apps-admin", password: "fixture-password-3911" };
 const MEMBER = { name: "apps-reader", password: "fixture-password-3912" };
+const HEAD = { name: "app-head", password: "fixture-password-3903" };
 const RUN = Date.now().toString(36);
 
 const APP = HARNESS_SCREEN_UNITS[1];
@@ -37,6 +41,7 @@ const WIDTHS = [
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();
 let company = 0;
+let companyName = "";
 
 async function login(account: { name: string; password: string }): Promise<string> {
   const answer = await fetch(`${origin}/api/auth/login`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(account) });
@@ -65,15 +70,17 @@ async function administer<T>(path: string, method: string, body?: unknown): Prom
 beforeAll(async () => {
   if (!origin || !touchReady()) return;
 
-  for (const account of [ADMINISTRATOR, MEMBER]) cookies.set(account.name, await login(account));
+  for (const account of [ADMINISTRATOR, MEMBER, HEAD]) cookies.set(account.name, await login(account));
 
-  // A company of this run's, the member standing in it.
-  company = (await administer<{ id: number }>("/api/organization/units", "POST", { name: `apps-org-company-${RUN}`, parent: null })).id;
+  // A company of this run's, the member standing in it and the head heading it.
+  companyName = `apps-org-company-${RUN}`;
+  company = (await administer<{ id: number }>("/api/organization/units", "POST", { name: companyName, parent: null })).id;
 
   const users = await administer<{ user: string; name: string }[]>("/api/users", "GET");
-  const member = encodeURIComponent(users.find((one) => one.name === MEMBER.name)!.user);
+  const userOf = (name: string): string => users.find((one) => one.name === name)!.user;
 
-  await administer(`/api/organization/users/${member}/unit`, "PUT", { unit: company });
+  await administer(`/api/organization/users/${encodeURIComponent(userOf(MEMBER.name))}/unit`, "PUT", { unit: company });
+  await administer(`/api/organization/units/${company}/heads/${userOf(HEAD.name)}`, "PUT");
 
   browser = await chromium.launch();
 }, BROWSER_HOOK_MS);
@@ -82,7 +89,7 @@ beforeAll(async () => {
 afterAll(async () => {
   if (company !== 0) {
     await call(ADMINISTRATOR.name, `/api/organization/platform/apps/${APP}/recall`, "DELETE").catch(() => null);
-    await call(ADMINISTRATOR.name, `/api/organization/units/${company}/apps/${APP}`, "PUT", { offer: null }).catch(() => null);
+    await call(ADMINISTRATOR.name, `/api/organization/units/${company}/apps/${APP}`, "PUT", { offer: null, on: null }).catch(() => null);
     await call(MEMBER.name, `/api/account/apps/${APP}`, "PUT", { on: null }).catch(() => null);
   }
 
@@ -135,6 +142,11 @@ async function press(page: Page, target: Locator, phone: boolean): Promise<void>
 
 async function overflow(page: Page): Promise<number> {
   return await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+}
+
+// A word written through the console's own routes, which answer a change with nothing.
+async function wrote(account: string, path: string, body: unknown): Promise<void> {
+  expect({ path, body, status: (await call(account, path, "PUT", body)).status }).toMatchObject({ path, body, status: 204 });
 }
 
 // What the relay answers the member for a read of the app's service.
@@ -336,6 +348,93 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
         await row.locator("[data-app-state]", { hasText: wording("apps.label.follows_organization") }).waitFor({ timeout: 20_000 });
         await relaysAs({ status: 200, code: null });
       } finally {
+        await member.close();
+      }
+    }, 120_000);
+
+    test(`an app the company's head switched on stands on for the member, who is told where it came from, at ${viewport.width}px`, async () => {
+      const member = await contextFor(MEMBER.name, viewport.width, viewport.height, viewport.phone);
+      const decided = wording("org_agents.label.decided_named", { name: companyName });
+
+      // The member's row for the app, read as the console answers it.
+      const ownRow = async (): Promise<{ on: boolean; own: boolean | null; decided: { name?: string } | null }> => {
+        const answer = await call(MEMBER.name, "/api/account/apps", "GET");
+        const apps = (await answer.json()) as { app: string; on: boolean; own: boolean | null; decided: { name?: string } | null }[];
+
+        return apps.find((one) => one.app === APP)!;
+      };
+
+      try {
+        // Their own node, where no link above them has said anything: the app stands on by what its publisher
+        // declared, so the row is theirs to decide.
+        const page = await member.newPage();
+
+        await call(MEMBER.name, `/api/account/apps/${APP}`, "PUT", { on: null });
+        // The organisation entry stands for a reader with a user, and the screen opens at their own link of the chain
+        // on the tab the address names (docs/web.md, 「Sidebar」, 「Organisation」, the apps tab).
+        await page.goto(`${origin}/organization?company=me&tab=apps`, { waitUntil: "load" });
+        await standing(page);
+        await page.locator('[data-organization-node="me"]').waitFor({ timeout: 10_000 });
+
+        const row = await appRow(page);
+        const toggle = row.locator("[data-app-switch]");
+        const switchControl = row.getByRole("switch");
+
+        expect(await row.locator("[data-app-state]").innerText()).toBe(wording("apps.label.follows_organization"));
+        expect(await switchControl.isDisabled()).toBe(false);
+
+        // The head switches the app on for the company: the row stops being the member's and says who decided it,
+        // its switch standing disabled with nothing beside it to press.
+        await wrote(HEAD.name, `/api/organization/units/${company}/apps/${APP}`, { on: true });
+        await page.reload({ waitUntil: "load" });
+        await standing(page);
+        await row.locator("[data-app-state]", { hasText: decided }).waitFor({ timeout: 20_000 });
+        expect(await switchControl.isDisabled()).toBe(true);
+        expect(await row.locator("[data-app-follow]").count()).toBe(0);
+        expect(await overflow(page)).toBeLessThanOrEqual(0);
+
+        // The app stands on for the member, and a word of their own reaches nowhere: the account service keeps what
+        // they wrote and answers as the chain then stands, so the app stays on for them however it is written.
+        await relaysAs({ status: 200, code: null });
+        await wrote(MEMBER.name, `/api/account/apps/${APP}`, { on: false });
+        expect(await ownRow()).toMatchObject({ on: true, own: null, decided: { name: companyName } });
+        await relaysAs({ status: 200, code: null });
+
+        // The head lets go: what the member kept stands again, and the row is theirs, its word `false` and all.
+        await wrote(HEAD.name, `/api/organization/units/${company}/apps/${APP}`, { on: null });
+        await page.reload({ waitUntil: "load" });
+        await standing(page);
+        await row.locator("[data-app-state]", { hasText: wording("apps.label.own") }).waitFor({ timeout: 20_000 });
+        expect(await switchControl.isDisabled()).toBe(false);
+        expect(await switchControl.getAttribute("aria-checked")).toBe("false");
+        await relaysAs({ status: 403, code: "app-off" });
+
+        // Taken back, the publisher's word stands again and the app is on for them.
+        await press(page, row.locator("button[data-app-follow]"), viewport.phone);
+        await row.locator("[data-app-state]", { hasText: wording("apps.label.follows_organization") }).waitFor({ timeout: 20_000 });
+        await relaysAs({ status: 200, code: null });
+
+        // The head switches it off for the company, which the rule leaves them: it is off for the member, whose
+        // switch stays their own.
+        await wrote(HEAD.name, `/api/organization/units/${company}/apps/${APP}`, { on: false });
+        await page.reload({ waitUntil: "load" });
+        await standing(page);
+        await row.locator("[data-app-state]", { hasText: wording("apps.label.follows_organization") }).waitFor({ timeout: 20_000 });
+        expect(await switchControl.isDisabled()).toBe(false);
+        await relaysAs({ status: 403, code: "app-off" });
+
+        // Switched on by the member themselves under the company's `false`: their own row, and taken back again.
+        await press(page, toggle, viewport.phone);
+        await row.locator("[data-app-state]", { hasText: wording("apps.label.own") }).waitFor({ timeout: 20_000 });
+        expect(await row.locator("[data-app-follow]").count()).toBe(1);
+        await relaysAs({ status: 200, code: null });
+        await press(page, row.locator("button[data-app-follow]"), viewport.phone);
+        await row.locator("[data-app-state]", { hasText: wording("apps.label.follows_organization") }).waitFor({ timeout: 20_000 });
+        await relaysAs({ status: 403, code: "app-off" });
+      } finally {
+        // Every word this test wrote is taken back, so the app stands for every later file as it stood before.
+        await call(HEAD.name, `/api/organization/units/${company}/apps/${APP}`, "PUT", { on: null, locks: false }).catch(() => null);
+        await call(MEMBER.name, `/api/account/apps/${APP}`, "PUT", { on: null }).catch(() => null);
         await member.close();
       }
     }, 120_000);

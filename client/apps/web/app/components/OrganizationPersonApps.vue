@@ -1,8 +1,9 @@
 <template>
   <!-- The organisation screen's apps tab with the reader's own node chosen (docs/web.md, 「Organisation」, the apps
        tab): every app offered to the reader, each a row of its icon, its name and where its state comes from, with its
-       switch; a word of the reader's own taken back by the row's own button, and an app their organisation locks
-       standing with its switch disabled. -->
+       switch, which stands open only where the reader's own word decides the app; a word of their own is taken back by
+       the row's own button, and an app a link above them switched on or locks stands with its switch disabled and the
+       line naming the link that decided it. -->
   <SettingsGroup>
     <ContentSkeleton v-if="rows === null && failure === ''" :rows="3" listClass="flex flex-col divide-y divide-default" :label="$t('apps.status.loading')">
       <div class="flex items-center gap-3 py-3">
@@ -34,7 +35,7 @@
 
         <div class="ms-auto flex shrink-0 items-center gap-2">
           <IconButton
-            v-if="row.own !== null && !row.locked"
+            v-if="row.own !== null && row.decided === null"
             size="sm"
             icon="i-material-symbols-restart-alt"
             :label="$t('apps.action.follow')"
@@ -46,7 +47,7 @@
             :model-value="row.on"
             :aria-label="appTitle(row)"
             :loading="saving === row.app"
-            :disabled="saving !== null || row.locked"
+            :disabled="saving !== null || row.decided !== null"
             data-app-switch
             @update:model-value="(on: boolean) => change(row, on)"
           />

@@ -2415,6 +2415,12 @@ export interface components {
             key: string;
             levels: components["schemas"]["ChainLevel"][];
             mode: components["schemas"]["ChainMode"];
+            /**
+             * @description Whether a person's own link may only raise the value, never lower what stands from above it
+             *     (`docs/accounts.md`, 「Resolution」).
+             * @default false
+             */
+            personRaises: boolean;
             /** @default heads */
             personWriter: components["schemas"]["ChainPersonWriter"];
             /**

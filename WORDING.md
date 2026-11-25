@@ -112,7 +112,9 @@
 - a screen and its tools switched on and off as one → 앱; where they are switched → 앱·도구·스킬 on 조직, at every node
   of its tree 나 among them, a shared skill and MCP server switched there as an app is. Its state → 켬 or 끔; a unit's choice of it → 켬, 끔 or 상위 조직 따름 (전역 설정 따름 on a company), a following
   row saying 상위 조직을 따라 켬 or 전역 설정을 따라 끔; a person's row → 직접 정함 or 조직을 따름, their own word taken
-  back by 되돌리기; a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
+  back by 되돌리기, and where a link above them decided it 조직이 정함 · `{unit}`, or 전역 설정으로 정함 for the
+  platform's own link, the switch standing disabled at the state that link holds with nothing beside it to press;
+  a unit deciding it for everyone below → 하위 조직 잠금, its undoing 잠금 해제, a row under it saying who
   locks it as every lock line does (below); the platform letting a company use one → 제공, one it does not →
   제공되지 않음; the platform's own row → 직접 정함 or 기본값을 따름 (what its publisher declared), its recall → 긴급
   회수, 긴급 회수됨 and 회수 해제; a unit taking a company's shared app off its people's PCs → 회수, its question

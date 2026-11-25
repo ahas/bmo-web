@@ -16,12 +16,11 @@ export interface AppName {
 export interface OwnApp extends AppName {
   // Whether it stands on for the reader.
   on: boolean;
-  // The reader's own word, or null where they follow their organisation.
+  // The reader's own word where it is what stands, or null where what stands is no word of theirs.
   own: boolean | null;
-  // Whether a unit above locks it, so the reader's word changes nothing.
-  locked: boolean;
-  // Who locks it above the reader, for the line saying so.
-  locker: DecidedBy;
+  // Who decides the state from above the reader: a link holding a lock over them, or the platform or unit link that
+  // switched the app on for them and which they cannot switch off. Null where the row is theirs to decide.
+  decided: DecidedBy;
 }
 
 /** An app as a unit's row on the organisation screen shows it. */

@@ -10,7 +10,7 @@ import type { OwnApp, PlatformApp, UnitApp } from "../../../apps/web/shared/apps
 const t = (key: string, named?: Record<string, unknown>) => (named === undefined ? key : `${key} ${JSON.stringify(named)}`);
 
 const UNIT: UnitApp = { app: "app-a", title: null, icon: null, offered: true, on: true, own: null, locks: false, lockedAbove: false, locker: null, writable: true };
-const OWN: OwnApp = { app: "app-a", title: "App A", icon: null, on: true, own: null, locked: false, locker: null };
+const OWN: OwnApp = { app: "app-a", title: "App A", icon: null, on: true, own: null, decided: null };
 
 test("an app reads by its screen's title, else by its key", () => {
   expect(appTitle(UNIT)).toBe("app-a");
@@ -39,9 +39,10 @@ test("a unit's word stands as a choice of on, off or following, and writes back 
   expect(unitAppChoices(t, false).map((one) => one.label)).toEqual(["apps.label.on", "apps.label.off", "apps.label.follow_above"]);
 });
 
-test("a reader's row says whether their organisation locks it, they set it or they follow it", () => {
-  expect(ownAppLine(t, { ...OWN, locked: true, locker: { by: "unit", name: "team-a" }, own: true })).toBe('org_agents.label.decided_named {"name":"team-a"}');
-  expect(ownAppLine(t, { ...OWN, locked: true, locker: { by: "unit", name: null }, own: true })).toBe("org_agents.label.decided_unit");
+test("a reader's row says who decides it above them, or that they set it or follow it", () => {
+  expect(ownAppLine(t, { ...OWN, decided: { by: "unit", name: "team-a" }, own: null })).toBe('org_agents.label.decided_named {"name":"team-a"}');
+  expect(ownAppLine(t, { ...OWN, decided: { by: "unit", name: null }, own: true, on: false })).toBe("org_agents.label.decided_unit");
+  expect(ownAppLine(t, { ...OWN, decided: { by: "platform" }, own: null })).toBe("org_agents.label.decided_platform");
   expect(ownAppLine(t, { ...OWN, own: false })).toBe("apps.label.own");
   expect(ownAppLine(t, OWN)).toBe("apps.label.follows_organization");
 });

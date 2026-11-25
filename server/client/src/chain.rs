@@ -120,6 +120,10 @@ pub struct ChainKind {
   pub unit_permission: String,
   #[serde(default)]
   pub person_writer: ChainPersonWriter,
+  /// Whether a person's own link may only raise the value, never lower what stands from above it
+  /// (`docs/accounts.md`, 「Resolution」).
+  #[serde(default)]
+  pub person_raises: bool,
 }
 
 /// Every kind declared.

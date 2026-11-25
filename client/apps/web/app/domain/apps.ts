@@ -47,9 +47,11 @@ export function unitAppLine(t: Translate, row: UnitApp, company: boolean): strin
   return row.on ? t("apps.label.follows_above_on") : t("apps.label.follows_above_off");
 }
 
-/** How an app stands for the reader, in one line: locked by their organisation, their own word, or following it. */
+/** How an app stands for the reader, in one line: a link above them deciding it, which no word of theirs changes;
+ * their own word; or the organisation's word they set nothing against. The switch at the row's end shows which way
+ * what the link decided holds it, so the line names only where it came from. */
 export function ownAppLine(t: Translate, row: OwnApp): string {
-  if (row.locked) return decidedLine(t, row.locker) ?? t("org_agents.label.decided_unit");
+  if (row.decided !== null) return decidedLine(t, row.decided) ?? t("org_agents.label.decided_unit");
 
   return row.own === null ? t("apps.label.follows_organization") : t("apps.label.own");
 }

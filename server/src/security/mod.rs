@@ -189,6 +189,7 @@ pub fn second_factor_kind() -> ChainKind {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit],
     unit_permission: crate::units::HEADS.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 

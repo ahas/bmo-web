@@ -1160,7 +1160,11 @@ section states what each does.
     — where none is named, or `manage_credit` for one the unit's credit manager keeps as well. Both reach down the
     tree, so a head of a unit above writes every link below it;
   - `personWriter`: who writes a person's link: `heads`, whoever holds `unitPermission` on the person's home unit
-    (the default); `self`, the person alone; or `both`.
+    (the default); `self`, the person alone; or `both`;
+  - `personRaises`: whether a person's own link may only raise the value, `false` where none is named
+    (「Resolution」). A `flag` under `nearest` alone; any other declaration of it is refused 400
+    `bad-kind`. It says nothing about who may write the link: `personWriter` stands, and a link the rule binds is
+    written as any other and answered as it then stands.
 - **A declaration out of that shape is refused 400 `bad-kind`.** One that changes the shape or the mode of a kind
   some link holds an entry of, or takes away a choice a stored value names, is refused 409 `kind-in-use`; anything
   else of a declaration may change.
@@ -1218,10 +1222,21 @@ What stands for a person, or for a unit, is read up its chain, the subject's own
 4. **In one line:** the nearer link first; within one link, a person's rule, then a group's, then a unit's, then the
    link's own value; and a lock above overrides everything below it.
 
+- **Where a kind `personRaises`, a person's own link raises the value and never lowers it.** The nearest word still
+  read below their own link is what their link cannot take down, and where that word says `true` the value standing
+  is `true` and it came from the link saying it, whatever their own link says. What no link below their own says
+  holds nothing up, and least of all the default: where no link below their own says anything, their own word stands,
+  and an app standing on only because its publisher declared it so is theirs to take down. A `false` they said under
+  a link that switched it on stays kept and has no effect while that link's word stands, and stands again when it
+  moves away — as a wider value below is kept under `narrowing` — and is never refused. A unit's link is bound by
+  nothing here: a head lowers what a link above raised for the unit as any nearer link does, and only a lock reaches
+  below it.
+
 - **The answer names where it came from:** the value, the link and the rule it came from where one did, every link's
   word top first (the layers), the link holding the lock that cut the chain, every link of the subject's chain top
   first whether or not it says anything (the path), and, for a link a caller asks after, whether that link may change
-  the setting.
+  the setting. For a person under a kind that `personRaises`, the link named is the one above them holding the `true`
+  that stands, never their own.
 - **Nothing announces a change.** The service emits no event; a consumer asks the resolution afresh whenever it acts
   on a setting, and keeps no answer, as a run's supply order is asked for every run.
 
@@ -1235,6 +1250,8 @@ What stands for a person, or for a unit, is read up its chain, the subject's own
 - **Who writes a link:** the platform's, a platform administrator; a unit's, a platform administrator and whoever
   holds the kind's `unitPermission` on the unit; a person's, as the kind's `personWriter` says, the platform
   administrator among `heads`. Anyone else is refused 403 `forbidden`.
+- **A link a kind's `personRaises` leaves unable to lower the value is written all the same:** the service keeps what
+  is written and answers as the chain then stands (「Resolution」), and refuses nothing for being a lowering.
 - **Who reads a link's entry:** whoever writes it, and the person at their own link. The resolution answers any
   caller holding the server's token, since every unit asks it on its own account.
 
@@ -1274,9 +1291,15 @@ Each is declared by the module that uses it, as the service stands, under the un
   - `app.<key>.offered`, whether the app may be used under a link: a flag, `narrowing`, with rules, at the platform
     and units, written by a unit's head. A link below only narrows what is offered above, so the platform's rule for
     one company offers an app to that company alone, and its default says whether an app nobody named is offered.
-  - `app.<key>.on`, whether the app is on: a flag, `nearest`, at the platform, units and people, a person's link
-    written by the person and by their heads alike (`personWriter` `both`), its default what a new app starts at.
-    A unit that locks it decides it for everyone under it.
+  - `app.<key>.on`, whether the app is on: a flag, `nearest`, with `personRaises`, at the platform, units and people,
+    a person's link written by the person and by their heads alike (`personWriter` `both`), its default what a new
+    app starts at. A unit that locks it decides it for everyone under it.
+- **An app a platform or a unit link switched on is on for every person below it and none of them takes it back.**
+  Their own link may switch an app on for themselves and never switch off one switched on above them, so an app they
+  were supplied with has no switch of theirs to press: only the link that switched it on switches it off, and a head
+  keeps that for their unit whole, never for one person (「Resolution」). Where an app stands on only because its
+  default says so and no link above them said anything, it is theirs to switch off, and what they said about it
+  stands again the moment the links above let go.
 - **A person's own personal app shared with their company is an app of that company alone** (bmo-pocket's
   `docs/catalogue.md`, 「The app on the delegation chain」): its key is `shared-<company>-…`, the company it was shared
   in, and the issuer offers it to that company by the platform's rule. Every list a person or a unit is shown — their

@@ -301,6 +301,7 @@ pub fn default_kinds() -> [ChainKind; 3] {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit],
     unit_permission: crate::units::HEADS.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   };
 
   [
@@ -532,6 +533,7 @@ pub fn personalize_kind() -> ChainKind {
     levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
     unit_permission: crate::units::HEADS.to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 

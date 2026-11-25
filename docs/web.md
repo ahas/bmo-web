@@ -9124,12 +9124,19 @@ through routes of the same set naming the platform in the unit's place, the admi
     /api/organization/units/{unit}/apps/{app}/recall`; a refusal is said under the row.
 - **With 나 chosen, the rows are the apps offered to the reader,** each switched on or off for them alone, read and
   written through the reader's own routes (`GET /api/account/apps`, `PUT /api/account/apps/{app}`), which hand the
-  account service the reader as the writer, so a lock above refuses the write there. An app not offered to them, and
-  another company's shared app, stands nowhere in it. A row is the app's icon and name with one muted line saying
-  where its state comes from, and its switch at the row's end:
-  - **직접 정함** where the reader set it, with 되돌리기, an icon button before the switch, that takes the reader's own
-    word away so the organisation's stands again; **조직을 따름** where they set nothing; **조직이 정함 ·** and the locking
-    unit's name where a unit above locks it, the switch disabled and showing what the lock holds.
+  account service the reader as the writer, so a lock above refuses the write there. **The switch stands only where
+  the reader's own word decides the app:** an app a platform or unit link above them switched on is on for them and
+  no word of theirs takes it back (docs/accounts.md, 「An app's two settings」), and it is the account service's
+  answer about the reader's link that says which rows are theirs. An app not offered to them, and another company's
+  shared app, stands nowhere in it. A row is the app's icon and name with one muted line saying where its state comes
+  from, and its switch at the row's end:
+  - **직접 정함** where the reader's own word is what stands, with 되돌리기, an icon button before the switch, that takes
+    the reader's own word away so what stands above them stands again; **조직을 따름** where they set nothing and the
+    row is still theirs — an organisation's word for off, or nothing said and the app's own default standing on;
+    **조직이 정함 ·** and the deciding unit's name, or 전역 설정으로 정함 where the platform's own link decided, where a
+    link above them decided the app — an app a unit or the platform switched on, or what a lock above holds — the
+    switch standing disabled at the state that link holds, and 되돌리기 standing nowhere while their word has no
+    effect. What they said of such an app stays kept and stands again when the links above let go.
   - A change reaches the reader's screens as the list is next read, the next page or sign-in, and every relayed call
     at once.
 - **With 플랫폼 전체 chosen, the rows are every app the chain holds,** every company's shared apps among them, each the

@@ -403,6 +403,37 @@ fn said(
   entry.value.clone().map(|value| (value, None))
 }
 
+/// What a kind answers for a subject: the value, the link it came from, and whom the rule it came from names.
+type Stands = (Option<Value>, Option<Link>, Option<Who>);
+
+/// What the nearest link still read says, and the default where none says anything.
+fn nearest(layers: &[Layer], default: Option<&Value>) -> Stands {
+  match layers.last() {
+    Some(layer) => (Some(layer.value.clone()), Some(layer.link), layer.rule),
+    None => (default.cloned(), None, None),
+  }
+}
+
+/// What a kind's `personRaises` holds over a person's own link: where the nearest word the chain still reads
+/// below their own link says `true`, that `true` stands and came from the link saying it, whatever their own link
+/// says, which raises the value and never lowers it (docs/accounts.md, 「Resolution」). Nothing a link below their
+/// own says holds the value up, and least of all the default, so an app standing on only because its publisher
+/// declared it so stays the person's own to take down.
+fn raised_above(kind: &ChainKind, path: &Path, layers: &[Layer]) -> Option<Stands> {
+  if !kind.person_raises || path.person.is_none() {
+    return None;
+  }
+
+  let own = path.links.last().copied();
+
+  match layers.iter().rfind(|layer| Some(layer.link) != own) {
+    Some(layer) if layer.value.as_bool() == Some(true) => {
+      Some((Some(layer.value.clone()), Some(layer.link), layer.rule))
+    }
+    _ => None,
+  }
+}
+
 /// A setting resolved for the subject at the foot of `path`, from the entries its links hold and the groups the
 /// subject belongs to (docs/accounts.md, 「Resolution」).
 pub fn resolve_on(
@@ -431,10 +462,9 @@ pub fn resolve_on(
     .collect();
 
   let (value, from, rule) = match kind.mode {
-    ChainMode::Nearest => match layers.last() {
-      Some(layer) => (Some(layer.value.clone()), Some(layer.link), layer.rule),
-      None => (kind.default.clone(), None, None),
-    },
+    ChainMode::Nearest => {
+      raised_above(kind, path, &layers).unwrap_or_else(|| nearest(&layers, kind.default.as_ref()))
+    }
     ChainMode::Narrowing => {
       let narrowed = layers
         .iter()
@@ -663,6 +693,9 @@ fn judged(kind: &ChainKind) -> Result<(), Refusal> {
   }
   if kind.mode == ChainMode::Narrowing && matches!(kind.shape, ChainShape::Text | ChainShape::Json) {
     return Err(bad_kind("a narrowing kind is a flag, an amount or keys"));
+  }
+  if kind.person_raises && (kind.shape != ChainShape::Flag || kind.mode != ChainMode::Nearest) {
+    return Err(bad_kind("`personRaises` is for a flag under `nearest` alone"));
   }
   if kind.shape == ChainShape::Json && kind.rules {
     return Err(bad_kind("a json kind takes no rules"));

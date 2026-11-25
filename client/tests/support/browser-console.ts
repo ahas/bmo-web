@@ -2794,8 +2794,9 @@ try {
     .join("");
 
   // The second stand-in screen is an app (docs/accounts.md, 「An app's two settings」): its two kinds declared as the
-  // unit publishing it would declare them, offered and on wherever nobody says otherwise, so every reader holds it as
-  // they always have until a test turns it off for a company of its own.
+  // unit publishing it would declare them — its `on` kind raising at a person's own link alone — offered and on
+  // wherever nobody says otherwise, so every reader holds it as they always have until a test switches it on or off
+  // for a company of its own.
   for (const [setting, mode, levels] of [["offered", "narrowing", ["platform", "unit"]], ["on", "nearest", ["platform", "unit", "person"]]] as const) {
     const key = `app.${HARNESS_SCREEN_UNITS[1]}.${setting}`;
     const declared = await service(`/chain/kinds/${key}`, {
@@ -2811,7 +2812,8 @@ try {
         rules: setting === "offered",
         levels,
         unitPermission: "manage",
-        personWriter: "both"
+        personWriter: "both",
+        personRaises: setting === "on"
       })
     });
 

@@ -33,7 +33,8 @@ const kind = (key: string, fallback: boolean) => ({
   rules: true,
   levels: ["platform", "unit", "person"],
   unitPermission: "manage",
-  personWriter: "both"
+  personWriter: "both",
+  personRaises: false
 });
 
 const entry = (key: string, value: unknown, delegation: string, rules: { who: string; value: unknown }[]) => ({ key, link: "platform", value, delegation, rules, lockedBy: null, writable: true });

@@ -36,6 +36,7 @@ fn kind(shape: ChainShape, mode: ChainMode, rules: bool, default: Option<Value>)
     levels: vec![ChainLevel::Platform, ChainLevel::Unit, ChainLevel::Person],
     unit_permission: "manage".to_owned(),
     person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
   }
 }
 
@@ -90,6 +91,76 @@ fn the_nearest_value_stands_and_the_default_where_none_is_said() {
   entries.insert(Link::Person(9), said(json!("own")));
   let resolved = resolve_on(&text, &path, &entries, &[]);
   assert_eq!((resolved.value, resolved.from), (Some(json!("own")), Some(Link::Person(9))));
+}
+
+#[test]
+fn a_person_raises_a_kind_that_raises_at_their_link_and_never_lowers_what_a_link_above_said() {
+  let path = person_path();
+  let mut raises = kind(ChainShape::Flag, ChainMode::Nearest, false, Some(json!(false)));
+  raises.person_raises = true;
+
+  // The company said `true`: what stands is its word, and the link the value came from is its own.
+  let entries = held(vec![(Link::Unit(1), said(json!(true)))]);
+  let resolved = resolve_on(&raises, &path, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(true)), Some(Link::Unit(1))));
+
+  // The person said `false` under it: kept, unread, and the company's word stands over it.
+  let mut entries = entries;
+  entries.insert(Link::Person(9), said(json!(false)));
+  let shadowed = resolve_on(&raises, &path, &entries, &[]);
+  assert_eq!((shadowed.value.clone(), shadowed.from), (Some(json!(true)), Some(Link::Unit(1))));
+  assert_eq!(
+    shadowed
+      .layers
+      .iter()
+      .map(|layer| (layer.link, layer.value.clone()))
+      .collect::<Vec<_>>(),
+    [(Link::Unit(1), json!(true)), (Link::Person(9), json!(false))],
+    "the person's own word stays among the layers"
+  );
+
+  // Their own `true` under the company's is no more theirs than their `false` is.
+  let mut theirs = entries.clone();
+  theirs.insert(Link::Person(9), said(json!(true)));
+  let resolved = resolve_on(&raises, &path, &theirs, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(true)), Some(Link::Unit(1))));
+
+  // The nearest word below their own link is what binds them: a head of the centre took the company's word down,
+  // which the rule leaves a unit's link free to do, and the person's own word stands again.
+  let entries = held(vec![
+    (Link::Unit(1), said(json!(true))),
+    (Link::Unit(2), said(json!(false))),
+    (Link::Person(9), said(json!(false))),
+  ]);
+  let resolved = resolve_on(&raises, &path, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(false)), Some(Link::Person(9))));
+
+  // The company lets go: what the person said stands of itself.
+  let entries = held(vec![(Link::Person(9), said(json!(false)))]);
+  let resolved = resolve_on(&raises, &path, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(false)), Some(Link::Person(9))));
+
+  // An app standing on only because its publisher declared it so is the person's own: the default is nothing they
+  // take down from, so their word, said or kept, stands.
+  let mut by_default = kind(ChainShape::Flag, ChainMode::Nearest, false, Some(json!(true)));
+  by_default.person_raises = true;
+  let resolved = resolve_on(&by_default, &path, &HashMap::new(), &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(true)), None));
+  let entries = held(vec![(Link::Person(9), said(json!(false)))]);
+  let resolved = resolve_on(&by_default, &path, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(false)), Some(Link::Person(9))));
+
+  // A unit as the subject is bound by nothing here.
+  let unit = Path::of_units(vec![1, 2]);
+  let entries = held(vec![(Link::Unit(1), said(json!(true))), (Link::Unit(2), said(json!(false)))]);
+  let resolved = resolve_on(&raises, &unit, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(false)), Some(Link::Unit(2))));
+
+  // Without the declaration the nearest word stands as it always did.
+  let plain = kind(ChainShape::Flag, ChainMode::Nearest, false, Some(json!(false)));
+  let entries = held(vec![(Link::Unit(1), said(json!(true))), (Link::Person(9), said(json!(false)))]);
+  let resolved = resolve_on(&plain, &path, &entries, &[]);
+  assert_eq!((resolved.value, resolved.from), (Some(json!(false)), Some(Link::Person(9))));
 }
 
 #[test]
@@ -448,6 +519,21 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
     .declare(json!({ "key": "test.words", "declaredBy": "unit-a", "shape": "text", "mode": "narrowing", "levels": ["unit"] }))
     .await;
   assert_eq!((status, said["code"].clone()), (StatusCode::BAD_REQUEST, json!("bad-kind")));
+
+  // A kind that raises at a person's link alone is a flag under `nearest`.
+  for (shape, mode) in [("text", "nearest"), ("flag", "narrowing")] {
+    let (status, said) = tree
+      .declare(json!({
+        "key": "test.raises", "declaredBy": "unit-a", "shape": shape, "mode": mode,
+        "levels": ["unit", "person"], "personRaises": true,
+      }))
+      .await;
+    assert_eq!(
+      (status, said["code"].clone()),
+      (StatusCode::BAD_REQUEST, json!("bad-kind")),
+      "{shape} {mode}"
+    );
+  }
   let (status, said) = tree
     .ask(Method::GET, "/chain/kinds/test.nothing/resolve?unit=1", None, tree.admin)
     .await;
@@ -667,6 +753,65 @@ async fn who_writes_which_link_and_a_lock_withholds_every_link_below_it_but_from
     )
     .await;
   assert_eq!((status, said["delegation"].clone()), (StatusCode::OK, json!("allow")));
+}
+
+// "Where a kind `personRaises`, a person's own link raises the value and never lowers it" (docs/accounts.md,
+// 「Resolution」, 「An app's two settings」): an app a company switched on for its people stands on for them whatever
+// they say of it, what they said is kept and never refused, and it stands again as the links above let go. A head
+// below the company keeps their unit's own word.
+#[tokio::test]
+async fn an_app_a_link_above_switched_on_stands_on_for_the_person_whose_own_link_only_raises_it() {
+  let tree = tree().await;
+  let (person, centre_head, company_head) = (tree.person, tree.centre_head, tree.company_head);
+  let key = "app.screen.on";
+
+  let (status, said) = tree
+    .declare(json!({
+      "key": key, "declaredBy": "unit-a", "shape": "flag", "mode": "nearest", "default": false,
+      "levels": ["platform", "unit", "person"], "personWriter": "both", "personRaises": true,
+    }))
+    .await;
+  assert_eq!(status, StatusCode::OK, "{said}");
+  assert_eq!(said["personRaises"], json!(true));
+
+  let company = format!("unit:{}", tree.company);
+  let centre = format!("unit:{}", tree.centre);
+  let own = format!("person:{}", person.0);
+  let stands = |said: &Value| (said["value"].clone(), said["from"].clone());
+
+  // Switched on by the person alone: their word stands and names their own link.
+  assert_eq!(tree.value(key, &own, json!(true), person).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(true), json!(own)));
+
+  // The company switched it on above them: the row is no longer theirs, and the answer names the company.
+  assert_eq!(tree.value(key, &company, json!(true), company_head).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(true), json!(company)));
+
+  // Their own `false` is written and kept: the service refuses nothing, and the company's word still stands.
+  assert_eq!(tree.value(key, &own, json!(false), person).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(true), json!(company)));
+
+  // A head of the centre takes the company's word down for their unit, which the rule leaves them.
+  assert_eq!(tree.value(key, &centre, json!(false), centre_head).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("unit={}", tree.centre)).await;
+  assert_eq!(stands(&said), (json!(false), json!(centre)));
+
+  // Their unit's word being down, the person's own `false` stands again.
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(false), json!(own)));
+
+  // The centre follows the company again: the app is on for the person and the company owns it.
+  assert_eq!(tree.value(key, &centre, Value::Null, centre_head).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(true), json!(company)));
+
+  // The company lets go: what the person kept stands, and the row is theirs again.
+  assert_eq!(tree.value(key, &company, Value::Null, company_head).await, StatusCode::OK);
+  let said = tree.resolve(key, &format!("person={}", person.0)).await;
+  assert_eq!(stands(&said), (json!(false), json!(own)));
 }
 
 #[tokio::test]

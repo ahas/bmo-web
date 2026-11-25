@@ -641,6 +641,11 @@
           "mode": {
             "$ref": "#/components/schemas/ChainMode"
           },
+          "personRaises": {
+            "default": false,
+            "description": "Whether a person's own link may only raise the value, never lower what stands from above it\n(`docs/accounts.md`, 「Resolution」).",
+            "type": "boolean"
+          },
           "personWriter": {
             "$ref": "#/components/schemas/ChainPersonWriter",
             "default": "heads"
@@ -669,7 +674,8 @@
           "rules",
           "levels",
           "unitPermission",
-          "personWriter"
+          "personWriter",
+          "personRaises"
         ],
         "type": "object"
       },

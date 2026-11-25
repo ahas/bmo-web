@@ -101,6 +101,19 @@ async function entryOrNone(key: string, link: string, caller: ProfileCaller): Pr
   }
 }
 
+// The link deciding an app for the reader from above them, where no word of theirs changes it: the link whose lock
+// cuts their chain, or, for a kind whose person link only raises the value, the link that switched the app on and
+// whose `true` they cannot take down (docs/accounts.md, 「An app's two settings」). None where the row is theirs.
+function decideLink(kind: ChainKindView, ownLink: string, on: ChainResolutionView): string | null {
+  const lockedBy = on.link?.lockedBy ?? null;
+
+  if (lockedBy !== null) return lockedBy;
+
+  const from = on.from ?? null;
+
+  return kind.personRaises && on.value !== false && from !== null && from !== ownLink ? from : null;
+}
+
 /** The apps offered to the signed-in reader, each with what stands for them; none for a login with no user. */
 export async function ownApps(signed: SignedIn): Promise<OwnApp[]> {
   const person = ownerKeyOf(signed);
@@ -108,11 +121,13 @@ export async function ownApps(signed: SignedIn): Promise<OwnApp[]> {
   if (person === null) return [];
 
   const link = `person:${person}`;
-  const [declared, home] = await Promise.all([declaredApps(), homeUnit(person).catch(() => null)]);
+  const [declared, home] = await Promise.all([declaredAppKinds(), homeUnit(person).catch(() => null)]);
   const apps = companyApps(declared, home?.company.id ?? null);
   const rows = await Promise.all(
     [...apps].map(async ([app, settings]): Promise<OwnApp | null> => {
-      if (!settings.has("on")) return null;
+      const onKind = settings.get("on");
+
+      if (onKind === undefined) return null;
 
       const [offered, on] = await Promise.all([
         settings.has("offered") ? resolveChain(appKind(app, "offered"), { person }).then(said) : true,
@@ -121,9 +136,10 @@ export async function ownApps(signed: SignedIn): Promise<OwnApp[]> {
 
       if (!offered) return null;
 
-      const lockedBy = on.link?.lockedBy ?? null;
+      const stands = said(on);
+      const decider = decideLink(onKind, link, on);
 
-      return { ...appName(app), on: said(on), own: on.from === link ? ownWord(on.value) : null, locked: lockedBy !== null, locker: await unitNamed(lockedBy) };
+      return { ...appName(app), on: stands, own: on.from === link ? ownWord(on.value) : null, decided: await unitNamed(decider) };
     })
   );
 

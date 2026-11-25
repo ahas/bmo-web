@@ -111,7 +111,7 @@ async function open(
   });
   await context.route(new RegExp(`/api/rooms/${CHAT}/members$`), async (route) => {
     await membersHeld;
-    await route.fulfill({ json: { members: PEOPLE.map(({ person, name }) => ({ person, name, status: null, account: null, inConsole: false })), chatMembers: "listed", mayLetIn: false } });
+    await route.fulfill({ json: { members: PEOPLE.map(({ person, name }) => ({ person, name, status: null, account: null, inConsole: false })), chatMembers: "listed", entry: { letIn: false, takeOut: false } } });
   });
   // Every frame, each face's place and what the picture's faces and surface are drawn at, so a face going is read as it
   // moves.

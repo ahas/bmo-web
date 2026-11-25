@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<void> => {
 
   if (!/^\d+$/.test(user)) throw fail(400, wording("members.error.entry_failed"));
 
-  await requireEntry(signed, room, user);
+  await requireEntry(signed, room, user, "let-in");
   await letIntoRoom(room, user, String(signed.id));
   roomReachChanged({ account: Number(user), room, left: false });
   setResponseStatus(event, 204);

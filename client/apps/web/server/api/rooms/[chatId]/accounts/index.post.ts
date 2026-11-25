@@ -12,7 +12,7 @@ import { wording } from "#shared/wording";
 // passed over. The account service says who may let whom in, and one refused refuses the whole before the receiver is
 // told anything; the receiver keeps the members and writes one line for each organisation and one for the people
 // chosen beside them. Membership is each person's call right there (docs/accounts.md, 「A room's callers」), and each
-// person's open streams hear the room from then on.
+// person's open tabs are told their rooms changed and hear the room from then on.
 export default defineEventHandler(async (event): Promise<void> => {
   const signed = await signedInUser(event);
   const room = requireChatId(event);
@@ -34,7 +34,7 @@ export default defineEventHandler(async (event): Promise<void> => {
   const throughUnits = new Set(organisations.flatMap((unit) => unit.people));
   const alone = fresh(accounts).filter((account) => !throughUnits.has(account));
 
-  await Promise.all(fresh([...alone, ...throughUnits]).map((account) => requireEntry(signed, room, account)));
+  await Promise.all(fresh([...alone, ...throughUnits]).map((account) => requireEntry(signed, room, account, "let-in")));
 
   const by = String(signed.id);
   const letIn: string[] = [];

@@ -1,7 +1,7 @@
 //! What the server's tests stand on: a database of the test's own on the test server, copied from a
 //! template this binary migrates once, or a database a module's tests share, seeded once; the rules
 //! standing on it; sumida's settings, set once before its first reading; and a receiver stand-in that knows
-//! the leaders a test gave rooms. A copy is dropped when its guard goes, and the test fails if it cannot
+//! the leaders and members a test gave rooms. A copy is dropped when its guard goes, and the test fails if it cannot
 //! be; before a binary makes its first database, the templates, copies and shared databases a binary that is
 //! gone left behind are dropped (`docs/checks.md`, 「The scratch databases」).
 
@@ -182,14 +182,38 @@ pub async fn connect(database: &str) -> DatabaseConnection {
     .expect("the database answers")
 }
 
-/// The leaders of rooms, as the receiver would answer them: the users who own a supervisor a room names.
+/// Rooms as the receiver would answer them: each room's leaders, the users who own a supervisor it names, and its
+/// console members.
 #[derive(Clone, Default)]
-pub struct Leaders(pub Arc<Mutex<HashMap<i64, Vec<i32>>>>);
+pub struct Rooms {
+  pub leaders: Arc<Mutex<HashMap<i64, Vec<i32>>>>,
+  pub members: Arc<Mutex<HashMap<i64, Vec<i32>>>>,
+}
 
 #[async_trait::async_trait]
-impl Receiver for Leaders {
+impl Receiver for Rooms {
   async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
-    Ok(self.0.lock().expect("the leaders are readable").get(&room).cloned().unwrap_or_default())
+    Ok(
+      self
+        .leaders
+        .lock()
+        .expect("the leaders are readable")
+        .get(&room)
+        .cloned()
+        .unwrap_or_default(),
+    )
+  }
+
+  async fn members_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
+    Ok(
+      self
+        .members
+        .lock()
+        .expect("the members are readable")
+        .get(&room)
+        .cloned()
+        .unwrap_or_default(),
+    )
   }
 }
 
@@ -197,14 +221,14 @@ impl Receiver for Leaders {
 pub struct Scratch {
   database: String,
   pub service: Service,
-  pub leaders: Leaders,
+  pub rooms: Rooms,
   kept: bool,
 }
 
 /// A database a module's tests share, made and seeded by the first test to ask, one for each value of this type.
 /// Each test stands the service on a pool of its own, since a pool lives no longer than the runtime of the test
 /// that made it.
-pub struct SharedDatabase(tokio::sync::OnceCell<(String, Leaders)>);
+pub struct SharedDatabase(tokio::sync::OnceCell<(String, Rooms)>);
 
 impl SharedDatabase {
   pub const fn new() -> SharedDatabase {
@@ -216,24 +240,24 @@ impl SharedDatabase {
     F: FnOnce(Scratch) -> Seeded,
     Seeded: Future<Output = Scratch>,
   {
-    let (database, leaders) = self
+    let (database, rooms) = self
       .0
       .get_or_init(|| async {
         let name = format!("{SHARED}{}_{}", std::process::id(), SHAREDS.fetch_add(1, Ordering::SeqCst));
         let seeded = seed(Scratch::made(&name, true).await).await;
 
-        (seeded.database.clone(), seeded.leaders.clone())
+        (seeded.database.clone(), seeded.rooms.clone())
       })
       .await
       .clone();
-    let service = stand(connect(&database).await, Arc::new(leaders.clone()), names())
+    let service = stand(connect(&database).await, Arc::new(rooms.clone()), names())
       .await
       .expect("the rules stand");
 
     Scratch {
       database,
       service,
-      leaders,
+      rooms,
       kept: true,
     }
   }
@@ -254,15 +278,15 @@ impl Scratch {
     create(&mut admin, database, &format!("\"{template}\"")).await;
     admin.close().await.expect("the server connection closes");
 
-    let leaders = Leaders::default();
-    let service = stand(connect(database).await, Arc::new(leaders.clone()), names())
+    let rooms = Rooms::default();
+    let service = stand(connect(database).await, Arc::new(rooms.clone()), names())
       .await
       .expect("the rules stand");
 
     Scratch {
       database: database.to_owned(),
       service,
-      leaders,
+      rooms,
       kept,
     }
   }

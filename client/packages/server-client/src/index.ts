@@ -32,6 +32,7 @@ export type Senders = Schemas["Senders"];
 export type Watching = Schemas["Watching"];
 export type WatchingAsk = Schemas["WatchingAsk"];
 export type CheckAnswer = Schemas["CheckAnswer"];
+export type EntryAct = Schemas["EntryAct"];
 export type UnitRef = Schemas["UnitRef"];
 export type UserUnit = Schemas["UserUnit"];
 export type Unit = Schemas["UnitView"];

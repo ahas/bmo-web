@@ -1,13 +1,13 @@
 //! Who may let a person into a room or take them out (docs/accounts.md, 「A room's callers」): the administrator, the
-//! room's leader — its opener, for a room opened in the console — or a head of the leader's unit, never across the
-//! room's company. Membership is the call right; nothing is granted here, and the decision is read from the room's
-//! leaders as the receiver answers them.
+//! room's leader — its opener, for a room opened in the console — or a head of the leader's unit, and for letting in
+//! every member of the room besides, never across the room's company. Membership is the call right; nothing is
+//! granted here, and the decision is read from the room's leaders and members as the receiver answers them.
 
 use axum::Json;
 use axum::Router;
 use axum::extract::State;
 use axum::routing::post;
-use bmo_web_client::{CheckAnswer, EntryCheckAsk};
+use bmo_web_client::{CheckAnswer, EntryAct, EntryCheckAsk};
 use sea_orm::ConnectionTrait;
 use sumida::api::authz::Authz;
 
@@ -42,15 +42,16 @@ async fn company_of_room<C: ConnectionTrait>(
   Ok(None)
 }
 
-/// Whether a user may let another into a room or take them out: never one of another company than the room's —
-/// or, for a room with no leader, than the actor's, but for the administrator — and then the administrator, a
-/// leader of the room, or a head of a leader's unit.
-pub async fn may_let_in<C: ConnectionTrait>(
+/// Whether a user may let another into a room or take them out, as `act` asks: never one of another company than the
+/// room's — or, for a room with no leader, than the actor's, but for the administrator — and then the administrator,
+/// a leader of the room, or a head of a leader's unit, and for letting in a member of the room as well.
+pub async fn may_enter<C: ConnectionTrait>(
   db: &C,
   receiver: &dyn Receiver,
   actor: i32,
   room: i64,
   user: i32,
+  act: EntryAct,
 ) -> Result<bool, Refusal> {
   one(db, r#"SELECT "id" FROM "users" WHERE "id" = $1::bigint"#, vec![user.into()])
     .await?
@@ -67,7 +68,11 @@ pub async fn may_let_in<C: ConnectionTrait>(
     _ => {}
   }
 
-  Ok(administrator || leads(db, receiver, actor, room).await?)
+  if administrator || leads(db, receiver, actor, room).await? {
+    return Ok(true);
+  }
+
+  Ok(act == EntryAct::LetIn && receiver.members_of(room).await?.contains(&actor))
 }
 
 async fn entry_check(
@@ -78,7 +83,7 @@ async fn entry_check(
   let user = user_in(&ask.user)?;
 
   Ok(Json(CheckAnswer {
-    allowed: may_let_in(&service.db, service.receiver.as_ref(), actor, ask.room, user).await?,
+    allowed: may_enter(&service.db, service.receiver.as_ref(), actor, ask.room, user, ask.act).await?,
     grant: entry_grant(ask.room),
     user: Some(shown(user)),
   }))

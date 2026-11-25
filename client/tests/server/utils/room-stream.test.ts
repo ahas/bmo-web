@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
-import { roomFrame, roomStreamFilter } from "../../../apps/web/server/utils/room-stream";
+import { ownConsoleWord, roomFrame, roomStreamFilter } from "../../../apps/web/server/utils/room-stream";
 import { ROOM_ID } from "../../support/ids";
 
 // The bot's stream as a user who reads only some rooms hears it (docs/web.md, 「Access」).
@@ -83,6 +83,18 @@ describe("the bot's stream cut to the rooms a user reads", () => {
     expect(filter.consoleEvent!({ name: "mail", data: { account: "a" } })).toBe(false);
     expect(filter.consoleEvent!({ name: "deploy", data: {} })).toBe(true);
     expect(filter.consoleEvent!({ name: "sidebar-counts", data: {} })).toBe(true);
+  });
+
+  test("a room read and a change of rooms reach the login they name alone, and every other word is the filter's to judge", () => {
+    const own = ownConsoleWord({ id: 12, name: "account-a" });
+
+    expect(own({ name: "rooms", data: { account: 12 } })).toBe(true);
+    expect(own({ name: "rooms", data: { account: 13 } })).toBe(false);
+    expect(own({ name: "room-read", data: { user: "account-a", chatId: ROOM_ID } })).toBe(true);
+    expect(own({ name: "room-read", data: { user: "account-b", chatId: ROOM_ID } })).toBe(false);
+    expect(own({ name: "deploy", data: {} })).toBeNull();
+    // A login standing before the account model has no account, so no account's rooms are its news.
+    expect(ownConsoleWord({ id: null, name: "console" })({ name: "rooms", data: { account: 12 } })).toBe(false);
   });
 
   test("each frame is cut to the rooms as they stand when it passes, so a room taken away falls silent at once", () => {

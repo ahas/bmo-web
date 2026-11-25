@@ -16,6 +16,7 @@ import {
   type Sections,
   type Session as WireSession,
   type SessionError,
+  type EntryAct,
   type Accepted,
   type Invite,
   type InviteUnit,
@@ -932,10 +933,11 @@ export async function setUnitKinds(company: number, kinds: Wire["CatalogueEntry"
   return answered(reply).kinds;
 }
 
-/** Whether the user `actor` may let `user` into a room or take them out (docs/accounts.md, 「A room's callers」). */
-export async function checkEntry(room: number, actor: UserId | number, user: UserId | number, options: ServiceOptions = {}): Promise<CheckAnswer> {
+/** Whether the user `actor` may let `user` into a room or take them out, as `act` asks (docs/accounts.md, 「A room's
+ * callers」). */
+export async function checkEntry(room: number, actor: UserId | number, user: UserId | number, act: EntryAct, options: ServiceOptions = {}): Promise<CheckAnswer> {
   const client = clientOf(options);
-  const reply = await sent(options, client.POST("/checks/entry", { body: { room, actor: userPath(actor), user: userPath(user) } }));
+  const reply = await sent(options, client.POST("/checks/entry", { body: { room, actor: userPath(actor), user: userPath(user), act } }));
   const said = answered(reply);
 
   return { allowed: said.allowed, grant: said.grant, user: userPath(user) };

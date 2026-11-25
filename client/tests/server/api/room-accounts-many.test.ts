@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../../support/globals";
+import { onConsoleEvent } from "../../../apps/web/server/utils/console-events";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -9,8 +10,9 @@ import type { UnitChoice } from "../../../apps/web/shared/people";
 // Several people let into a room at once (docs/web.md, the room screen's section on opening a room and letting people
 // in): the people chosen and the people of each organisation chosen — those whose home unit it is and those holding a
 // post in it, the units under it not taken in — those already members and those whose accounts have left passed
-// over. One refused refuses the whole; the receiver is told each organisation in a call of its own and the people
-// beside them in one more.
+// over. Any member who writes there lets people in, as the account service answers letting in; one refused refuses
+// the whole; the receiver is told each organisation in a call of its own and the people beside them in one more, and
+// each person let in is told, by their account alone, that their rooms changed.
 
 const READER = 3;
 const COLLEAGUE = 4;
@@ -143,6 +145,30 @@ describe("people let into a room at once", () => {
 
     expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { units: [PART] } })).status).toBe(200);
     expect(writes()).toEqual([]);
+  });
+
+  test("asks the account service about letting in, and tells each person let in alone that their rooms changed", async () => {
+    reset();
+
+    const said: unknown[] = [];
+    const stop = onConsoleEvent((one) => said.push(one));
+
+    try {
+      expect((await asked(letInMany, { params: { chatId: String(GROUP) }, body: { accounts: [String(COLLEAGUE), String(TEAMMATE)] } })).status).toBe(200);
+    } finally {
+      stop();
+    }
+
+    const checks = accounts.asked.filter((one) => one.path === "/checks/entry").map((one) => one.body);
+
+    expect(checks).toEqual([
+      { room: GROUP, actor: String(READER), user: String(COLLEAGUE), act: "let-in" },
+      { room: GROUP, actor: String(READER), user: String(TEAMMATE), act: "let-in" }
+    ]);
+    expect(said).toEqual([
+      { name: "rooms", data: { account: COLLEAGUE } },
+      { name: "rooms", data: { account: TEAMMATE } }
+    ]);
   });
 
   test("one person refused refuses the whole, and an organisation of another company is refused", async () => {

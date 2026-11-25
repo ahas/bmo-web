@@ -1391,9 +1391,29 @@
         ],
         "type": "object"
       },
+      "EntryAct": {
+        "description": "What an entry check asks about: letting a person into a room or taking one out of it.",
+        "oneOf": [
+          {
+            "const": "let-in",
+            "description": "Letting the user in, which every member of the room may do.",
+            "type": "string"
+          },
+          {
+            "const": "take-out",
+            "description": "Taking the user out, which the room's leaders, the heads of their units and the administrator alone may do;\nthe act asked about where none is named.",
+            "type": "string"
+          }
+        ]
+      },
       "EntryCheckAsk": {
         "description": "Whether one user may let another into a room, or take them out of it, asked.",
         "properties": {
+          "act": {
+            "$ref": "#/components/schemas/EntryAct",
+            "default": "take-out",
+            "description": "The act asked about; taking out where absent."
+          },
           "actor": {
             "description": "The user acting.",
             "type": "string"
@@ -1410,7 +1430,8 @@
         "required": [
           "room",
           "actor",
-          "user"
+          "user",
+          "act"
         ],
         "type": "object"
       },

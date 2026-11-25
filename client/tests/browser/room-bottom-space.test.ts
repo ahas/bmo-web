@@ -92,7 +92,7 @@ async function contextOf(viewport: (typeof WIDTHS)[number], chat: number, writin
     route.fulfill({ json: { messages: lineOf(chat), judgements: [], hasMore: false } })
   );
   await context.route(new RegExp(`/api/rooms/${chat}/members$`), (route) =>
-    route.fulfill({ json: { members: [{ person: WRITER, name: "agent-b", status: null, account: null, inConsole: false }], chatMembers: "listed", mayLetIn: false } })
+    route.fulfill({ json: { members: [{ person: WRITER, name: "agent-b", status: null, account: null, inConsole: false }], chatMembers: "listed", entry: { letIn: false, takeOut: false } } })
   );
 
   return context;

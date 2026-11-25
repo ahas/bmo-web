@@ -26,6 +26,7 @@ import { rawNumber } from "./raw-number";
 import { roleLogAnswer } from "./role-log";
 import { HIGH_ALBUM, HIGH_ANSWERED, HIGH_FILE, HIGH_FILE_NAME, HIGH_FILE_WORDS, HIGH_LINE, HIGH_PICTURE, HIGH_ROOM, highSent, highWords } from "./high-room";
 import { UNREAD_LINE, UNREAD_ROOM } from "./unread-room";
+import { INVITE_ACCOUNTS, INVITE_ROOM, inviteRoom, inviteRoomListed, inviteRoomMade, inviteRoomsOf } from "./invite-room";
 import { SYSTEM_ROOM, systemRoom } from "./system-room";
 import { ASKED_RUN, askedRunLogAnswer } from "./asked-run";
 import { addressOf, BROWSER_CONSOLE_PREFIX, dropScratchDatabase, sweepScratchDatabases } from "./web-database";
@@ -280,6 +281,23 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The invite room's people (tests/support/invite-room.ts): its opener and a member who write there, a member whose
+  // rooms section only reads, and the guests let in.
+  ...[INVITE_ACCOUNTS.opener, INVITE_ACCOUNTS.writer, ...INVITE_ACCOUNTS.guests].map(({ name, password }) => ({
+    name,
+    password,
+    sections: [
+      { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true }
+    ]
+  })),
+  {
+    ...INVITE_ACCOUNTS.reader,
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true }
+    ]
+  },
   {
     name: "room-reader",
     password: "fixture-password-2402",
@@ -465,7 +483,7 @@ const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] a
 const presence = { frames: "" };
 // Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
 // two rooms on one number would hand one of them the other's line. The harness refuses to stand where two share one.
-const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM };
+const FIXTURE_ROOMS: Record<string, number> = { OWNER_CHAT, UNREAD_CHAT, RECORD_CHAT, MEDIA_CHAT, STICKER_CHAT, LONE_CHAT, NUMBERED_CHAT, PAST_CHAT, PAGED_CHAT, PRIVATE_CHAT, PRESENCE_CHAT, HIGH_ROOM, SYSTEM_ROOM, INVITE_ROOM };
 const sharedRooms = Object.entries(FIXTURE_ROOMS).filter(([, id], at, all) => all.findIndex(([, other]) => other === id) !== at);
 
 if (sharedRooms.length > 0) {
@@ -2037,7 +2055,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
       return Response.json({ goes: [], stays: [], pictures: [], settings: [], folders: [], warned: [], units: [], taken: [], cleared: [], holders: [], couldNot: [] });
     }
     // Every room the receiver reads carries whose private room it is.
-    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom]
+    const every = [room, listed, behind, recorded, media, stickerRoom, loneRoom, { ...room, id: HIGH_ROOM, title: "high-room", ownerRoom: false, workRoom: HIGH_ROOM, lastMessageAt: LINE_AT - 200 }, privateRoom, inviteRoomListed(room)]
       .map((one) => ({ ...one, ...privacyOf(one.id) }));
 
     if (path === "/rooms") return Response.json({ items: every, more: false });
@@ -2049,7 +2067,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     if (member !== null) {
       const account = Number(member[1]);
 
-      return Response.json({ rooms: account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === activity.account ? [UNREAD_CHAT] : [] });
+      return Response.json({ rooms: [...(account === PRIVATE_ACCOUNT ? [PRIVATE_CHAT] : account === activity.account ? [UNREAD_CHAT] : []), ...inviteRoomsOf(account)] });
     }
     if (path === `/rooms/${PRIVATE_CHAT}/messages`) {
       const after = new URL(request.url).searchParams.get("after");
@@ -2249,6 +2267,10 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: ids.filter((id) => id === "8").map((id) => ({ id: Number(id), name: "person-c" })), more: false });
     }
+
+    const invited = await inviteRoom(path, request);
+
+    if (invited !== null) return invited;
 
     const paged = pagedRoom(path, new URL(request.url).searchParams) ?? systemRoom(path, LINE_AT);
 
@@ -2501,6 +2523,9 @@ try {
     // The agency stand-in, so a fixed line naming a supervisor names it by the label the agency gives it.
     BMO_WEB_SERVER_AGENCY__BASE: units.AGENCY_ADDRESS!,
     BMO_WEB_SERVER_AGENCY__TOKEN: TOKEN,
+    // The receiver stand-in, whose rooms' leaders and members the entry check reads.
+    BMO_WEB_SERVER_RECEIVER__BASE: units.RECEIVER_ADDRESS!,
+    BMO_WEB_SERVER_RECEIVER__TOKEN: TOKEN,
     // The secret store writes into the scratch folder, standing in for the data root's env/.
     BMO_WEB_SERVER_SECRETS__DIR: join(scratch, "env"),
     BMO_WEB_SERVER_MAIL__BASE: mailAddress,
@@ -2602,6 +2627,9 @@ try {
 
     if (!written.ok) throw new Error(`${member.name}'s sections were refused: ${written.status}`);
   }
+
+  // The invite room made once its people's accounts stand.
+  inviteRoomMade(users, LINE_AT);
 
   // The activity person's seat filed under their account.
   const activityPerson = users.find((user) => user.name === ACTIVITY_PERSON);

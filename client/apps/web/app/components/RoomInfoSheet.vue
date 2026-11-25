@@ -73,6 +73,7 @@
           :chat-id="props.chatId"
           :title="props.title"
           :avatars="props.avatars"
+          v-model:let-in="letIn"
           :administrator="props.administrator"
           @left="emit('left')"
         />
@@ -154,6 +155,8 @@ const props = defineProps<Props>();
 const open = defineModel<boolean>("open", { required: true });
 // The tab standing, which the room's screen keeps while it stands, so the view opens on the tab it last showed.
 const tab = defineModel<RoomInfoTab>("tab", { required: true });
+// The members tab's dialog that lets people in, which the room's menu opens over the tab.
+const letIn = defineModel<boolean>("letIn", { default: false });
 const emit = defineEmits<{ enlarge: []; left: []; show: [messageId: ExactMessageId]; remove: [] }>();
 
 const { t } = useI18n();

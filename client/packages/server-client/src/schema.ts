@@ -2637,8 +2637,15 @@ export interface components {
             /** @description The `otpauth://` address. */
             uri: string;
         };
+        /** @description What an entry check asks about: letting a person into a room or taking one out of it. */
+        EntryAct: "let-in" | "take-out";
         /** @description Whether one user may let another into a room, or take them out of it, asked. */
         EntryCheckAsk: {
+            /**
+             * @description The act asked about; taking out where absent.
+             * @default take-out
+             */
+            act: components["schemas"]["EntryAct"];
             /** @description The user acting. */
             actor: string;
             /** Format: int64 */

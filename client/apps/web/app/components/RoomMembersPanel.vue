@@ -2,10 +2,11 @@
   <!-- A room's members, the room information's members tab (docs/web.md, the room screen's members entry), by either road: each with their face, their name
        and the status line their chat service read, and the mark of a console user, pressed through to that person's
        page, on a member the account service knows as an account. A member it does not know stands as a member alone.
-       A reader who may let people in adds one, and a member let in in the console leaves or is taken out from their
-       row (the room screen's section on opening a room and letting people in). -->
+       A reader who may let people in adds them, the room's menu opening the same dialog over this tab, and a member let
+       in in the console leaves, or is taken out by a reader who may take members out, from their row (the room
+       screen's section on opening a room and letting people in). -->
   <div class="flex min-w-0 flex-col">
-    <div v-if="loaded && mayLetIn" class="mb-2 flex justify-end">
+    <div v-if="loaded && entry.letIn" class="mb-2 flex justify-end">
       <UButton size="sm" icon="i-material-symbols-person-add-outline" :label="$t('members.action.let_in')" data-room-let-in @click="letInOpen = true" />
     </div>
 
@@ -57,7 +58,7 @@
           @click="void takeOut(member.account)"
         />
         <IconButton
-          v-else-if="member.inConsole && member.account !== null && mayLetIn"
+          v-else-if="member.inConsole && member.account !== null && entry.takeOut"
           icon="i-material-symbols-person-remove-outline"
           class="mt-2"
           :label="$t('members.action.take_out')"
@@ -86,7 +87,7 @@ import { mayRead } from "#shared/sections";
 
 import type { AvatarIndex } from "~/domain/avatars";
 import type { MemberPresence } from "~/domain/presence";
-import type { RoomChatMembers, RoomMember, RoomMembersView } from "#shared/types";
+import type { RoomChatMembers, RoomEntry, RoomMember, RoomMembersView } from "#shared/types";
 
 interface Props {
   chatId: number;
@@ -113,7 +114,7 @@ const access = useSectionAccess();
 const mayOpenPeople = computed<boolean>(() => props.administrator || mayRead(access.value, "account"));
 
 const members = ref<RoomMember[]>([]);
-const mayLetIn = ref(false);
+const entry = ref<RoomEntry>({ letIn: false, takeOut: false });
 const chatMembers = ref<RoomChatMembers>("listed");
 // Why a room with no members has none of its chat service's, where its chat service gave none.
 const noneReason = computed<string | null>(() => {
@@ -126,7 +127,8 @@ const noneReason = computed<string | null>(() => {
       return null;
   }
 });
-const letInOpen = ref(false);
+// The dialog that lets people in, which the room's menu opens too.
+const letInOpen = defineModel<boolean>("letIn", { default: false });
 const busy = ref<string | null>(null);
 const actFailure = ref("");
 const signedUser = useSignedUser();
@@ -159,7 +161,7 @@ async function read(): Promise<void> {
 
     if (mine !== generation) return;
     members.value = answer.members;
-    mayLetIn.value = answer.mayLetIn;
+    entry.value = answer.entry;
     chatMembers.value = answer.chatMembers;
     loaded.value = true;
   } catch (error) {

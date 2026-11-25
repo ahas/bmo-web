@@ -109,6 +109,11 @@ which stands.
   - in the receiver's stand-in, a room of system lines: a person's words, a row kept with the old notice mark under
     a sender the room does not answer as, the service's stop kept as a fixed line, and a session handed over naming a
     supervisor by its key;
+  - in the receiver's stand-in, a room opened in the console that keeps its members as the receiver keeps them: its
+    opener leading it, a member who writes there and one whose rooms section only reads, the opener's words its
+    first line, and a guest for each width the invite file drives, each let in by a member and the room hearing who
+    let whom in; the account service is named the receiver's stand-in, so its entry check reads the room's leaders
+    and members from it;
   - a stand-in for the tool host's control socket on a Unix socket in the scratch directory, with the console's tool
     session token in a file beside it, answering bmo-explorer's link preview for the pages the media room's link
     messages lead to and its card picture for the picture one of them names (`docs/boundary.md`, 「The web beyond the

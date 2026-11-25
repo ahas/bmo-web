@@ -328,22 +328,42 @@ async fn a_body_that_does_not_read_is_refused_naming_why() {
   assert!(said["error"].as_str().unwrap().contains("the body does not read"), "{said}");
 }
 
-/// A stand-in receiver answering a room's leaders to its token alone: one leader for `ROOM`, none for any other.
+/// A stand-in receiver answering a room's leaders and its console members to its token alone: one leader and two
+/// members for `ROOM`, none for any other.
 async fn stand_in_receiver() -> String {
-  let app = Router::new().route(
-    "/rooms/{chat}/leaders",
-    get(
-      |axum::extract::Path(chat): axum::extract::Path<i64>, headers: axum::http::HeaderMap| async move {
-        if headers.get(header::AUTHORIZATION).and_then(|value| value.to_str().ok())
-          != Some("Bearer the receiver's token")
-        {
-          return Err(StatusCode::UNAUTHORIZED);
-        }
+  fn answered(headers: &axum::http::HeaderMap, answer: Value) -> Result<Json<Value>, StatusCode> {
+    if headers.get(header::AUTHORIZATION).and_then(|value| value.to_str().ok())
+      != Some("Bearer the receiver's token")
+    {
+      return Err(StatusCode::UNAUTHORIZED);
+    }
 
-        Ok(Json(json!({ "leaders": if chat == ROOM { vec![42] } else { vec![] } })))
-      },
-    ),
-  );
+    Ok(Json(answer))
+  }
+
+  let app = Router::new()
+    .route(
+      "/rooms/{chat}/leaders",
+      get(
+        |axum::extract::Path(chat): axum::extract::Path<i64>, headers: axum::http::HeaderMap| async move {
+          answered(&headers, json!({ "leaders": if chat == ROOM { vec![42] } else { vec![] } }))
+        },
+      ),
+    )
+    .route(
+      "/rooms/{chat}/accounts",
+      get(
+        |axum::extract::Path(chat): axum::extract::Path<i64>, headers: axum::http::HeaderMap| async move {
+          let accounts = if chat == ROOM {
+            json!([{ "account": 42, "addedBy": null, "addedAt": null }, { "account": 43, "addedBy": 42, "addedAt": 1 }])
+          } else {
+            json!([])
+          };
+
+          answered(&headers, json!({ "accounts": accounts }))
+        },
+      ),
+    );
   let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
   let address = format!("http://{}", listener.local_addr().unwrap());
 
@@ -353,13 +373,15 @@ async fn stand_in_receiver() -> String {
 }
 
 #[tokio::test]
-async fn the_receivers_client_reads_a_rooms_leaders() {
+async fn the_receivers_client_reads_a_rooms_leaders_and_members() {
   ready();
   let address = stand_in_receiver().await;
   let client = ReceiverClient::new(&address, "the receiver's token").unwrap();
 
   assert_eq!(client.leaders_of(ROOM).await.unwrap(), vec![42]);
   assert_eq!(client.leaders_of(ROOM - 1).await.unwrap(), Vec::<i32>::new());
+  assert_eq!(client.members_of(ROOM).await.unwrap(), vec![42, 43]);
+  assert_eq!(client.members_of(ROOM - 1).await.unwrap(), Vec::<i32>::new());
   assert_eq!(
     ReceiverClient::new(&address, "not the token")
       .unwrap()

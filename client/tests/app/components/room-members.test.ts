@@ -92,11 +92,11 @@ describe("the members tab", () => {
     expect(sheet).toContain('props.administrator || mayRead(access.value, "account")');
   });
 
-  test("offers letting a person in to a reader who may, and leaving or taking out on a console member's row", () => {
-    expect(sheet).toContain('v-if="loaded && mayLetIn"');
+  test("offers letting a person in to a reader who may, leaving on their own row and taking out to a reader who may", () => {
+    expect(sheet).toContain('v-if="loaded && entry.letIn"');
     expect(sheet).toContain('<RoomLetInDialog v-model:open="letInOpen"');
     expect(sheet).toContain('v-if="member.inConsole && member.account !== null && member.account === mine"');
-    expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && mayLetIn"');
+    expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && entry.takeOut"');
     expect(sheet).toContain("await $fetch(`/api/rooms/${props.chatId}/accounts/${account}`, { method: \"DELETE\" });");
   });
 

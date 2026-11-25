@@ -2972,12 +2972,19 @@ export interface RoomMember {
 // with no failure, since no chat service carries the room or its chat service lists no members.
 export type RoomChatMembers = "listed" | "no-service" | "unlisted";
 
-// A room's members, what its chat service gave of them, and whether the reader may let people in and take them out
-// (docs/web.md, the room screen's section on opening a room and letting people in).
+// What the reader may do to a room's members: let people in, which every member who writes there may, and take
+// members out, which the room's opener, a head of the opener's unit and the administrator may (docs/web.md, the room
+// screen's section on opening a room and letting people in).
+export interface RoomEntry {
+  letIn: boolean;
+  takeOut: boolean;
+}
+
+// A room's members, what its chat service gave of them, and what the reader may do to them.
 export interface RoomMembersView {
   members: RoomMember[];
   chatMembers: RoomChatMembers;
-  mayLetIn: boolean;
+  entry: RoomEntry;
 }
 
 // One room, counted: the messages kept for it, the session kept for the room, and the runs made for it.

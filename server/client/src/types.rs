@@ -619,6 +619,18 @@ pub struct UnitCheckAsk {
   pub user: String,
 }
 
+/// What an entry check asks about: letting a person into a room or taking one out of it.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum EntryAct {
+  /// Letting the user in, which every member of the room may do.
+  LetIn,
+  /// Taking the user out, which the room's leaders, the heads of their units and the administrator alone may do;
+  /// the act asked about where none is named.
+  #[default]
+  TakeOut,
+}
+
 /// Whether one user may let another into a room, or take them out of it, asked.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct EntryCheckAsk {
@@ -627,6 +639,9 @@ pub struct EntryCheckAsk {
   pub actor: String,
   /// The user let in or taken out.
   pub user: String,
+  /// The act asked about; taking out where absent.
+  #[serde(default)]
+  pub act: EntryAct,
 }
 
 /// One organisation unit as another names it: its number and its name.

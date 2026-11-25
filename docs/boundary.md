@@ -293,16 +293,17 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 |---|---|---|
 | `POST /checks/unit` | `unit`, `user` | `allowed`: whether the user heads the unit or a unit above it, `grant` (`organization:<unit>#manage`); 404 where there is no such unit |
 | `POST /checks/org-memory` | `unit`, `user` | `allowed`: whether the user writes the unit's org memory, heading the unit or a unit above it or holding the unit's org memory write, `grant` (`bmo_org_memory:<unit>#may_write`), `user`; 404 where there is no such unit or user |
-| `POST /checks/entry` | `room`, `actor` (the user acting), `user` (the user let in or taken out) | `allowed`: whether the actor may let the user into the room, `grant` (`bmo_room:<room>#entry`), `user`; 404 where there is no such user |
+| `POST /checks/entry` | `room`, `actor` (the user acting), `user` (the user let in or taken out), `act?` (`let-in` or `take-out`; `take-out` where absent) | `allowed`: whether the actor may do the act to the user in the room, `grant` (`bmo_room:<room>#entry`), `user`; 404 where there is no such user |
 
 - **`grant`** is what was asked for, `kind:object#relation`, as a caller names it when it says what a user lacks;
   the entry check's names the decision alone, since the rules declare no kind for a room.
 - **No check answers for a room's relation or for what an agent may do:** neither is a grant of the server's
   (`docs/accounts.md`, 「What it is」).
-- **An entry check** reads the room's leaders from the receiver (「Calls the server makes」): the actor may where they
-  are the administrator, a leader of the room or a head of a leader's unit, and the user stands in the room's
-  company, its leaders' — or, for a room with no leader, the actor's, but for the administrator; a receiver that
-  does not answer is 502 `upstream-failed`.
+- **An entry check** reads the room's leaders from the receiver, and for letting in its console members as well
+  (「Calls the server makes」): the actor may where they are the administrator, a leader of the room or a head of a
+  leader's unit, or, letting in alone, a member of the room; and the user stands in the room's company, its
+  leaders' — or, for a room with no leader, the actor's, but for the administrator. A receiver that does not answer
+  is 502 `upstream-failed`.
 - **The platform administrator passes every check** but the entry check's company bound.
 
 ### Phone keys
@@ -609,6 +610,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 | Unit | Call | Route | Why |
 |---|---|---|---|
 | the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the one acting may let a person into a room (「Checks」, the entry check) |
+| the receiver | read a room's console members | `GET /rooms/{chat}/accounts`, answered `accounts`, each its `account` | whether the one letting a person in is a member of the room (「Checks」, the entry check) |
 | the agency | register the supply hook | `PUT /hooks/supply` (`url`, `token`) | once as the server starts, where the settings name the agency, so the agency asks who pays for a person's run; `DELETE /hooks/supply` takes it away |
 | the agency | read an agent's label | `GET /supervisors/{supervisorName}`, answered its row's `label` | the name an agent a fixed line names stands as (「Fixed lines」); a refusal, no answer within three seconds or no label names it by its key |
 | the agency | read a person's personal supply roads | `GET /personal-supply`, answered `people` | whose personal supply an administrator's read of `GET /supply/user/{user}` names, with that person in `Owner-Key` and `Owner-Role: administrator` |

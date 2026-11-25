@@ -30,7 +30,7 @@ const MEMBERS = {
     { person: null, name: LONG, status: "status-c", account: null, inConsole: false }
   ],
   chatMembers: "listed",
-  mayLetIn: false
+  entry: { letIn: false, takeOut: false }
 } satisfies RoomMembersView;
 
 let browser: Browser | null = null;
@@ -153,7 +153,7 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
   }, 90_000);
 
   test("with no members of a room no chat service carries, say there are none and why, and stand no list", async () => {
-    const none = { members: [], chatMembers: "no-service", mayLetIn: false } satisfies RoomMembersView;
+    const none = { members: [], chatMembers: "no-service", entry: { letIn: false, takeOut: false } } satisfies RoomMembersView;
     const { page, close } = await sheetOpen(360, 780, true, { status: 200, body: none });
 
     try {

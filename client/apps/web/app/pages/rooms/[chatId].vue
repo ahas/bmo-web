@@ -126,6 +126,7 @@
               <RoomInfoSheet
                 v-model:open="infoOpen"
                 v-model:tab="infoTab"
+                v-model:let-in="letInOpen"
                 :chat-id="chatId"
                 :title="title"
                 :avatar="roomAvatar"
@@ -620,7 +621,7 @@ import type { RunState } from "~/domain/events";
 import type { LandedPicture, OutboxItem, SendOutcome } from "~/domain/outbox";
 import type { ArchivedItem, DayGroup, FeedItem, SenderRun, Speaker, StoodTurn } from "~/domain/room";
 import type { MentionAgent } from "~/domain/mentions";
-import type { AttachLimits, PinnedMessage, RoomAnswerers, RoomFileLimit, RoomPast } from "#shared/types";
+import type { AttachLimits, PinnedMessage, RoomAnswerers, RoomEntry, RoomFileLimit, RoomPast } from "#shared/types";
 import type { Point, Rect } from "~/domain/flight";
 
 // Another room is another screen; the rest of the address is not the room's, and a message it names is
@@ -1133,6 +1134,9 @@ const menuItems = computed<DropdownMenuItem[][]>(() => [
     { label: t("room.action.find"), icon: "i-material-symbols-search", onSelect: openFind },
     // The reader's own BMO beside a group room, a private conversation over it (docs/web.md, the room screen's overlay).
     ...(group.value ? [{ label: t("room.action.overlay"), icon: "i-material-symbols-chat-bubble-outline", onSelect: () => { overlayOpen.value = true; } }] : []),
+    // Letting people in, for a reader who may, over the room's people (docs/web.md, the room screen's section on opening
+    // a room and letting people in).
+    ...(writable.value && entry.value.letIn ? [{ label: t("members.action.let_in"), icon: "i-material-symbols-person-add-outline", onSelect: openLetIn }] : []),
     { label: t("room.action.choose_messages"), icon: "i-material-symbols-checklist", onSelect: startSelecting },
     { label: t("room.action.copy_all"), icon: "i-material-symbols-content-copy-outline", onSelect: () => void copyAll() },
     // The pinned order is one list for every reader, so only the administrator sets it (docs/web.md, the room
@@ -1179,6 +1183,16 @@ const infoTab = ref<RoomInfoTab>("members");
 function openInfo(tab: RoomInfoTab): void {
   infoTab.value = tab;
   infoOpen.value = true;
+}
+
+// What the reader may do to the room's members, read as the screen opens; the members tab reads it again with them.
+const { data: entry } = useFetch<RoomEntry>(`/api/rooms/${chatId}/entry`, { key: `room-entry:${chatId}`, lazy: true, server: false, default: () => ({ letIn: false, takeOut: false }) });
+// The dialog that lets people in, standing over the room information's members tab.
+const letInOpen = ref(false);
+
+function openLetIn(): void {
+  openInfo("members");
+  letInOpen.value = true;
 }
 
 // A room the reader has left is no longer theirs to read: the list drops it and the screen goes home.

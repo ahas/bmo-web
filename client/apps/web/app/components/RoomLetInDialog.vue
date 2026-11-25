@@ -34,7 +34,7 @@
 
     <template #footer="{ close }">
       <UButton :label="$t('common.action.cancel')" color="neutral" variant="ghost" @click="close()" />
-      <UButton type="submit" form="room-let-in-form" :label="$t('members.action.let_in')" :disabled="picked.length === 0 || busy" :loading="busy" />
+      <UButton type="submit" form="room-let-in-form" :label="$t('common.action.add')" :disabled="picked.length === 0 || busy" :loading="busy" />
     </template>
   </SettingsDialog>
 </template>

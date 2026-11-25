@@ -1,7 +1,7 @@
 import { isPast } from "#shared/read-place";
 
 import { useAdministrator } from "./access";
-import { useBotEvents, useLiveRefresh } from "./events";
+import { useBotEvents, useLiveRefresh, useOwnRoomsEvents } from "./events";
 import { removedRoom } from "./room-removal";
 
 import type { BotEvent, ExactMessageId, ListedRoom, RoomRead } from "#shared/types";
@@ -97,6 +97,9 @@ export function useRoomList() {
     on: ["message", "room-removed", "room-read"],
     where: (event) => movesRoomList(event, data.value, administrator.value)
   });
+  // A room the reader was let into stands in the list at once, its first line counted, though the room's own news may
+  // have passed their stream before it heard the room; one they left or were taken out of goes.
+  useOwnRoomsEvents(() => void refresh({ dedupe: "defer" }));
 
   return { data: useNewestReads(data), status, error, refresh };
 }

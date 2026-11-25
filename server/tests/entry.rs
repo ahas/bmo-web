@@ -1,5 +1,6 @@
-//! Who lets a person into a room (docs/accounts.md, 「A room's callers」): its opener, a head of the opener's unit or
-//! the administrator, within the room's company; and a sender linked to a user by the administrator alone.
+//! Who lets a person into a room and takes one out (docs/accounts.md, 「A room's callers」): every member lets in, its
+//! opener, a head of the opener's unit or the administrator takes out, within the room's company; and a sender linked
+//! to a user by the administrator alone.
 
 use crate::support::{OWNER, ROOM, Scratch, console_hash, ready};
 use axum::Router;
@@ -109,9 +110,10 @@ async fn a_person_is_let_into_a_room_by_its_opener_a_head_of_the_openers_unit_or
     )
     .await;
   // The room was opened by the opener, whose own BMO leads it.
-  scratch.leaders.0.lock().unwrap().insert(ROOM, vec![opener]);
+  scratch.rooms.leaders.lock().unwrap().insert(ROOM, vec![opener]);
 
   let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
+  // Taking out, the act asked about where none is named.
   let entry = |actor: i32, user: i32, room: i64| json!({ "room": room, "actor": actor.to_string(), "user": user.to_string() });
   let allowed = |said: (StatusCode, Value)| {
     assert_eq!(said.0, StatusCode::OK, "{}", said.1);
@@ -154,6 +156,64 @@ async fn a_person_is_let_into_a_room_by_its_opener_a_head_of_the_openers_unit_or
   let missing = sent(&app, Method::POST, "/checks/entry", None, Some(entry(opener, 9999, ROOM))).await;
 
   assert_eq!(missing.0, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn every_member_of_a_room_lets_a_person_in_and_only_its_leaders_heads_and_the_administrator_take_one_out()
+ {
+  ready();
+  let scratch = Scratch::new().await;
+
+  scratch.console_account("boss", &console_hash("the password")).await;
+  run_move(
+    scratch.db(),
+    MoveAsk {
+      owner_senders: vec![OWNER],
+    },
+  )
+  .await
+  .unwrap();
+
+  let company = unit(&scratch, "company-a", None).await;
+  let other = unit(&scratch, "company-b", None).await;
+  let opener = placed(&scratch, "opener-a", company, false).await;
+  let member = placed(&scratch, "member-a", company, false).await;
+  let guest = placed(&scratch, "guest-a", company, false).await;
+  let stranger = placed(&scratch, "stranger-a", company, false).await;
+  let outsider = placed(&scratch, "outsider", other, false).await;
+
+  scratch.rooms.leaders.lock().unwrap().insert(ROOM, vec![opener]);
+  scratch.rooms.members.lock().unwrap().insert(ROOM, vec![opener, member]);
+
+  let app = in_force(scratch.service.clone(), TOKEN.into()).await.unwrap();
+  let asked = |actor: i32, user: i32, act: &str| json!({ "room": ROOM, "actor": actor.to_string(), "user": user.to_string(), "act": act });
+  let allowed = |said: (StatusCode, Value)| {
+    assert_eq!(said.0, StatusCode::OK, "{}", said.1);
+    said.1["allowed"].as_bool().unwrap()
+  };
+
+  // A member who did not open the room lets a person of its company in, and takes nobody out.
+  assert!(allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, guest, "let-in"))).await
+  ));
+  assert!(!allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, opener, "take-out"))).await
+  ));
+  // The opener takes a member out.
+  assert!(allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(opener, member, "take-out"))).await
+  ));
+  // A member lets nobody of another company in, and one who is no member lets nobody in.
+  assert!(!allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, outsider, "let-in"))).await
+  ));
+  assert!(!allowed(
+    sent(&app, Method::POST, "/checks/entry", None, Some(asked(stranger, guest, "let-in"))).await
+  ));
+
+  let unknown = sent(&app, Method::POST, "/checks/entry", None, Some(asked(member, guest, "invite"))).await;
+
+  assert_eq!(unknown.0, StatusCode::BAD_REQUEST);
 }
 
 #[tokio::test]

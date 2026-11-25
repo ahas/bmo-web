@@ -4,6 +4,8 @@ import { wording } from "#shared/wording";
 import { userOf } from "./account-service";
 
 import { signedInUser } from "./accounts";
+import { publishConsoleEvent } from "./console-events";
+import { ROOMS_WORD } from "./room-stream";
 import { SHARED, accountRooms, privacyOf, readableBy, roomPrivacies, writableBy } from "./console-rooms";
 import { fail } from "./fail";
 import { onOwnersRoad, ownerChat, ownerStanding } from "./owner";
@@ -81,7 +83,8 @@ export interface ReachChange {
 
 const reachListeners = new Set<(change: ReachChange) => void>();
 
-/** Says to every open stream that an account's rooms changed. */
+/** Says to every open stream that an account's rooms changed, and to that account's open tabs, so their room lists
+ * are read again whether or not the room's own news has reached them. */
 export function roomReachChanged(change: ReachChange): void {
   for (const listener of reachListeners) {
     try {
@@ -90,6 +93,8 @@ export function roomReachChanged(change: ReachChange): void {
       // One stream's fault is no reason to keep the change from the others.
     }
   }
+
+  publishConsoleEvent(ROOMS_WORD, { account: change.account });
 }
 
 /**

@@ -4,7 +4,9 @@ import { SIDEBAR_COUNTS_WORD } from "./bundle-streams";
 import { frameEvent } from "./sse-frames";
 
 import type { BotEventType, ChatTurn, ExactMessageId, LiveSnapshot, PresenceWho, TurnReceived, TurnSpeaker } from "#shared/types";
+import type { SignedIn } from "./accounts";
 import type { RelayFilter } from "./bot-relay";
+import type { ConsoleEvent } from "./console-events";
 
 // What the bot's stream carries to a user who reads only some rooms (docs/web.md, 「Access」): a
 // message arriving, a turn beginning and the way it ended, a room's registration removed, and who is writing and who is
@@ -36,6 +38,25 @@ interface RoomEvent {
 export type ReadRooms = Pick<ReadonlySet<number>, "has">;
 
 const CARRIED: readonly BotEventType[] = ["message", "run-started", ...TURN_ENDED, "room-removed", "typing", "presence"];
+
+/** The console's word that an account's rooms changed, which that account's open tabs alone hear, carrying the
+ * account it is said for and nothing of the room (docs/web.md, the room screen's section on opening a room and
+ * letting people in). */
+export const ROOMS_WORD = "rooms";
+
+/** Whether one of the console's own words is a login's own news, which goes to that account's tabs alone: a room it
+ * read, named by its login, and a change of its rooms, named by its account. Null for every other word, which the
+ * stream's own filter judges. */
+export function ownConsoleWord(signed: Pick<SignedIn, "id" | "name">): (said: ConsoleEvent) => boolean | null {
+  return (said) => {
+    const data = said.data as { user?: unknown; account?: unknown } | null;
+
+    if (said.name === "room-read") return data?.user === signed.name;
+    if (said.name === ROOMS_WORD) return signed.id !== null && data?.account === signed.id;
+
+    return null;
+  };
+}
 
 /** The relay's filter for a user who reads these rooms. */
 export function roomStreamFilter(rooms: ReadRooms): RelayFilter {

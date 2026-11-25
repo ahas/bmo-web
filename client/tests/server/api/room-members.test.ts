@@ -78,7 +78,7 @@ describe("a room's members", () => {
         { person: null, name: "person-12", status: null, account: "12", inConsole: true }
       ],
       chatMembers: "listed",
-      mayLetIn: true
+      entry: { letIn: true, takeOut: true }
     });
     // One lookup for every member with a number, and none for the member without one or the row with no name; then
     // the name of the one account let in that the chat service does not list.
@@ -89,8 +89,8 @@ describe("a room's members", () => {
   });
 
   test("of a private room, sealed or not, offer nobody to let in, the administrator included, since the receiver keeps them as they stand", async () => {
-    expect((await asked(read, { params: { chatId: "-14" } })).answer?.mayLetIn).toBe(false);
-    expect((await asked(read, { params: { chatId: "-15" } })).answer?.mayLetIn).toBe(false);
+    expect((await asked(read, { params: { chatId: "-14" } })).answer?.entry).toEqual({ letIn: false, takeOut: false });
+    expect((await asked(read, { params: { chatId: "-15" } })).answer?.entry).toEqual({ letIn: false, takeOut: false });
   });
 
   test("of a room no chat service carries are its accounts alone, each by its person's name, its login where none stands", async () => {
@@ -100,12 +100,12 @@ describe("a room's members", () => {
         { person: null, name: "account-13", status: null, account: "13", inConsole: true }
       ],
       chatMembers: "no-service",
-      mayLetIn: true
+      entry: { letIn: true, takeOut: true }
     });
   });
 
   test("of a room whose chat service lists no members are its accounts alone, none here, with no refusal", async () => {
-    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", mayLetIn: true });
+    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", entry: { letIn: true, takeOut: true } });
   });
 
   test("say the receiver's refusal by the pack's sentence for its code, and ask the account service nothing", async () => {

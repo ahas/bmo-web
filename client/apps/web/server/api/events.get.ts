@@ -2,7 +2,7 @@ import { relayBotStream } from "../utils/bot-relay";
 import { companyPeopleOf } from "../utils/company-people";
 import { accountPresenceFrames, maskedPresence } from "../utils/presence-frames";
 import { presenceSwitches } from "../utils/presence-switches";
-import { roomStreamFilter } from "../utils/room-stream";
+import { ownConsoleWord, roomStreamFilter } from "../utils/room-stream";
 
 // The units' live streams — the receiver's, bmo-job's and the agency's — relayed event by event, with the
 // console's own events written between them. The browser cannot carry the units' tokens, so the session is
@@ -26,9 +26,7 @@ export default defineEventHandler(async (event) => {
 
     return await signedInOf(session);
   });
-  // A room read is the account's own news: the console's word of it goes to that account's tabs alone.
-  const ownRead = (said: { name: string; data: unknown }): boolean | null =>
-    said.name === "room-read" ? (said.data as { user?: unknown } | null)?.user === signed.name : null;
+  const ownWord = ownConsoleWord(signed);
   const filter = readable === "all" ? {} : roomStreamFilter(rooms);
   // Read before the stream opens, so the present handed after the replay already finds them.
   const company = companyPeopleOf(signed);
@@ -70,7 +68,7 @@ export default defineEventHandler(async (event) => {
 
         return (frame) => [...(roomFrames?.(frame) ?? []), ...people(frame)];
       },
-      consoleEvent: (said) => ownRead(said) ?? filter.consoleEvent?.(said) ?? true
+      consoleEvent: (said) => ownWord(said) ?? filter.consoleEvent?.(said) ?? true
     })
   );
 });

@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use crate::support::{Blank, Leaders, names, ready};
+use crate::support::{Blank, Rooms, names, ready};
 
 use bmo_web_server::migration::{BASELINE, BEFORE, FOLDED, MIGRATIONS_TABLE, Migrator, up};
 use bmo_web_server::routes::stand;
@@ -225,7 +225,7 @@ async fn an_install_at_the_last_release_before_the_baseline_is_taken_as_the_base
   assert_eq!(shape(&blank.db).await, before);
 
   // The service stands on it.
-  stand(blank.db.clone(), Arc::new(Leaders::default()), names())
+  stand(blank.db.clone(), Arc::new(Rooms::default()), names())
     .await
     .expect("the rules stand");
 }

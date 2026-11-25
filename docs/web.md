@@ -6173,7 +6173,8 @@ Four bounds keep it from growing forever.
   it holds, each part a tab of its own. The name is a button, with a hover and a press colour of its own and the
   tooltip 방 정보, cut short where the bar is short as the name always is. The room's picture beside it keeps its own
   press, which opens the picture whole, and the presence dot on the picture's corner opens the same view on its
-  대화상대 tab (「Presence and typing」). The room's menu carries none of what the view holds.
+  대화상대 tab (「Presence and typing」). The room's menu carries none of what the view holds but 대화상대 추가
+  (「방 만들기와 대화상대 추가」).
 - **It opens as a sheet at the side on a wide screen, as wide as its whole row of tabs, and as a drawer from the
   bottom on a narrow one,** at one height whichever tab is shown, so changing tabs moves nothing around it; the conversation stays where it stood.
   Back, Esc, its close button and a press outside close it, and opening and closing it leave the history as it was.
@@ -6395,10 +6396,15 @@ Four bounds keep it from growing forever.
   member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
   leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their
   own is told so and nothing is made; the console goes to the room once it stands.
-- **대화상대 추가 lets people in, several at once.** The 대화상대 tab carries it for a reader who may let people
-  in: the room's opener, a head of the opener's unit, or the administrator, as the account service answers it
-  (`POST /checks/entry`). It opens a dialog with one select of several values, the console's one select, whose
-  search finds both the people of the reader's directory and the organisations of the reader's company, and 추가.
+- **대화상대 추가 lets people in, several at once.** Every reader who may write in the room may let people in: each
+  member, the administrator among them, whose rooms section writes, in any room but a private room or a sealed one,
+  as the account service answers it (`POST /checks/entry`, letting in; `docs/accounts.md`, 「A room's callers」).
+  The 대화상대 tab carries it for such a reader, and so does the room's menu, so it is found from the room's own
+  screen: the menu's entry opens 방 정보 on its 대화상대 tab with the dialog standing over it, the room's people
+  behind it. Which of the two the reader may do, letting in and taking out, the console's server reads as the room's
+  screen opens and as the tab reads its members. The dialog holds one select of several values, the console's one
+  select, whose search finds both the people of the reader's directory and the organisations of the reader's
+  company, and 추가.
   - What the search found stands in two groups under their headings, 사람 and then 조직, an organisation with the
     names of the organisations above it and 구성원 and its count. Each pressed joins the choice, which stands in the
     field as a chip each, an organisation's wearing its mark; pressing a chosen one again lets it go. A person
@@ -6422,8 +6428,16 @@ Four bounds keep it from growing forever.
   - Membership is each person's call right from then on, with nothing else written (the account service's
     `docs/accounts.md`, 「A room's callers」). They read the room from its first line on, as a chat service's group
     would show it.
-- **A member leaves by themselves, and one who may let people in takes a member out.** A console member's row
-  carries 나가기 for the reader's own row and 내보내기 for the others where the reader may let people in. Taken out
+  - **The person let in is told where their rooms are shown.** Every open tab of theirs is told at once, on the
+    console's own word of a change of their rooms, which reaches that account's tabs alone, and their room list is
+    read again: the room stands in their sidebar with the line the receiver wrote counted unread, whether or not the
+    receiver's stream has carried that line to them yet. The word names nobody but the account and carries nothing of
+    the room, and no account but the one let in hears it. A person taken out, or leaving, is told the same way and the
+    room leaves their list. A sign-in made later reads the room among their rooms as every room is read.
+- **A member leaves by themselves, and one who may take members out takes a member out.** A console member's row
+  carries 나가기 for the reader's own row and 내보내기 for the others where the reader may take members out: the
+  room's opener, a head of the opener's unit or the administrator, as the account service answers it (`POST
+  /checks/entry`, taking out); another member who lets people in takes nobody out. Taken out
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,
   into the room; their call right there goes with the membership, and the room leaves their list at once, so they
   read it no more.

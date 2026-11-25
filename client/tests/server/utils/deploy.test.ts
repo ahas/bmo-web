@@ -91,7 +91,7 @@ describe("the record", () => {
 });
 
 describe("what a deploy carries", () => {
-  test("is every commit since the deploy of another version, oldest first, with the release's version commit left off and the item a subject names", () => {
+  test("is every commit since the deploy before it, oldest first, with the item a subject names", () => {
     const root = join(scratch, "unit-carried");
     const tree = join(root, "deploy-expand");
     const git = (...args: string[]): string => execFileSync("git", ["-C", tree, ...args], { encoding: "utf8" });
@@ -101,7 +101,7 @@ describe("what a deploy carries", () => {
     git("config", "user.email", "agent-a@example.invalid");
     git("config", "user.name", "agent-a");
 
-    writeFileSync(join(tree, "VERSION"), "2.19.0\n");
+    writeFileSync(join(tree, "notes.txt"), "one\n");
     writeFileSync(join(tree, "work.txt"), "one\n");
     git("add", ".");
     git("commit", "-q", "-m", "chore(console): version 2.19.0");
@@ -112,7 +112,7 @@ describe("what a deploy carries", () => {
     git("commit", "-q", "-m", "fix(console): an item (#41)");
     const feature = git("rev-parse", "HEAD").trim();
 
-    writeFileSync(join(tree, "VERSION"), "2.19.1\n");
+    writeFileSync(join(tree, "notes.txt"), "two\n");
     git("add", ".");
     git("commit", "-q", "-m", "chore(console): version 2.19.1");
     const bump = git("rev-parse", "HEAD").trim();
@@ -145,7 +145,7 @@ describe("what a deploy carries", () => {
     git("init", "-q");
     git("config", "user.email", "agent-a@example.invalid");
     git("config", "user.name", "agent-a");
-    writeFileSync(join(tree, "VERSION"), "1.0.0\n");
+    writeFileSync(join(tree, "notes.txt"), "one\n");
     git("add", ".");
     git("commit", "-q", "-m", "feat(console): the first change");
     const only = git("rev-parse", "HEAD").trim();

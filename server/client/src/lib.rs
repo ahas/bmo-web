@@ -26,6 +26,3 @@ pub use security::*;
 pub use supply::*;
 pub use types::*;
 pub use wire::{Answer, ClientFailure, SessionError, WireError};
-
-/// The service's version, the repository's.
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");

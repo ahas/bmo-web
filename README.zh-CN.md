@@ -17,7 +17,7 @@ Web 控制台 `bmo-web`。它由两部分组成：服务器，即基于 sumida�
 | `.cargo/` | 本检出目录的 Cargo 配置：通过 git 程序拉取 git 依赖 sumida |
 | `docs/` | 描述控制台及其服务器行为的规范文档，以及本仓库从其拆分出来的单一仓库中所接收内容的清单 |
 
-根目录下有成员为 `server/` 和 `server/client/` 的 Cargo 工作区清单及其锁文件；`VERSION` 中的版本；
+根目录下有成员为 `server/` 和 `server/client/` 的 Cargo 工作区清单及其锁文件；
 `testbed.toml`(测试台对本仓库如何测试、检查、构建和部署的声明)；`install.toml`(说明在新机器上安装时需要什么，由测试台的 install 动词读取)；`rustfmt.toml`；`LICENSE`(MIT)；
 `PERSONAL-DATA.md`(任何文件都不得包含的个人数据)；`WORDING.md`(控制台所显示韩语的指南)；`CLAUDE.md`；以及
 `korean-ledger.json`(代码文件中保留的韩语台账，测试台的韩语扫描以它核对每个文件；本仓库的代码文件中没有任何韩语)。
@@ -39,7 +39,8 @@ Web 控制台 `bmo-web`。它由两部分组成：服务器，即基于 sumida�
 
 ## 版本
 
-- **整个仓库只有一个版本。** 它保存在 `VERSION` 中，服务器和客户端清单中的版本与之相同。
+- **版本是整个套件的版本。** 它在构建时从 git 标签读取：测试台以 `BMO_VERSION` 把它交给构建，服务器的健康检查答出它。
+  清单中的版本字段是从不变动的占位值。
 - **版本只在所有者宣布的发行时变动**，如 bmo-chat 的 `docs/conventions.md` 「Versions」所述；提交、部署、修复或
   契约变更都不会改变版本，部署以其提交来区分。
 

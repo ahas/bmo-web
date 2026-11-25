@@ -1403,8 +1403,7 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
     row's 배포 중 is read from, so the popover and the panel name the same items — then the last lines of the deployment unit's journal, read with `journalctl` again every few seconds
     while the popover stands. A commit whose subject names an item (`#NNNN`) opens that item in the TODO panel, as
     the hold's items do. The commits are read from the deployed log and from the build tree's own git log
-    between the two deploys; a version commit is a marker rather than work, so it is left
-    off, and a deploy that brings only that one still shows it.
+    between the two deploys.
   - **The stages, what goes up and the journal are the standing run's alone:** a run under way, or one ended within
     the two minutes its end stands. Under a hold or the line with no such run, the popover shows no run's.
   - **The mark's own words head the popover on a short bar alone.** On a bar that is not short they already stand

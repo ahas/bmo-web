@@ -62,8 +62,12 @@ use sumida::error::SumidaApiError;
 use crate::receiver::Receiver;
 use crate::settings::Names;
 
-/// The server's version, the repository's.
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+/// The version this build answers with: the set's, which the testbed hands the build as `BMO_VERSION`, else
+/// the manifest's placeholder (bmo-chat's `docs/conventions.md`, 「Versions」).
+pub const VERSION: &str = match option_env!("BMO_VERSION") {
+  Some(version) => version,
+  None => env!("CARGO_PKG_VERSION"),
+};
 
 /// The unit name the service declares what it owns under: the setting kinds it keeps on the delegation chain.
 pub const UNIT: &str = "web";

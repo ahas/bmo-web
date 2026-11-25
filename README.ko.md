@@ -18,7 +18,7 @@
 | `.cargo/` | 이 체크아웃의 Cargo 설정: git 의존성인 sumida를 git 프로그램으로 가져옴 |
 | `docs/` | 콘솔과 서버의 동작에 대한 기준 문서, 그리고 이 저장소가 분리되어 나온 단일 저장소에서 가져온 것의 목록 |
 
-루트에는 `server/`와 `server/client/`를 멤버로 둔 Cargo 워크스페이스 매니페스트와 그 lockfile, `VERSION`의 버전,
+루트에는 `server/`와 `server/client/`를 멤버로 둔 Cargo 워크스페이스 매니페스트와 그 lockfile,
 `testbed.toml`(이 저장소를 어떻게 테스트·검사·빌드·배포하는지에 대한 테스트베드 선언), `install.toml`(새 기계에 설치할 때 필요한 것을 적은, 테스트베드의 install 동사가 읽는 선언), `rustfmt.toml`,
 `LICENSE`(MIT), `PERSONAL-DATA.md`(어떤 파일에도 들어가면 안 되는 개인정보), `WORDING.md`(콘솔이 보여 주는
 한국어에 대한 가이드), `CLAUDE.md`, 그리고 `korean-ledger.json`(코드 파일에 남은 한국어 기록으로, 테스트베드의
@@ -41,8 +41,8 @@
 
 ## 버전
 
-- **저장소 전체에 버전은 하나입니다.** `VERSION`에 들어 있으며, 서버와 클라이언트의 매니페스트 버전도 이와
-  같습니다.
+- **버전은 세트의 버전입니다.** 빌드할 때 git 태그에서 읽으며, 테스트베드가 이를 `BMO_VERSION`으로 빌드에 넘기고
+  서버의 헬스가 이를 답합니다. 매니페스트의 버전 필드는 움직이지 않는 자리표시자입니다.
 - **버전은 소유자가 선언한 릴리스에서만 바뀝니다.** bmo-chat의 `docs/conventions.md` 「Versions」에 적힌
   대로입니다. 커밋, 배포, 수정, 계약 변경은 버전을 바꾸지 않으며, 배포는 커밋으로 구분합니다.
 

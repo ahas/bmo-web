@@ -203,8 +203,7 @@ function itemInSubject(subject: string): number | null {
   return named === null ? null : Number(named[1]);
 }
 
-// The commits from one deploy line to a commit, oldest first, as a tab reads them: a version bump is the release's
-// marker rather than work, so it stands off the list unless it is all there is, and where no commit stands between
+// The commits from one deploy line to a commit, oldest first, as a tab reads them; where no commit stands between
 // them the commit itself stands alone. Each carries the item its subject names, or, for the deployed record's own
 // commit, the item that record names.
 function commitsUpTo(root: string, from: DeployLogEntry | null, current: string, deployed: DeployedRecord | null, entries: readonly DeployLogEntry[]): DeployCommit[] {
@@ -218,10 +217,7 @@ function commitsUpTo(root: string, from: DeployLogEntry | null, current: string,
     if (subject !== "") commits = [{ commit: current, subject }];
   }
 
-  const carried = commits.filter((commit) => !/^chore\([^)]*\): version \d+\.\d+\.\d+$/.test(commit.subject));
-  const shown = carried.length > 0 ? carried : commits;
-
-  return shown.map((commit) => ({
+  return commits.map((commit) => ({
     commit: commit.commit,
     subject: commit.subject,
     todoId: itemInSubject(commit.subject) ?? (commit.commit === current && current === deployed?.commit ? deployed.todoId : null)

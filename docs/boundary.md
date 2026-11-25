@@ -1,7 +1,5 @@
 # The boundary
 
-**Fixed at 0.1.0-rev.1.**
-
 This document is bmo-web's boundary: every route its server serves, every call its server and its console
 make on another unit, the settings that name those units, and the codes its language packs render. A unit
 reaches bmo-web only across it, and bmo-web reaches another unit only by the calls below: never by its code,
@@ -15,7 +13,9 @@ the server and every other unit over HTTP.
 
 ## Versioning
 
-- **The boundary carries the repository's one version, in semver,** the version `VERSION` holds.
+- **The boundary is the one of the release its commit is tagged with.** The version is the set's, in semver,
+  read off the git tags when a build is made (bmo-chat's `docs/conventions.md`, 「Versions」); the server's
+  health answers it.
 - **A change to this document and a change to the boundary go in one commit.** A change that makes a route,
   a call or a setting different repairs this document in the same commit, stating what is true now.
 - **The version moves by what changed:** the major on a change to a route or a code an existing caller reads;

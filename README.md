@@ -19,8 +19,8 @@ answers in English messages and codes, which these packs render.
 | `.cargo/` | Cargo's configuration for this checkout: sumida, a git dependency, fetched through the git program |
 | `docs/` | the canonical statements of what the console and its server do, and the inventory of what this repository took from the single repository it was separated from |
 
-At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile; the version in
-`VERSION`; `testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
+At the root stand the Cargo workspace manifest, whose members are `server/` and `server/client/`, and its lockfile;
+`testbed.toml` (the testbed's declaration of how this repository is tested, checked, built and
 deployed); `install.toml` (what installing it on a fresh machine needs, read by the testbed's install verb); `rustfmt.toml`; `LICENSE` (MIT); `PERSONAL-DATA.md` (the personal data no file may hold); `WORDING.md` (the
 guide to the Korean the console shows); `CLAUDE.md`; and `korean-ledger.json` (the Korean left in a code file, which
 the testbed's Korean sweep holds every file to; no code file of this repository holds any).
@@ -42,9 +42,11 @@ the testbed's Korean sweep holds every file to; no code file of this repository 
 
 ## Version
 
-- **One version for the whole repository.** `VERSION` holds it, and the server's and the client's manifests
-  equal it.
-- **It moves only at a release the owner declares,** as bmo-chat's `docs/conventions.md` 「Versions」 states; a
+- **The version is the set's,** read off the git tags when a build is made: the testbed hands it to the build
+  as `BMO_VERSION`, and the server's health answers it. The manifests' version fields are placeholders that
+  never move.
+- **It moves only at a release the owner declares,** which tags the commit and makes none, as bmo-chat's
+  `docs/conventions.md` 「Versions」 states; a
   commit, a deploy, a fix or a contract change moves none, and a deployment is told apart by its commit.
 
 ## Checks

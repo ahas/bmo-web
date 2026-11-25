@@ -558,6 +558,9 @@
 - the rest of a list a line leaves unshown → 외 {n}: `Claude Code 외 2`; people → 외 {n}명, which a row of faces'
   count of the rest is heard as. Never 그 밖에, +{n}.
 - brain (what a turn read from the agent's memory store) → 브레인. Never 기억 저장소, 두뇌, 읽은 문서.
+- a brain's type, shown and searched → the name the reader's language gives it (사실, 전해 들은 말, 세계관, 지식),
+  with the brain's own word (fact, rumor, lore, knowledge) under it where a list shows both; the search takes
+  either, and the match is marked on the name. Never show a type by its brain word alone.
 - a room's due memories (its promise, follow-up and check memories whose time or event has come) → 이 방에서 지금
   할 약속. Never 때가 된 기억, 만기된 기억, 예정된 메모리.
 - an item's request in its own words → 요청 원문; the talk with the chat agent about an item, and the talk with a job over

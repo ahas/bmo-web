@@ -4768,6 +4768,7 @@ supply:
     logins: 공급 로그인
     keys: 공급 키
     order: 공급 순서
+    sources: 공급원
     usage: 이번 달 사용량
     policy: 공급 정책
     platform_policy: 플랫폼 기본 정책
@@ -4802,7 +4803,6 @@ supply:
     reason_blocked_by_administrator: 플랫폼 관리자가 막힘
     locked: 전역 설정으로 고정
     platform_off: 전역 설정으로 꺼짐
-    order_locked: 순서 전역 설정으로 고정
     overridable: 개인 설정 허용
     fixed: 고정
     order: 순서

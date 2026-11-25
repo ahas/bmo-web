@@ -4776,6 +4776,7 @@ supply:
     logins: 供给登录
     keys: 供给密钥
     order: 供给顺序
+    sources: 供给来源
     usage: 本月用量
     policy: 供给策略
     platform_policy: 平台默认策略
@@ -4810,7 +4811,6 @@ supply:
     reason_blocked_by_administrator: 已被管理员禁止
     locked: 由全局设置固定
     platform_off: 由全局设置关闭
-    order_locked: 顺序由全局设置固定
     overridable: 允许个人设置
     fixed: 固定
     order: 顺序

@@ -276,6 +276,16 @@ export function orderRows(me: Pick<SupplyMe, "order" | "sources">): OrderRow[] {
   ];
 }
 
+/** Whether the order is the reader's to change: the platform leaves the order to them, and at least two sources
+ * stand that their own write may name. Where the order is locked, or the layers above leave one source standing,
+ * the order is settled and no control over it stands. The organisation's own supply is counted out: the service
+ * places it and no write names it, so it never gives a reader an order to set. */
+export function orderIsOverridable(me: Pick<SupplyMe, "order" | "sources" | "orderLocked">): boolean {
+  if (me.orderLocked) return false;
+
+  return orderRows(me).filter((one) => one.kind === "live" && one.allowed && one.source !== "organisation").length > 1;
+}
+
 /** The reader's whole setting as its rows stand, with one change laid over it, as the account service takes it
  * (docs/boundary.md, 「Supply」; docs/accounts.md, 「How an order is resolved」): the order of every source the layers
  * above leave to them, each once and `stop` left for the service to append; and every choice they hold, on or off —

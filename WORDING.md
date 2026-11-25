@@ -360,10 +360,11 @@
   following back, and the act of writing one is 정책 설정. Never 상속, which is a name nobody here says, and never
   적용 for the policy act, which is the platform switch's word.
 - whether a person's own supply setting may change what the platform policy holds → 개인 설정 허용, the switch on the
-  platform's form, and 고정 for a source or the order it holds; what a person reads beside one they cannot change →
-  전역 설정으로 고정, and for the order 순서 전역 설정으로 고정; what an organisation's policy form reads beside a source
+  platform's form, and 고정 for a source or the order it holds; what a person reads beside a source they cannot
+  change → 전역 설정으로 고정; what an organisation's policy form reads beside a source
   the platform turns off and leaves to no person → 전역 설정으로 꺼짐. 고정 here keeps its own sense beside a pinned
-  message's.
+  message's. Where the chain settles the order for a person, their own supply screen names that group 공급원 and
+  stands no arrow and no word about a fixed order.
   Never 잠금, 잠김, 강제, 오버라이드.
 - the plans an organisation is offered and the one it runs on → 노출 플랜 and 적용 플랜: a plan offered is 노출, its
   switch 노출; putting one in force is 적용, the act 적용 and its dialog's way through 적용, none standing as 적용 플랜

@@ -9616,16 +9616,20 @@ a row shows of a key is the secret's name, and of a login the path it is reached
   the reader add one, the add stands disabled and one muted line under the group says their organisation does not
   allow it; their rows stand as they are. The rows and the add read `GET`, `PUT`, `PATCH` and `DELETE
   /api/supply/local-ai`, relayed to the agency's `/personal-models` in the reader's name.
-- **공급 순서** stands the sources a run may fall through, in the order resolved for the reader, 조직 공급 among them
+- **공급 순서** stands the sources a run may fall through, in the order resolved for the reader, while that order is
+  the reader's to change: the platform leaves it open to them and at least two sources stand that they may place.
+  Where the chain settles the order instead — the platform holds it, or one source is left standing — no order
+  stands: the same rows carry no arrows and no line says the order is fixed, the group is titled **공급원**, and
+  중단, the end of a fall nobody may order, stands with the order alone. Every source keeps its switch there, and
+  개인 크레딧 its 월 상한. 조직 공급 stands among the sources
   where the platform offers it to the reader's company — in the order while it stands open, its switch disabled and
   its arrows moving it not, since the account service places it before every platform source; among the closed rows,
   with its reason, where a unit or the allowance closes it: each usable source a
   row with its arrows and its switch, and a source the reader themselves closed stands among them with its switch
   off, ready back in; a source a layer above closes stands greyed under them all, its reason in one line — 계획에
   없음, 조직에서 막힘 or 플랫폼 관리자가 막힘 — and it carries no control, a write that opened it back standing refused 403
-  with that closer's reason. 중단 always stands last and moves as nothing. A source the platform locks stands
-  with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it; with the order
-  locked the arrows stand disabled and one muted line under the group says 순서 전역 설정으로 고정. Every other
+  with that closer's reason. 중단 stands last in the order and moves as nothing. A source the platform locks stands
+  with its switch disabled and 전역 설정으로 고정 under it, on or off as the platform holds it. Every other
   source stands as the platform's default until the reader switches it the other way, 개인 크레딧 among them, whose
   월 상한 row under it takes the credits a month may go out on it, 상한 없음 by default — the cap the person sets,
   never above what the organisation's cap leaves; the source reads closed while the cap is spent as well as while

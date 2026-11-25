@@ -832,95 +832,162 @@ function judgedWrite(sources: readonly MeSource[], orderLocked: boolean, body: {
   return null;
 }
 
+// The reader's own supply section at their own node, on a stand-in of the account service's view: the order of the
+// sources stands only where the reader may change it — the platform leaves the order to them and at least two
+// sources stand open for them to place. Where the platform holds the order, or the chain above leaves one source
+// standing, the order stands nowhere: no arrows, no end of the fall, no line saying the order is fixed, and the
+// group takes the sources' own name. The switches and the personal credits' cap keep their place throughout.
 describe.skipIf(!origin || !touchReady())("the settings' supply order", () => {
+  const ME_SOURCES: MeSource[] = [
+    { source: "personal", allowed: true, off: false, locked: false },
+    { source: "global", allowed: false, off: true, locked: false, own: "on", reason: "not-in-plan" },
+    { source: "org_credits", allowed: true, off: false, locked: false },
+    { source: "personal_credits", allowed: true, off: true, locked: false, own: "off" },
+    { source: "stop", allowed: true, off: false, locked: true }
+  ];
+
+  // The reader's own supply as the account service answers it, the order standing as the layers above leave it.
+  interface OwnView {
+    order: string[];
+    sources: MeSource[];
+    orderLocked: boolean;
+    personalCreditCredits: number | null;
+    usage: unknown[];
+    globalRemaining: number | null;
+    personalCredits: number | null;
+  }
+
+  function ownSupply(order: string[], sources: readonly MeSource[], orderLocked: boolean): OwnView {
+    return { order, sources: [...sources], orderLocked, personalCreditCredits: null, usage: [], globalRemaining: null, personalCredits: null };
+  }
+
+  // The whole section read through one stand-in the test holds in its hand, so one change of the view is one line.
+  async function standIn(page: Page, me: { view: OwnView }): Promise<{ writes: unknown[]; refusals: unknown[] }> {
+    const writes: unknown[] = [];
+    const refusals: unknown[] = [];
+
+    await page.route(/\/api\/supply\/me$/, async (route) => {
+      if (route.request().method() === "PUT") {
+        const body = route.request().postDataJSON() as { order: string[]; off: string[]; on: string[] };
+        const refused = judgedWrite(me.view.sources, me.view.orderLocked, body);
+
+        if (refused !== null) {
+          refusals.push({ body, refused });
+
+          return await route.fulfill({ status: refused.status, contentType: "application/json", body: JSON.stringify({ code: refused.code }) });
+        }
+
+        writes.push(body);
+      }
+
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(me.view) });
+    });
+    await page.route(/\/api\/supply\/logins$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active: null, accounts: [] }) }));
+    await page.route(/\/api\/supply\/personal$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
+
+    return { writes, refusals };
+  }
+
+  const sourceRow = (page: Page, name: string) => page.locator(`[data-supply-source="${name}"]`);
+  // The group holding the source rows, named by its own heading.
+  // The group's own heading: the section a source row stands in, which the section around the whole panel is not.
+  const groupName = async (page: Page): Promise<string> => (await page.locator("[data-supply-source]").first().locator("xpath=ancestor::section[1]").locator("h3").innerText()).trim();
+
   for (const [width, height] of WIDTHS) {
-    test(`stands a source and an order the platform locks with their controls off and the words saying so, at ${width}px`, async () => {
+    test(`stands the order with its arrows and its end last where the reader may change it, and moves it, at ${width}px`, async () => {
       const context = await contextFor(MEMBER.name, width, height);
 
       try {
         const page = await context.newPage();
-        const me = {
-          order: ["personal", "org_credits", "stop"],
-          orderLocked: true,
-          sources: [
-            { source: "personal", allowed: true, off: false, locked: true },
-            { source: "global", allowed: false, off: true, locked: false, own: "on" as const, reason: "not-in-plan" },
-            { source: "org_credits", allowed: true, off: false, locked: false },
-            { source: "personal_credits", allowed: true, off: true, locked: false, own: "off" as const },
-            { source: "stop", allowed: true, off: false, locked: true }
-          ],
-          personalCreditCredits: null,
-          usage: [],
-          globalRemaining: null,
-          personalCredits: null
-        };
+        const me = { view: ownSupply(["personal", "org_credits", "stop"], ME_SOURCES, false) };
+        const { writes, refusals } = await standIn(page, me);
 
-        const writes: unknown[] = [];
-        const refusals: unknown[] = [];
-
-        await page.route(/\/api\/supply\/me$/, async (route) => {
-          if (route.request().method() === "PUT") {
-            const body = route.request().postDataJSON() as { order: string[]; off: string[]; on: string[] };
-            const refused = judgedWrite(me.sources, me.orderLocked, body);
-
-            if (refused !== null) {
-              refusals.push({ body, refused });
-
-              return await route.fulfill({ status: refused.status, contentType: "application/json", body: JSON.stringify({ code: refused.code }) });
-            }
-
-            writes.push(body);
-          }
-
-          await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(me) });
-        });
-        await page.route(/\/api\/supply\/logins$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ active: null, accounts: [] }) }));
-        await page.route(/\/api\/supply\/personal$/, async (route) => await route.fulfill({ status: 200, contentType: "application/json", body: "[]" }));
         await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
 
-        const source = (name: string) => page.locator(`[data-supply-source="${name}"]`);
+        expect(await groupName(page)).toBe(wording("supply.title.order"));
+        // The end of the fall stands last, and every source left open stands before it with its switch.
+        const rows = await page.locator("[data-supply-source], [data-supply-cap]").evaluateAll((held) => held.map((one) => one.getAttribute("data-supply-source") ?? "cap"));
 
-        await source("personal").waitFor({ timeout: 20_000 });
-
-        // The locked source: its switch on and disabled, and the words under it.
-        expect(await source("personal").innerText()).toContain(wording("supply.label.locked"));
-        expect(await source("personal").getByRole("switch").isDisabled()).toBe(true);
-        expect(await source("personal").getByRole("switch").getAttribute("aria-checked")).toBe("true");
-        // The others the reader still switches, the personal credits among them, off as they stand.
-        expect(await source("org_credits").getByRole("switch").isDisabled()).toBe(false);
-        expect(await source("personal_credits").getByRole("switch").getAttribute("aria-checked")).toBe("false");
-        expect(await source("personal_credits").getByRole("switch").isDisabled()).toBe(false);
-        // The monthly cap stands under the personal credits.
-        const order = await page.locator("[data-supply-source], [data-supply-cap]").evaluateAll((rows) => rows.map((one) => one.getAttribute("data-supply-source") ?? "cap"));
-
-        expect(order).toEqual(["personal", "org_credits", "personal_credits", "cap", "stop", "global"]);
-        // The order locked: every arrow disabled, and one line under the group.
-        const arrows = page.locator("[data-supply-source]").getByRole("button", { name: /./ });
-
-        expect(await arrows.evaluateAll((buttons) => buttons.every((one) => (one as HTMLButtonElement).disabled))).toBe(true);
-        expect(await page.locator("[data-supply-order-locked]").innerText()).toBe(wording("supply.label.order_locked"));
-        // A source a layer below closed keeps its reason and no control.
-        expect(await source("global").innerText()).toContain(wording("supply.label.reason_not_in_plan"));
-        expect(await source("global").getByRole("switch").count()).toBe(0);
-
-        // A switch thrown writes back every choice the reader holds and that one, so the rest keep the default.
-        const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
-
-        await source("org_credits").getByRole("switch").click();
-        await written;
-        // The global supply's stored choice goes back as it stands while a layer above closes it, so it is not erased.
-        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal", "org_credits", "personal_credits"], off: ["org_credits", "personal_credits"], on: ["global"], personalCreditCredits: null }] });
-
-        // With the order the person's again, a move writes every source left to them, in the order moved.
-        me.orderLocked = false;
-        await open(page, "/organization?company=me&tab=supply");
-        await source("personal").waitFor({ timeout: 20_000 });
+        expect(rows).toEqual(["personal", "org_credits", "personal_credits", "cap", "stop", "global"]);
 
         const moved = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
 
-        await source("personal").getByRole("button", { name: wording("common.aria.move_down_named", { name: wording("supply.label.source_personal") }), exact: true }).click();
+        await sourceRow(page, "personal").getByRole("button", { name: wording("common.aria.move_down_named", { name: wording("supply.label.source_personal") }), exact: true }).click();
         await moved;
         expect({ refusals, write: writes.at(-1) }).toEqual({ refusals: [], write: { order: ["org_credits", "personal", "personal_credits"], off: ["personal_credits"], on: ["global"], personalCreditCredits: null } });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`leaves the order out where the platform holds it, with the switches and the cap in place, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        const me = { view: ownSupply(["personal", "org_credits", "stop"], ME_SOURCES, true) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        // The group takes the sources' own name, and no arrow and no end of the fall stands anywhere.
+        expect(await groupName(page)).toBe(wording("supply.title.sources"));
+        expect(await page.locator("[data-supply-source]").getByRole("button", { name: /./ }).count()).toBe(0);
+        expect(await sourceRow(page, "stop").count()).toBe(0);
+        const rows = await page.locator("[data-supply-source], [data-supply-cap]").evaluateAll((held) => held.map((one) => one.getAttribute("data-supply-source") ?? "cap"));
+
+        expect(rows).toEqual(["personal", "org_credits", "personal_credits", "cap", "global"]);
+        // The locked source still says who holds it, and the others still switch.
+        expect(await sourceRow(page, "personal").getByRole("switch").isDisabled()).toBe(false);
+        expect(await sourceRow(page, "global").innerText()).toContain(wording("supply.label.reason_not_in_plan"));
+        expect(await sourceRow(page, "global").getByRole("switch").count()).toBe(0);
+
+        // A switch thrown still writes, the order left as the layers above settled it.
+        const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+
+        await sourceRow(page, "org_credits").getByRole("switch").click();
+        await written;
+        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal", "org_credits", "personal_credits"], off: ["org_credits", "personal_credits"], on: ["global"], personalCreditCredits: null }] });
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
+
+    test(`leaves the order out where the chain leaves one source standing, at ${width}px`, async () => {
+      const context = await contextFor(MEMBER.name, width, height);
+
+      try {
+        const page = await context.newPage();
+        // The company's own policy allows personal supply alone: the rest stand closed with the reason that closed them.
+        const forced: MeSource[] = [
+          { source: "personal", allowed: true, off: false, locked: false },
+          { source: "global", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "org_credits", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "personal_credits", allowed: false, off: true, locked: true, reason: "blocked-by-organisation" },
+          { source: "stop", allowed: true, off: false, locked: true }
+        ];
+        const me = { view: ownSupply(["personal", "stop"], forced, false) };
+        const { writes, refusals } = await standIn(page, me);
+
+        await open(page, "/organization?company=me&tab=supply");
+        await sourceRow(page, "personal").waitFor({ timeout: 20_000 });
+
+        expect(await groupName(page)).toBe(wording("supply.title.sources"));
+        expect(await page.locator("[data-supply-source]").getByRole("button", { name: /./ }).count()).toBe(0);
+        expect(await sourceRow(page, "stop").count()).toBe(0);
+        expect(await sourceRow(page, "org_credits").innerText()).toContain(wording("supply.label.reason_blocked_by_organisation"));
+
+        // The one source left stands with its switch, and the source the company closed opens to nothing.
+        expect(await sourceRow(page, "personal").getByRole("switch").getAttribute("aria-checked")).toBe("true");
+        expect(await sourceRow(page, "personal").getByRole("switch").isDisabled()).toBe(false);
+
+        const written = page.waitForRequest((request) => request.url().endsWith("/api/supply/me") && request.method() === "PUT");
+
+        await sourceRow(page, "personal").getByRole("switch").click();
+        await written;
+        expect({ refusals, writes }).toEqual({ refusals: [], writes: [{ order: ["personal"], off: ["personal"], on: [], personalCreditCredits: null }] });
       } finally {
         await context.close();
       }

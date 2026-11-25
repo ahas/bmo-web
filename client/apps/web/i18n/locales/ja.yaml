@@ -4776,6 +4776,7 @@ supply:
     logins: 供給ログイン
     keys: 供給キー
     order: 供給順序
+    sources: 供給元
     usage: 今月の利用量
     policy: 供給ポリシー
     platform_policy: プラットフォームの基本ポリシー
@@ -4810,7 +4811,6 @@ supply:
     reason_blocked_by_administrator: 管理者がブロック
     locked: 全体設定で固定
     platform_off: 全体設定でオフ
-    order_locked: 順序は全体設定で固定
     overridable: 個人設定を許可
     fixed: 固定
     order: 順序

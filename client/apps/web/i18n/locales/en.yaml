@@ -4746,6 +4746,7 @@ supply:
     logins: Supply logins
     keys: Supply keys
     order: Supply order
+    sources: Supply sources
     usage: Usage this month
     policy: Supply policy
     platform_policy: Platform default policy
@@ -4780,7 +4781,6 @@ supply:
     reason_blocked_by_administrator: Blocked by administrator
     locked: Fixed by global settings
     platform_off: Off by global settings
-    order_locked: Order fixed by global settings
     overridable: Allow personal settings
     fixed: Fixed
     order: Order

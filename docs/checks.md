@@ -168,6 +168,29 @@ machine that stands it. The testbed's declaration names `BMO_CONSOLE_TEST_URL` a
 the variables only this machine reaches, so a run that sets either is never placed on another machine, where it
 would find no console at the address and skip every test.
 
+### How a speed budget is held
+
+Two browser files measure how long the console takes to answer: `todo-menu-speed`, a TODO row's menu over a board of
+hundreds of lines, and `console-load`, the console under an administrator's event stream. Both hold a budget on the
+middle of several timings of one kind — the middle of the presses, the middle of the panel's seconds, the middle of a
+typed phrase — and never on the widest of them.
+
+- **A timing read as the time from one task to the next is the machine's, not the console's.** Such a window charges
+  what it measures with everything else the page was waiting on while it ran: the board, the agents or the questions
+  coming back, an icon sheet or a picture the page asked for, a module the development server had not sent yet, the
+  first drawing of a long list, or other work the machine holds. The middle of many such windows is what the
+  console's own work takes, and a drawing that has wrongly found its way into a clock's second or into a menu's
+  opening costs every window of the run, which is what the middle of them catches. Measured on a 400-line board with
+  the console the harness stands: the panel's own second costs a fifth of a millisecond and draws no line, while the
+  widest of fifteen of its windows holds 36 ms on a quiet machine and hundreds on a busy one, and a row's menu that
+  is not the first to open stands 43 ms after the press. With four browsers driving that console at once the middle of
+  the presses is still 43 ms, while the widest window reaches 222 ms: the middle follows the console and the widest
+  follows the machine.
+- **A bound held on every task at all is read off the browser's own timing and needs the processor pinned,** which is
+  what `console-load` does: it takes every task the stream sets off from the browser's long-task record, allows none
+  past 50 ms, and runs its page with its processor slowed to half its speed so the bound says the same on every
+  machine. A file that measures windows rather than tasks pins nothing and bounds the middle.
+
 ### The vendored packages as installed
 
 Every package the console takes from a tarball under `client/vendor/` runs as that tarball holds it. Bun installs

@@ -327,7 +327,7 @@ import { usePolling } from "~/domain/polling";
 import { modeLabel, modelLabel } from "~/domain/status";
 import { useSirenFilters } from "~/domain/siren-settings";
 import { useNarrow } from "bmo-ui/app/domain/screen";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 import {
   SIREN_ALL,
   barHeight,

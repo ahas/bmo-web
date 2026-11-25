@@ -52,7 +52,7 @@ import { useFootInView } from "bmo-ui/app/domain/foot";
 import { formatStamp } from "bmo-ui/app/domain/time";
 
 import { percentOf, providerWord, useProviders } from "~/domain/axes";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 import { countText } from "~/domain/numbers";
 
 import type { RoleSessionPage, RoleSessionView } from "#shared/axes";

@@ -4913,7 +4913,6 @@ supply:
     plan_add: 添加套餐
     plan_change: 更改
     plan_apply: 应用
-    more: 加载更多
     local_ai_add: "添加本地 AI"
     local_ai_save: "测试后保存"
   aria:

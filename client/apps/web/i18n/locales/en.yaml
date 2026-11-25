@@ -4883,7 +4883,6 @@ supply:
     plan_add: Add plan
     plan_change: Change
     plan_apply: Apply
-    more: Load more
     local_ai_add: "Add local AI"
     local_ai_save: "Test and save"
   aria:

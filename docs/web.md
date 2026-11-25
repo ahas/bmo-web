@@ -9482,6 +9482,12 @@ The providers themselves, switched on and off with what they have left, stand on
   of 공급 제한 적용, and every plan act, newest first — one row each, the act's kind — 부여, 정책, 설정 or 플랜 — and
   its subject, then the moment, whose act and what it changed. The service audits each of these in its own table
   as it takes the write, and this one route answers the whole record.
+- **장부 and 감사 기록 each scroll in a box of their own,** at most 384 pixels tall, so the end of 장부 comes into view
+  and 감사 기록 under it stays reachable. Each reads its next page as its end comes into view (bmo-ui's
+  `NextPageFoot`, its `docs/design.md`, 「Lists」): placeholder rows stand at the end while a page is on its way, a
+  page that fails leaves the rows already read and stands its reason with 다시 시도 in its place, and nothing stands
+  under the last row. Nothing is pressed to read more. A first read that failed says its reason in the section's
+  place with 새로고침.
 - No balance is shown for anyone here, and no top-up control stands: payments are off.
 - **플랜** is the membership plans the platform sells (`docs/accounts.md`): who pays, for what period, and what the
   period includes. Every plan the service holds stands one row each, newest first, and the administrator writes them.

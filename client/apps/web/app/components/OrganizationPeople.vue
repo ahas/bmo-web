@@ -228,7 +228,7 @@ import { SPLIT_HANDLE } from "bmo-ui/app/domain/side-parts";
 import { formatStamp, toUnixSeconds } from "bmo-ui/app/domain/time";
 
 import { identityMark } from "~/domain/avatars";
-import { useNextPages } from "~/domain/next-pages";
+import { useNextPages } from "bmo-ui/app/domain/next-pages";
 import { COUNT_BADGE, countText } from "~/domain/numbers";
 import {
   ROSTER_ROLE_LABELS,

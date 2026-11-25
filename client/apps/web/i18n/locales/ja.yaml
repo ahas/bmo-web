@@ -4913,7 +4913,6 @@ supply:
     plan_add: プランを追加
     plan_change: 変更
     plan_apply: 適用
-    more: さらに読み込む
     local_ai_add: "ローカルAIを追加"
     local_ai_save: "試して保存"
   aria:

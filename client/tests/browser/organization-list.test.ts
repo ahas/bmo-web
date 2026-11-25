@@ -13,10 +13,9 @@ import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-c
 // listed the companies where they head a unit or hold a part of the supply, with the units they head under them. Its plans tab applies one of the
 // plans shown and switches which are shown; its supply tab's policy form stands a source the platform has off with its
 // switch disabled; the platform's policy form says what a person's own setting may change; the providers tab says
-// whose a gateway road and a Claude account are; the platform's ledger and audit each scroll in a box of their own and
-// read their next page as its end comes into view, a failed page read again from its retry; and the settings' supply
-// section stands what the platform locks. Each
-// is read at a desk's width and a phone's.
+// whose a gateway road and a Claude account are; the platform's ledger and audit stand last, one at a time by their
+// switch, and read their next page as its end comes into view, a failed page read again from its retry; and the
+// settings' supply section stands what the platform locks. Each is read at a desk's width and a phone's.
 //
 // The account service's plan, unit supply, supply reach, platform and personal supply routes are answered by a
 // stand-in on the page, so what they hold is the test's own; the organisations are the console's own, made for this
@@ -690,7 +689,7 @@ describe.skipIf(!origin || !touchReady())("the platform's policy form", () => {
 
 describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () => {
   for (const [width, height] of WIDTHS) {
-    test(`each scrolls in its own box and reads its next page as its end comes into view, a failed page read again from its retry, at ${width}px`, async () => {
+    test(`stand last, one at a time by their switch, each reading its next page as its end comes into view, a failed page read again from its retry, at ${width}px`, async () => {
       const context = await contextFor(ADMINISTRATOR.name, width, height);
 
       try {
@@ -733,23 +732,30 @@ describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () 
 
         await ledger.getByText("paged entry 1", { exact: true }).waitFor({ timeout: 20_000 });
         expect(await shown()).toBe(PAGE);
-        // Nothing at the foot is pressed for more, and the audit stands under the ledger's own box.
+        // Nothing at the foot is pressed for more, and the ledger is the tab's last group, nested in no scroll of its own.
         expect(await ledger.locator("[data-next-page-foot] button").count()).toBe(0);
-        expect(await page.locator("[data-credit-audit]").count()).toBe(1);
+        expect(await page.evaluate(() => {
+          const records = document.querySelector("[data-credit-records]")!;
+          let inner: Element | null = records;
 
-        // The wheel turned over the ledger's box, as a reader scrolling it does, until what is waited for holds; the box
-        // is brought into view and measured again on every turn, since the page moves under it.
+          while (inner !== null && getComputedStyle(inner).overflowY !== "auto" && getComputedStyle(inner).overflowY !== "scroll") inner = inner.parentElement;
+
+          return { last: records.parentElement!.lastElementChild === records, scroller: inner !== null && records.contains(inner) };
+        })).toEqual({ last: true, scroller: false });
+
+        // The wheel turned over the ledger, as a reader scrolling the tab does, until what is waited for holds; the point
+        // is taken afresh on every turn inside the part of the ledger the window shows, since the tab moves under it.
         const scrollUntil = async (holds: () => Promise<boolean>) => {
           const end = Date.now() + 20_000;
 
           while (!(await holds())) {
             if (Date.now() > end) throw new Error("scrolling the ledger did not bring it");
 
-            await ledger.scrollIntoViewIfNeeded();
-
             const box = (await ledger.boundingBox())!;
+            const top = Math.max(box.y, 0);
+            const bottom = Math.min(box.y + box.height, height);
 
-            await page.mouse.move(box.x + box.width / 2, box.y + Math.min(box.height, 120) / 2);
+            await page.mouse.move(box.x + box.width / 2, (top + bottom) / 2);
             await page.mouse.wheel(0, 600);
             await page.waitForTimeout(50);
           }
@@ -762,10 +768,13 @@ describe.skipIf(!origin || !touchReady())("the platform's ledger and audit", () 
         await retry.click();
         await scrollUntil(async () => (await shown()) === HELD);
         expect(asked).toEqual([null, "20", "20", "40"]);
-        // The last page holds nothing under it, and the audit is still reached under the ledger.
+        // The last page holds nothing under it, and the audit is reached by the switch, the ledger keeping its pages.
         await ledger.locator("[data-next-page-foot]").waitFor({ state: "detached", timeout: 10_000 });
-        await page.locator("[data-credit-audit]").scrollIntoViewIfNeeded();
-        expect(await page.locator("[data-credit-audit]").isVisible()).toBe(true);
+        await page.locator("[data-credit-records]").getByRole("tab", { name: wording("supply.title.audit"), exact: true }).click();
+        await page.locator("[data-credit-audit]").getByText(wording("supply.label.kind_settings"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect(await ledger.isVisible()).toBe(false);
+        await page.locator("[data-credit-records]").getByRole("tab", { name: wording("supply.title.ledger"), exact: true }).click();
+        expect(await shown()).toBe(HELD);
       } finally {
         await context.close();
       }

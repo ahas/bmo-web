@@ -4886,6 +4886,7 @@ supply:
     local_ai_add: "Add local AI"
     local_ai_save: "Test and save"
   aria:
+    records: "Credit records"
     login_switch: "Turn on supply login {name}"
     key_switch: "Turn on supply key {name}"
     source_switch: "Use {name} supply"

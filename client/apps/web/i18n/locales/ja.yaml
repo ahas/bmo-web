@@ -2357,8 +2357,6 @@ room_info:
     situation: 状況
     session: セッション情報
     providers: チャットサービス
-    tone: 話し方
-    tone_none: なし（デフォルト）
     media_none: メディアなし
     files_none: ファイルなし
     links_none: リンクなし
@@ -2367,25 +2365,18 @@ room_info:
     sent_by: "{name} · {time}"
   action:
     picture: ルームの写真
-  message:
-    tone_rule: このルームでスーパーバイザーが親しくない人に接するときの話し方です。
   status:
     media_loading: メディアを読み込み中…
     files_loading: ファイルを読み込み中…
     links_loading: リンクを読み込み中…
     music_loading: 音楽を読み込み中…
     voice_loading: 音声メッセージを読み込み中…
-    tone_loading: 話し方を読み込み中…
-    tone_saving: 話し方を保存中
   error:
     media_failed: メディアを読み込めませんでした。
     files_failed: ファイルを読み込めませんでした。
     links_failed: リンクを読み込めませんでした。
     music_failed: 音楽を読み込めませんでした。
     voice_failed: 音声メッセージを読み込めませんでした。
-    tone_read_failed: 話し方を読み込めませんでした。
-    tone_save_failed: 話し方を保存できませんでした。
-    tone_unknown: 選択できない話し方です。
   aria:
     tabs: ルーム情報
 join:

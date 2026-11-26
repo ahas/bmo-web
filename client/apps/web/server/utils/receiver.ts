@@ -134,8 +134,6 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "no-chat-service": "room.error.mode_no_chat_service",
   "avatar-unoffered": "room.error.room_add_avatar",
   "room-takes-no-avatar": "room.error.mode_takes_no_avatar",
-  // A room's tone layer, set by the administrator.
-  "unknown-tone": "room_info.error.tone_unknown",
   // A signed-in person's act on a message.
   "no-caller": "room.error.no_caller",
   "message-unknown": "room.error.message_unknown",

@@ -2816,13 +2816,6 @@ export interface RoomModeView {
   mode: RoomMode | null;
 }
 
-// A room's tone layer as the receiver holds it: the layer the room is set to, null for none, and the layers the
-// deployment offers, each by its own name.
-export interface RoomToneView {
-  tone: string | null;
-  tones: string[];
-}
-
 // The supervisors a room names, as the receiver holds them, in name order: who answers the room and, in an avatar
 // room, the whole of who its words may call. Empty is the setting left unset, which hands the room to the default
 // answerer.

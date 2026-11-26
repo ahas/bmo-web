@@ -489,15 +489,15 @@ console page. No answer says which framework drew it. Strict transport is the re
   picture is read by whoever reads the room alone.
 - **The room screen stands read-only for him there and in a sealed room,** as it does for a reader whose rooms section
   only reads, by the room list's word of which rooms the reader may change: no box
-  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode, list of
-  supervisors or tone layer in 방 정보 (its 영구 삭제 aside, 「방 정보」),
+  to write in and no act on a message, no pin or removal in the room's menu, no picture, avatar mode or list of
+  supervisors in 방 정보 (its 영구 삭제 aside, 「방 정보」),
   nobody to let in, and no such room to forward a message into. Nothing on the screen says why,
   and nobody else is told he is reading.
 - **Every change the console makes in a room for a person names the account it is made as,** so the receiver refuses
   a change in another account's private room or a sealed one by its own rule and the console's refusal is a second
   line before it:
   the words, files and voice notes, the reactions, edits, pins, deletes, stickers, forwards, a line read aloud, the
-  room's pin, its picture, its mode, its tone layer, a group's own supervisor, the room's whole list of supervisors,
+  room's pin, its picture, its mode, a group's own supervisor, the room's whole list of supervisors,
   its removal and its members. A read
   mark is the console's own row and reaches the receiver as nothing. The account whose private room it is changes it as any member does a room, its
   members alone being the receiver's to keep as they stand. A console login standing before the account model writes
@@ -6227,7 +6227,7 @@ Four bounds keep it from growing forever.
   last at the head's end, in the error colour, and opens the room's removal dialog over the view (「방 등록 삭제」); nobody else sees it.
 - **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
   is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, then for the
-  owner 세션 정보, and for the owner in a room he may change 채팅 서비스 and 말투. The view opens on 대화상대, and on the tab it
+  owner 세션 정보, and for the owner in a room he may change 채팅 서비스. The view opens on 대화상대, and on the tab it
   last showed while the room's screen stands; changing tabs adds no step to the history.
 - **A tab reads what it shows the first time it is shown in an opening,** with its skeleton while the read runs, and
   keeps it while the view stays open, so a tab gone back to stands as it was left; each opening reads afresh. A
@@ -6257,8 +6257,8 @@ Four bounds keep it from growing forever.
     message into view, marked as a pressed quote's is.
   - A tab with nothing to show says so in one line: 미디어 없음, 파일 없음, 링크 없음, 음악 없음 or 음성 메시지 없음.
 - **The other tabs are the room's own sections:** 대화상대 (「대화상대」), 상황, the room's situation note as it stands
-  (the room's situation as it stands now, above), 세션 정보 (「세션 정보」),
-  채팅 서비스 (「채팅 서비스」) and 말투 (「말투」).
+  (the room's situation as it stands now, above), 세션 정보 (「세션 정보」) and
+  채팅 서비스 (「채팅 서비스」).
 
 #### 대화에서 찾기
 
@@ -6337,22 +6337,6 @@ Four bounds keep it from growing forever.
   (「메신저 (key)」), so two such roads stay apart and the receiver's English still never shows. A road key the
   receiver comes to declare is given its word in every pack; a test holds the keys the receiver declares, captured,
   against the four packs.
-
-#### 말투
-
-- **방 정보 carries 말투 for the owner alone,** as its last tab (「방 정보」). A room's tone layer is the receiver's
-  setting (its `docs/receiver.md`, 「A room's tone layer」): the layer of the deployment the room's block carries,
-  which says how the room's supervisor treats the people it is not close to. Nobody else signed in sees it, and the
-  console's server refuses its routes for anyone but the administrator.
-- **The tab is one row, 말투, with a select** of the layers the receiver offers, each by its own name and never
-  translated, in the receiver's order, and 없음 (기본값) last, which the receiver holds for a room set to none. A line
-  under the row says what the layer is for. The select stands as its skeleton while the receiver is read, the row's
-  label and line drawn from the start.
-- **A choice is written at once** as the administrator and as his account (the receiver's
-  `PUT /rooms/{roomId}/tone`), the select waiting while it is written and standing as the receiver answers; the room's
-  block carries the layer from its next turn. A refused write is said in the tab by the pack's sentence for the
-  receiver's code, 선택할 수 없는 말투입니다 for a layer the receiver no longer offers, and the select stands as the
-  receiver last answered.
 
 #### 진행 중
 

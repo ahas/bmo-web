@@ -214,9 +214,6 @@
   named no reason and was asked once more; how the 호칭 확인 or a stage ended → 통과 where the message went on as it stood,
   수정함 where it rewrote it, 실패. The turn that took longest → 오래 걸린 턴. Never 다시 질문, 패스, 리비전 or 라운드 for a
   turn.
-- the tone layer a room's supervisor takes toward the people it is not close to, one the deployment offers → 말투: 말투,
-  말투 불러오는 중…, 말투를 저장하지 못했습니다, 선택할 수 없는 말투입니다; a layer stands by its own name (`bmo`), never
-  translated, and none → 없음 (기본값). Never 톤, 톤 레이어 or 말투 설정, and never 페르소나, which is a BMO's own text.
 - a room's situation note → 상황: 상황, 방의 상황, 방의 상황 보기, 이 방의 지금 상황, 갱신, 상황 노트 없음. Never 현황,
   상태 노트, 컨텍스트 노트.
 - the calendar → 캘린더 (the screen, and one calendar in it); an event → 일정, as in 내 일정, 조직 일정; a reminder → 알림; a recurrence → 반복.
@@ -472,7 +469,7 @@
   tree of them → 조직도; a unit at the tree's top → 회사, a new one 새 회사. Never 단위, the English unit's twin.
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
-  파일, 링크, 음악, 음성, 상황, 세션 정보, 채팅 서비스, 말투. Never 방 설정, 채팅방 정보, 방 서랍.
+  파일, 링크, 음악, 음성, 상황, 세션 정보, 채팅 서비스. Never 방 설정, 채팅방 정보, 방 서랍.
 - a room added in the mode where BMO answers as the person's own account → 아바타 모드, its line on → 이 방에서
   BMO가 내 계정으로 대신 답합니다, off → 기록만 하고 답하지 않습니다; where the mode cannot apply nothing of it is shown.
   Never 모드가 없습니다 or any line explaining its absence.

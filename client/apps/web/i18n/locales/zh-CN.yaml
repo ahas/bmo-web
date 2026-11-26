@@ -2357,8 +2357,6 @@ room_info:
     situation: 情况
     session: 会话信息
     providers: 聊天服务
-    tone: 语气
-    tone_none: 无（默认）
     media_none: 无媒体
     files_none: 无文件
     links_none: 无链接
@@ -2367,25 +2365,18 @@ room_info:
     sent_by: "{name} · {time}"
   action:
     picture: 房间图片
-  message:
-    tone_rule: 主管在此房间中对待不熟悉的人时使用的语气。
   status:
     media_loading: 正在加载媒体…
     files_loading: 正在加载文件…
     links_loading: 正在加载链接…
     music_loading: 正在加载音乐…
     voice_loading: 正在加载语音消息…
-    tone_loading: 正在加载语气…
-    tone_saving: 正在保存语气
   error:
     media_failed: 无法加载媒体。
     files_failed: 无法加载文件。
     links_failed: 无法加载链接。
     music_failed: 无法加载音乐。
     voice_failed: 无法加载语音消息。
-    tone_read_failed: 无法加载语气。
-    tone_save_failed: 无法保存语气。
-    tone_unknown: 无法选择该语气。
   aria:
     tabs: 房间信息
 join:

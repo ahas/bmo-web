@@ -336,7 +336,7 @@ describe("a console route as another user meets it", () => {
     for (const route of [
       { file: "rooms/[chatId]/pin.post", method: "POST", path: "/api/rooms/-7/pin" },
       { file: "rooms/[chatId]/messages/[messageId]/forward.post", method: "POST", path: "/api/rooms/-7/messages/21/forward" },
-      { file: "rooms/[chatId]/tone.put", method: "PUT", path: "/api/rooms/-7/tone" }
+      { file: "rooms/[chatId]/mode.put", method: "PUT", path: "/api/rooms/-7/mode" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 404 });
     }

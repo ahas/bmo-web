@@ -167,7 +167,7 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
   return { page, close: () => context.close() };
 }
 
-const TABS = ["members", "media", "files", "links", "music", "voice", "situation", "session", "providers", "tone"] as const;
+const TABS = ["members", "media", "files", "links", "music", "voice", "situation", "session", "providers"] as const;
 
 // A provider the pack holds no name for, called by the pack's word for a messenger with its key.
 const PROVIDER_A = { key: "provider-a", label: wording("room.label.road_other", { key: "provider-a" }) };
@@ -191,7 +191,7 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
 
         const entries = await page.getByRole("menuitem").allInnerTexts();
 
-        for (const name of ["members", "situation", "session", "providers", "tone"] as const) {
+        for (const name of ["members", "situation", "session", "providers"] as const) {
           expect(entries.map((entry) => entry.trim())).not.toContain(wording(`room_info.label.${name}`));
         }
         await page.keyboard.press("Escape");

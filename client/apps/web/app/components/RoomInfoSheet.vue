@@ -83,7 +83,6 @@
         <RoomSituationPanel v-if="shown.has('situation')" v-show="tab === 'situation'" :chat-id="props.chatId" />
         <RoomSessionPanel v-if="props.administrator && shown.has('session')" v-show="tab === 'session'" :chat-id="props.chatId" />
         <RoomProvidersPanel v-if="props.manages && shown.has('providers')" v-show="tab === 'providers'" :chat-id="props.chatId" />
-        <RoomTonePanel v-if="props.manages && shown.has('tone')" v-show="tab === 'tone'" :chat-id="props.chatId" />
       </div>
     </template>
   </component>
@@ -121,8 +120,8 @@ interface Props {
   avatars: AvatarIndex;
   // Whether the reader is the administrator, who reads the room's figures.
   administrator: boolean;
-  // Whether the reader is the administrator in a room he may change, who sets its avatar mode and its tone layer, and
-  // reads its chat services.
+  // Whether the reader is the administrator in a room he may change, who sets its avatar mode and reads its chat
+  // services.
   manages: boolean;
   // Whether the room's own picture is his to set here: a room he manages that stands as no agent, since an agent's
   // private room wears its agent's picture, set on the agent's page.
@@ -150,8 +149,7 @@ const TAB_LABELS: Record<RoomInfoTab, string> = {
   voice: "room_info.label.voice",
   situation: "room_info.label.situation",
   session: "room_info.label.session",
-  providers: "room_info.label.providers",
-  tone: "room_info.label.tone"
+  providers: "room_info.label.providers"
 };
 
 const props = defineProps<Props>();
@@ -171,7 +169,7 @@ const tabs = computed<TabsItem[]>(() =>
     ...ROOM_HOLDINGS,
     "situation" as const,
     ...(props.administrator ? ["session" as const] : []),
-    ...(props.manages ? ["providers" as const, "tone" as const] : [])
+    ...(props.manages ? ["providers" as const] : [])
   ].map((value) => ({ value, label: t(TAB_LABELS[value]) }))
 );
 

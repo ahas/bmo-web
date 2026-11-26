@@ -2341,8 +2341,6 @@ room_info:
     situation: Situation
     session: Session info
     providers: Chat services
-    tone: Tone
-    tone_none: None (default)
     media_none: No media
     files_none: No files
     links_none: No links
@@ -2351,25 +2349,18 @@ room_info:
     sent_by: "{name} · {time}"
   action:
     picture: Room picture
-  message:
-    tone_rule: "The tone the supervisor uses in this room with people it isn't close to."
   status:
     media_loading: Loading media…
     files_loading: Loading files…
     links_loading: Loading links…
     music_loading: Loading music…
     voice_loading: Loading voice messages…
-    tone_loading: Loading tone…
-    tone_saving: Saving tone
   error:
     media_failed: "Couldn't load media."
     files_failed: "Couldn't load files."
     links_failed: "Couldn't load links."
     music_failed: "Couldn't load music."
     voice_failed: "Couldn't load voice messages."
-    tone_read_failed: "Couldn't load the tone."
-    tone_save_failed: "Couldn't save the tone."
-    tone_unknown: "That tone can't be selected."
   aria:
     tabs: Room info
 join:

@@ -130,7 +130,6 @@ export const RECEIVER_CODES: Readonly<Record<string, string>> = {
   "contact-unknown": "room.error.room_add_contact_unknown",
   "start-refused": "room.error.room_add_start_refused",
   // A room's mode, set by the administrator.
-  "room-not-added": "room.error.mode_not_added",
   "no-chat-service": "room.error.mode_no_chat_service",
   "avatar-unoffered": "room.error.room_add_avatar",
   "room-takes-no-avatar": "room.error.mode_takes_no_avatar",
@@ -302,18 +301,12 @@ export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
   return { bytes: limit.bytes, by: chatRoadName(limit.provider) };
 }
 
-/** A room's mode off its registration, read as the web unit knows the administrator: null where the room was never added,
- * which the receiver refuses 409 `room-not-added`. */
+/** A room's mode off its registration, read as the web unit knows the administrator: null where no one has set a
+ * mode for it yet, which the administrator's switch sets where the room's own road offers the avatar mode. */
 export async function roomMode(roomId: number, by: string): Promise<RoomModeView> {
-  try {
-    const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }), { codes: ADMINISTRATOR_ONLY });
+  const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }), { codes: ADMINISTRATOR_ONLY });
 
-    return { mode: modeOf(registration) };
-  } catch (error) {
-    if (codeOf(error) === "room-not-added") return { mode: null };
-
-    throw error;
-  }
+  return { mode: modeOf(registration) };
 }
 
 /** The mode a registration answer names, null where it names none the console knows. */
@@ -321,13 +314,6 @@ export function modeOf(registration: unknown): RoomMode | null {
   const mode: unknown = typeof registration === "object" && registration !== null ? Reflect.get(registration, "mode") : null;
 
   return mode === "avatar" || mode === "record-only" ? mode : null;
-}
-
-// The receiver's code a refusal carried, where it carried one.
-function codeOf(error: unknown): unknown {
-  const data: unknown = typeof error === "object" && error !== null ? Reflect.get(error, "data") : null;
-
-  return typeof data === "object" && data !== null ? Reflect.get(data, "code") : null;
 }
 
 /** A room's chat providers as its dialog reads them: the ones the room is on, each by its name in the pack, and

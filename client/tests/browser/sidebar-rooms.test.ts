@@ -125,16 +125,16 @@ describe.skipIf(!origin || !touchReady())("the sidebar's rooms", () => {
 
       await rooms.getByRole("link", { name: /numbered-room/ }).waitFor({ timeout: 20_000 });
 
-      // Opened again, the dialog says which mode the room was added in, by that mode's own sentence.
+      // Opened again, the dialog says which mode the room stands in, by that mode's own sentence.
       await newChatMenu(page);
       await page.getByRole("menuitem", { name: wording("room.action.new_chat_add") }).click();
       await dialog.getByRole("button", { name: wording("room.label.room_add_service") }).click();
       await page.getByRole("option", { name: wording("room.label.road_other", { key: "chat-a" }) }).click();
 
-      const added = [wording("room.label.room_add_added_avatar"), wording("room.label.room_add_added_record_only")];
+      const held = [wording("room.label.room_add_held_avatar"), wording("room.label.room_add_held_record_only")];
       const line = dialog.getByRole("option", { name: /numbered-room/ });
 
-      await line.getByText(new RegExp(added.join("|"))).waitFor({ timeout: 20_000 });
+      await line.getByText(new RegExp(held.join("|"))).waitFor({ timeout: 20_000 });
       // Closed by its corner close; where the service chosen counts as a change, leaving asks first and is discarded.
       await dialog.getByRole("button", { name: wording("common.action.close"), exact: true }).first().click();
 

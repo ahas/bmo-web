@@ -614,7 +614,6 @@ room:
     removal_owners_chat: 플랫폼 관리자 자신의 개인 채팅이라 지울 수 없습니다.
     providers_read_failed: 채팅 서비스를 불러오지 못했습니다.
     mode_no_chat_service: 어느 채팅 서비스에도 이어지지 않은 방이라 아바타 모드를 켤 수 없습니다.
-    mode_not_added: 추가된 적이 없는 방이라 모드를 바꿀 수 없습니다.
     mode_read_failed: 방의 모드를 불러오지 못했습니다.
     mode_save_failed: 방의 모드를 바꾸지 못했습니다.
     supervisors_read_failed: 방의 감독관 목록을 불러오지 못했습니다.
@@ -848,8 +847,8 @@ room:
     road_too_large: 크기 초과로 거부
     road_unavailable: 없음
     road_outcome_other: "기타 결과"
-    room_add_added_avatar: 아바타로 추가됨
-    room_add_added_record_only: 기록 전용으로 추가됨
+    room_add_held_avatar: 아바타 모드
+    room_add_held_record_only: 기록 전용
     room_add_group_title: 그룹 이름
     room_add_has_chat: 대화 있음
     room_add_held: 이미 있는 방
@@ -968,9 +967,10 @@ room:
     removal_done: 방 등록과 그 기록을 삭제했습니다.
     removal_goes: 삭제하면 아래 기록과 파일이 함께 삭제되며 복원할 수 없습니다.
     providers_rule: 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수 없습니다.
-    mode_avatar_on: 이 방에서 BMO가 내 계정으로 대신 답합니다.
+    mode_avatar_on: 이 방에서 감독관이 내 계정으로 대신 답합니다.
     mode_avatar_off: 기록만 하고 답하지 않습니다.
     supervisors_rule: 고르지 않으면 기본 응답 감독관이 이 방에 답합니다.
+    supervisors_standing: 이미 이 방에서 답하고 있는 감독관은 여기에 고를 수 없습니다.
     background_every_minutes: "{n}분마다 확인"
     background_every_seconds: "{n}초마다 확인"
     background_since: "{time}부터"

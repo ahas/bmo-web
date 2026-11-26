@@ -607,7 +607,6 @@ room:
     removal_owners_chat: 管理者自身の個人チャットのため削除できません。
     providers_read_failed: チャットサービスを読み込めませんでした。
     mode_no_chat_service: どのチャットサービスにもつながっていないルームのため、アバターモードをオンにできません。
-    mode_not_added: 追加されたことのないルームのため、モードを変更できません。
     mode_read_failed: ルームのモードを読み込めませんでした。
     mode_save_failed: ルームのモードを変更できませんでした。
     supervisors_read_failed: ルームのスーパーバイザーを読み込めませんでした。
@@ -841,8 +840,8 @@ room:
     road_too_large: サイズ超過で拒否
     road_unavailable: なし
     road_outcome_other: "その他の結果"
-    room_add_added_avatar: アバターとして追加済み
-    room_add_added_record_only: 記録のみで追加済み
+    room_add_held_avatar: アバターモード
+    room_add_held_record_only: 記録のみ
     room_add_group_title: グループ名
     room_add_has_chat: 会話あり
     room_add_held: 追加済みのルーム
@@ -961,9 +960,10 @@ room:
     removal_done: ルームの登録とその記録を削除しました。
     removal_goes: 削除すると、以下の記録とファイルも一緒に削除され、復元できません。
     providers_rule: チャットサービスはルームを追加するときに決まり、その後は変更できません。
-    mode_avatar_on: このルームでは、BMO があなたのアカウントで代わりに返信します。
+    mode_avatar_on: このルームでは、スーパーバイザーがあなたのアカウントで代わりに返信します。
     mode_avatar_off: 記録だけして、返信しません。
     supervisors_rule: 選択しない場合は、デフォルト応答スーパーバイザーがこのルームに返信します。
+    supervisors_standing: すでにこのルームで返信しているスーパーバイザーは選択肢にありません。
     background_every_minutes: "{n}分ごとに確認"
     background_every_seconds: "{n}秒ごとに確認"
     background_since: "{time}から"

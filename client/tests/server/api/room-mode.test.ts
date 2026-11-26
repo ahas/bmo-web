@@ -8,31 +8,44 @@ import { answer, standIn } from "../../support/units";
 
 import type { RoomModeView } from "../../../apps/web/shared/types";
 
-// A room's mode: read off its registration and set between avatar and record-only under the administrator's name;
-// a room never added has none, and a refusal of the receiver's is said by the pack's sentence for its code.
+// A room's mode: read off its registration and set between avatar and record-only under the administrator's name; a
+// room no one has set a mode for reads as none and takes one where its road offers the mode, and a refusal of the
+// receiver's is said by the pack's sentence for its code.
 
 const globals: Record<string, unknown> = globalThis;
 
-let mode = "record-only";
+// Each room's mode as the stand-in last wrote it; a room it does not hold stands in no mode.
+const modes: Record<string, string> = { "-7": "record-only" };
 
 const receiver = standIn("RECEIVER", (one) => {
   const path = one.path.split("?")[0] ?? "";
 
   // No room here is anyone's private room; a private room's refusal stands in room-private.test.ts.
-  if (/^\/rooms\/-?\d+$/.test(path)) return answer({ id: Number(path.split("/")[2]), title: null, privateOf: null });
-  if (path === "/rooms/-9/registration") return answer({ code: "room-not-added", error: "never added" }, 409);
+  const held = /^\/rooms\/(-?\d+)$/.exec(path);
+  if (held) return answer({ id: Number(held[1]), title: null, privateOf: null });
 
-  if (path === "/rooms/-8/registration" && one.method === "PUT") {
-    return answer({ code: "avatar-unoffered", error: "the service offers no avatar" }, 409);
+  const registration = /^\/rooms\/(-?\d+)\/registration$/.exec(path);
+  if (registration === null) return answer({ code: "not-found", error: "Not served here." }, 404);
+
+  const room = registration[1]!;
+  const refused = { "-8": ["avatar-unoffered", "the service offers no avatar"], "-6": ["no-chat-service", "the room stands on no chat service"], "-5": ["room-takes-no-avatar", "the service never answers this room"] }[room];
+
+  if (one.method === "PUT" && refused !== undefined) {
+    return answer({ code: refused[0], error: refused[1] }, 409);
   }
 
-  if (path === "/rooms/-7/registration") {
-    if (one.method === "PUT") mode = String(one.body?.mode);
+  if (one.method === "PUT") modes[room] = String(one.body?.mode);
 
-    return answer({ room: -7, mode, providers: ["provider-a"], chosen: "provider-a", answerers: {}, readOnly: false, readOnlyBy: [] });
-  }
-
-  return answer({ code: "not-found", error: "Not served here." }, 404);
+  return answer({
+    room: Number(room),
+    mode: modes[room] ?? null,
+    providers: ["provider-a"],
+    chosen: room === "-7",
+    answerers: {},
+    standingAgents: [],
+    readOnly: false,
+    readOnlyBy: []
+  });
 });
 
 const read = await routeOf<RoomModeView>("../../apps/web/server/api/rooms/[chatId]/mode.get");
@@ -46,8 +59,14 @@ describe("a room's mode", () => {
     expect(receiver.asked[0]?.path).toBe("/rooms/-7/registration?by=1");
   });
 
-  test("answers no mode for a room that was never added", async () => {
+  test("answers no mode for a room no one has set one for, and takes one written on it all the same", async () => {
+    receiver.asked.length = 0;
+
     expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ mode: null });
+
+    expect((await asked(write, { params: { chatId: "-9" }, body: { mode: "avatar" } })).answer).toEqual({ mode: "avatar" });
+    expect(receiver.asked.filter((one) => one.method === "PUT").map((one) => [one.method, one.path, one.body])).toEqual([["PUT", "/rooms/-9/registration?by=1", { mode: "avatar", account: 1 }]]);
+    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ mode: "avatar" });
   });
 
   test("sets the mode on the receiver and answers it as the receiver now holds it", async () => {
@@ -69,7 +88,8 @@ describe("a room's mode", () => {
 
   test("says the receiver's refusal by the pack's sentence for its code", async () => {
     expect(await asked(write, { params: { chatId: "-8" }, body: { mode: "avatar" } })).toMatchObject({ status: 409, message: wording("room.error.room_add_avatar") });
-    expect(await asked(write, { params: { chatId: "-9" }, body: { mode: "avatar" } })).toMatchObject({ status: 409, message: wording("room.error.mode_not_added") });
+    expect(await asked(write, { params: { chatId: "-6" }, body: { mode: "avatar" } })).toMatchObject({ status: 409, message: wording("room.error.mode_no_chat_service") });
+    expect(await asked(write, { params: { chatId: "-5" }, body: { mode: "avatar" } })).toMatchObject({ status: 409, message: wording("room.error.mode_takes_no_avatar") });
   });
 
   test("is the administrator's alone, both ways", async () => {

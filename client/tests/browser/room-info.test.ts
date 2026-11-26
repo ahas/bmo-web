@@ -106,8 +106,8 @@ interface RoomSetUp {
   // What the media tab is answered in place of its usual page.
   media?: RoomHoldingPage[];
   // What the chat services tab is answered: the providers and the mode, each written as asked, the room's list of
-  // supervisors as it now stands, and the whole lists each write was asked with.
-  services?: { providers: RoomProvidersView; mode: RoomMode | null; supervisors?: string[]; writes?: string[][] };
+  // supervisors as it now stands, the ones it may still be told to call, and the whole lists each write was asked with.
+  services?: { providers: RoomProvidersView; mode: RoomMode | null; supervisors?: string[]; candidates?: { name: string; label: string }[]; writes?: string[][] };
 }
 
 // The room open at a width, every tab's read answered here, and the number of the room's newest message.
@@ -125,6 +125,7 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
     const services = setUp.services;
 
     services.supervisors ??= [];
+    services.candidates ??= SUPERVISOR_CANDIDATES;
     services.writes ??= [];
 
     await page.route(`**/api/rooms/${RECORD_CHAT}/providers`, (route) => route.fulfill({ json: services.providers }));
@@ -140,9 +141,8 @@ async function roomOpen(width: number, height: number, phone: boolean, setUp: Ro
         services.supervisors = [...names].sort();
       }
 
-      await route.fulfill({ json: { supervisors: services.supervisors } });
+      await route.fulfill({ json: { supervisors: services.supervisors, candidates: services.candidates } });
     });
-    await page.route("**/api/supervisors", (route) => route.fulfill({ json: SUPERVISOR_CHOICES }));
   }
   await page.route("**/api/images/**", (route) => route.fulfill({ contentType: "image/png", body: PIXEL }));
   await page.route(`**/api/rooms/${RECORD_CHAT}/pictures?*`, (route) => route.fulfill({ json: PICTURES }));
@@ -173,9 +173,9 @@ const TABS = ["members", "media", "files", "links", "music", "voice", "situation
 const PROVIDER_A = { key: "provider-a", label: wording("room.label.road_other", { key: "provider-a" }) };
 const RECORD = { key: "record", label: wording("room.label.road_record") };
 
-// The supervisors the reader's list holds, offered under their labels; a name the room carries outside them,
-// `person-b`, stands among the choices by its own name alone.
-const SUPERVISOR_CHOICES = [
+// The supervisors the room may be told to call: every one the deployment registers less the agents already standing
+// in it. A name the room carries outside them, `person-b`, stands among the choices by its own name alone.
+const SUPERVISOR_CANDIDATES = [
   { name: "agent-a", label: "Agent A" },
   { name: "agent-b", label: "Agent B" }
 ];
@@ -331,6 +331,7 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
         // The room's names show, each candidate by its label and the name the candidates leave out by that name.
         await row.getByText("Agent A").first().waitFor({ timeout: 10_000 });
         await row.getByText("person-b").first().waitFor({ timeout: 10_000 });
+        expect(await sheet.getByText(wording("room.message.supervisors_standing"), { exact: true }).count()).toBe(1);
 
         const control = row.getByRole("button", { name: wording("room.label.supervisors"), exact: true });
 
@@ -352,8 +353,50 @@ describe.skipIf(!origin || !touchReady())("the room information", () => {
       }
     }, 90_000);
 
+    test(`takes the mode on a room the receiver only ever heard, ${width}px wide`, async () => {
+      // A group the console never added: the receiver holds its lines and no mode, and its record holds person-b's
+      // own answers, so person-b stands in the room and is no choice to make.
+      const services: NonNullable<RoomSetUp["services"]> = {
+        providers: { on: [PROVIDER_A, RECORD], avatarOffered: true },
+        mode: null,
+        supervisors: [],
+        candidates: [{ name: "agent-a", label: "Agent A" }]
+      };
+      const { page, close } = await roomOpen(width, height, phone, { services });
+
+      try {
+        const sheet = await openRoomInfo(page, wording("room_info.label.providers"));
+        const avatar = sheet.getByRole("switch", { name: wording("room.label.mode_avatar") });
+
+        // The switch stands, off, for a room no one has set a mode for, with the room's list under it.
+        await avatar.waitFor({ timeout: 10_000 });
+        expect(await avatar.getAttribute("aria-checked")).toBe("false");
+        await sheet.locator("[data-room-supervisors]").waitFor({ timeout: 10_000 });
+
+        await avatar.click();
+        await sheet.getByText(wording("room.message.mode_avatar_on"), { exact: true }).waitFor({ timeout: 10_000 });
+        expect(services.mode).toBe("avatar");
+        expect(await avatar.getAttribute("aria-checked")).toBe("true");
+
+        // The choices are what the room's own read answers: the agent standing in the room is not among them.
+        const row = sheet.locator("[data-room-supervisors]");
+        const control = row.getByRole("button", { name: wording("room.label.supervisors"), exact: true });
+
+        await control.click();
+        await page.getByRole("option").filter({ hasText: "Agent A" }).waitFor({ timeout: 10_000 });
+        expect(await page.getByRole("option").filter({ hasText: "person-b" }).count()).toBe(0);
+        await page.getByRole("option").filter({ hasText: "Agent A" }).click();
+        await page.keyboard.press("Escape");
+        await until(async () => services.writes?.length ?? 0, (writes) => writes > 0);
+        expect(services.writes![0]).toEqual(["agent-a"]);
+        expect(await row.getByText("person-b").count()).toBe(0);
+      } finally {
+        await close();
+      }
+    }, 90_000);
+
     const unapplied: [string, RoomProvidersView, RoomMode | null][] = [
-      ["a room never added", { on: [PROVIDER_A, RECORD], avatarOffered: true }, null],
+      ["a room no one has set a mode for, on a road that offers none", { on: [PROVIDER_A, RECORD], avatarOffered: false }, null],
       ["a room whose chat service offers no avatar mode", { on: [PROVIDER_A, RECORD], avatarOffered: false }, "record-only"],
       ["a room on the record alone", { on: [RECORD], avatarOffered: false }, "record-only"]
     ];

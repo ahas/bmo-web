@@ -11,7 +11,7 @@ describe("the room's chat services tab", () => {
     expect(template.indexOf("data-room-mode")).toBeGreaterThan(-1);
     expect(template.indexOf("data-room-mode")).toBeLessThan(template.indexOf("data-room-providers"));
     expect(template).toContain(`v-if="avatarShown"`);
-    expect(source).toContain(`mode.value === "avatar" || (mode.value === "record-only" && view.value?.avatarOffered === true)`);
+    expect(source).toContain(`mode.value === "avatar" || view.value?.avatarOffered === true`);
   });
 
   test("is on for avatar, writes the other mode when turned, and says what each does", () => {
@@ -35,12 +35,14 @@ describe("the room's chat services tab", () => {
     expect(template).toContain(`value-key="value"`);
     expect(template).toContain(`void setSupervisors(value)`);
     expect(source).toContain('/supervisors`, { method: "PUT", body: { supervisors: next } }');
-    expect(source).toContain("supervisors.value = (await $fetch<RoomSupervisorsView>");
+    expect(source).toContain("supervisors.value = (await $fetch<RoomNamedSupervisors>");
   });
 
-  test("narrows candidates to the readers list and keeps a name the room already carries among them", () => {
-    expect(source).toContain('$fetch<SupervisorView[]>("/api/supervisors")');
+  test("takes its candidates from the room's own read and keeps a name the room carries among them", () => {
+    expect(source).not.toContain('"/api/supervisors"');
+    expect(source).toContain("candidates.value = read.candidates;");
     expect(source).toContain(".filter((name) => !known.has(name))");
+    expect(template).toContain("$t(\"room.message.supervisors_standing\")");
   });
 
   test("asks for the list once the row first stands, not before", () => {

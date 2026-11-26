@@ -4,14 +4,14 @@ import { acting } from "../../../utils/console-rooms";
 import { ADMINISTRATOR_ONLY, SUPERVISOR_CODES, receiver, receiverCall } from "../../../utils/receiver";
 import { requireWritableRoom } from "../../../utils/room-reach";
 
-import type { RoomSupervisorsView } from "#shared/types";
+import type { RoomNamedSupervisors } from "#shared/types";
 
 // A room's supervisors written whole, for the administrator alone, as his account: the receiver keeps the list as the
 // room's own answerers and, in an avatar room, as the whole of who its words may call, and refuses a name the agency
 // does not register (`unknown-supervisor`) and a change in another account's private room, which is refused here
 // first (docs/web.md, 「Access」). The receiver's route declares `account` and reads no `by`, so the account goes and
 // nothing else. An empty list is the setting left unset, which hands the room to the default answerer.
-export default defineEventHandler(async (event): Promise<RoomSupervisorsView> => {
+export default defineEventHandler(async (event): Promise<RoomNamedSupervisors> => {
   const signed = await requireAdministrator(event);
   const chatId = requireChatId(event);
   const body = await readBody<{ supervisors?: unknown }>(event);

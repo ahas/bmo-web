@@ -100,7 +100,9 @@
   supervisor delegated writes its brain for → 리서치 감독관; the supervisor a group room is added with, one of the
   person adding it owns or 감독관 없음 → 그룹 감독관.
 - the supervisors a room names, which answer it and, in an avatar room, are the whole of who its words may call
-  there → 부를 수 있는 감독관. Never 호출할 수 있는 감독관; 호출 stays the mention's never-word.
+  there → 부를 수 있는 감독관; the agents already answering in the room are said to be there already (이미 이 방에서
+  답하고 있는 감독관은 여기에 고를 수 없습니다) and never offered as choices. Never 호출할 수 있는 감독관; 호출 stays the
+  mention's never-word.
 - a person's own supervisor, as it is titled → `{name}의 BMO`, the person's name with BMO, or with the name its
   profile stands with where a company or the person set one (`{name}의 Dear`); its private room → the person's name
   alone, `{name}`. The person's name stands there, the login only where none stands; never the login with BMO beside
@@ -470,11 +472,14 @@
 - a unit's head → 조직장: 조직장 지정, 조직장 해제. Never 장 alone, 책임자.
 - the one view a room's name opens, of what the room is and what it holds → 방 정보; its tabs → 대화상대, 미디어,
   파일, 링크, 음악, 음성, 상황, 세션 정보, 채팅 서비스. Never 방 설정, 채팅방 정보, 방 서랍.
-- a room added in the mode where BMO answers as the person's own account → 아바타 모드, its line on → 이 방에서
-  BMO가 내 계정으로 대신 답합니다, off → 기록만 하고 답하지 않습니다; where the mode cannot apply nothing of it is shown.
-  Never 모드가 없습니다 or any line explaining its absence.
+- a room in the mode where its supervisors answer as the person's own account → 아바타 모드, its line on → 이 방에서
+  감독관이 내 계정으로 대신 답합니다, off → 기록만 하고 답하지 않습니다; where the mode cannot apply nothing of it is shown.
+  Never 모드가 없습니다 or any line explaining its absence, and never the on-line naming one BMO, which is one
+  person's supervisor rather than every room's.
 - who may call their own BMO into a room is no setting: every member may, so no screen names a 호출 권한 or 호출
-  허용. Letting a member in that fails to give that right → 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다.
+  허용. Letting a member in that fails to give that right → 이 방에서 자기 BMO를 부를 수 있게 하지 못했습니다. A room
+  standing in 아바타 모드 names the supervisors its own words may call (부를 수 있는 감독관 above): that is the room's
+  choice of agents, never a person's right, and it is never worded as 권한.
 - a room's chat service, fixed as the room is added → 채팅 서비스는 방을 추가할 때 정해지고, 그 뒤로는 바꿀 수
   없습니다. Never a switch or 켜기/끄기 for a chat service in 방 정보.
 - a chat road a room is on, as 채팅 서비스 and the console name it → the receiver's own record 대화 기록, each chat

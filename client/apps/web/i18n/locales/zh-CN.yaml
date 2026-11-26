@@ -607,7 +607,6 @@ room:
     removal_owners_chat: 这是管理员自己的私人聊天，无法删除。
     providers_read_failed: 无法加载聊天服务。
     mode_no_chat_service: 此房间未连接任何聊天服务，无法开启代答模式。
-    mode_not_added: 此房间从未添加过，无法更改模式。
     mode_read_failed: 无法加载房间模式。
     mode_save_failed: 无法更改房间模式。
     supervisors_read_failed: 无法加载房间主管。
@@ -841,8 +840,8 @@ room:
     road_too_large: 因超出大小被拒
     road_unavailable: 无
     road_outcome_other: "其他结果"
-    room_add_added_avatar: 已以代答方式添加
-    room_add_added_record_only: 已以仅记录方式添加
+    room_add_held_avatar: 代答模式
+    room_add_held_record_only: 仅记录
     room_add_group_title: 群组名称
     room_add_has_chat: 有对话
     room_add_held: 已有的房间
@@ -961,9 +960,10 @@ room:
     removal_done: 已删除房间登记及其记录。
     removal_goes: 删除后，下列记录和文件将一并删除，且无法恢复。
     providers_rule: 聊天服务在添加房间时确定，之后无法更改。
-    mode_avatar_on: 在此房间中，BMO 以你的账号代你回复。
+    mode_avatar_on: 在此房间中，主管以你的账号代你回复。
     mode_avatar_off: 只记录，不回复。
     supervisors_rule: 不选择时，由默认回复主管回复此房间。
+    supervisors_standing: 已在此房间回复的主管不在候选之中。
     background_every_minutes: "每{n}分钟检查一次"
     background_every_seconds: "每{n}秒检查一次"
     background_since: "自{time}起"

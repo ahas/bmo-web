@@ -2816,10 +2816,24 @@ export interface RoomModeView {
   mode: RoomMode | null;
 }
 
-// The supervisors a room names, as the receiver holds them, in name order: who answers the room and, in an avatar
-// room, the whole of who its words may call. Empty is the setting left unset, which hands the room to the default
-// answerer.
+// One supervisor a room may be told to call, by its registration name and the name it is called by on screen.
+export interface RoomSupervisorOption {
+  name: string;
+  label: string;
+}
+
+// The supervisors a room names, as the receiver holds them, in name order, with the ones it may still be told to
+// call: who answers the room and, in an avatar room, the whole of who its words may call. Empty is the setting left
+// unset, which hands the room to the default answerer. The candidates are the supervisors the deployment registers
+// less the agents already standing in the room, whose own lines its record holds; a name the room carries anyway
+// stands among the choices, so an edit never drops one unseen.
 export interface RoomSupervisorsView {
+  supervisors: string[];
+  candidates: RoomSupervisorOption[];
+}
+
+// A room's list of supervisors as its write answers it: the names the receiver now holds, in its order.
+export interface RoomNamedSupervisors {
   supervisors: string[];
 }
 

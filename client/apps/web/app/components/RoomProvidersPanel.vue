@@ -1,11 +1,13 @@
 <template>
   <!-- A room's chat services, the room information's chat services tab, for the administrator alone (docs/web.md, the
        room screen's chat services): the providers the room stands on, each by its name and nothing to turn, since a room's chat service is
-       chosen as it is added and stays. Above them stands the avatar mode's switch, only where it can apply: a room added
-       on a chat service that offers the mode, or one the receiver already holds in it; anywhere else nothing of it
-       shows. Under the switch stands the room's list of supervisors, the ones that answer it and, in an avatar room,
+       chosen as it is added and stays. Above them stands the avatar mode's switch, only where it can apply: a room the
+       receiver holds on a chat service that offers the mode, or one the receiver already holds in it; anywhere else
+       nothing of it shows. A room no one has set a mode for takes one from this switch as much as an added room does.
+       Under the switch stands the room's list of supervisors, the ones that answer it and, in an avatar room,
        the whole of who its words may call: a select of several, the choice written whole as it is made and an empty
-       list handing the room to the default answerer, said by the line under the row.
+       list handing the room to the default answerer, said by the line under the row, its choices leaving out the
+       agents already answering in the room.
        Nothing here tells one provider from another. -->
   <div class="flex min-w-0 flex-col gap-4">
     <ContentSkeleton v-if="loading" :rows="2" listClass="flex flex-col gap-2" :label="$t('room.status.providers_loading')">
@@ -42,6 +44,7 @@
             />
           </SettingsRow>
         </SettingsGroup>
+        <p v-if="supervisors !== null" class="text-sm text-toned">{{ $t("room.message.supervisors_standing") }}</p>
         <p v-if="modeSaving" role="status" class="sr-only">{{ $t("room.status.mode_saving") }}</p>
         <p v-if="supervisorsSaving" role="status" class="sr-only">{{ $t("room.status.supervisors_saving") }}</p>
       </template>
@@ -63,8 +66,7 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
-import type { RoomMode, RoomModeView, RoomProvidersView, RoomSupervisorsView } from "#shared/types";
-import type { SupervisorView } from "#shared/axes";
+import type { RoomMode, RoomModeView, RoomNamedSupervisors, RoomProvidersView, RoomSupervisorOption, RoomSupervisorsView } from "#shared/types";
 
 interface Props {
   chatId: number;
@@ -78,7 +80,7 @@ const { t } = useI18n();
 const view = ref<RoomProvidersView | null>(null);
 const failed = ref("");
 
-// The room's mode as the receiver last answered it: undefined until read, null for a room never added.
+// The room's mode as the receiver last answered it: undefined until read, null for a room no one has set a mode for.
 const mode = ref<RoomMode | null | undefined>(undefined);
 const modeSaving = ref(false);
 const modeFailed = ref("");
@@ -88,21 +90,21 @@ const supervisors = ref<string[] | null>(null);
 const supervisorsSaving = ref(false);
 const supervisorsFailed = ref("");
 
-// The supervisors the reader may choose among. The read hands every one the list is his to see, narrowed by
-// ownership at the server as the room add dialog's read is; the panel opens for the administrator alone, who is
-// shown all of them.
-const candidates = ref<SupervisorView[]>([]);
+// The supervisors the room may still be told to call: every one the deployment registers less the agents already
+// standing in the room, which the server reads off the room's own record. The panel opens for the administrator
+// alone, who is shown all of them.
+const candidates = ref<RoomSupervisorOption[]>([]);
 
 // Both reads stand before anything is drawn, so the switch never comes in over the providers once they show.
 const loading = computed(() => (view.value === null && failed.value === "") || (mode.value === undefined && modeFailed.value === ""));
 
-// The switch applies to an added room on a chat service that offers the mode, and to one already held in it, which
-// the reader may always turn back. The supervisor list is edited in the same breath as the mode, so it stands only
-// where the switch does.
-const avatarShown = computed(() => mode.value === "avatar" || (mode.value === "record-only" && view.value?.avatarOffered === true));
+// The switch applies to every room the receiver holds on a chat service that offers the mode, whether or not it was
+// ever added, and to one the receiver already holds in it, which the reader may always turn back. The supervisor
+// list is edited in the same breath as the mode, so it stands only where the switch does.
+const avatarShown = computed(() => mode.value === "avatar" || view.value?.avatarOffered === true);
 
 // Each candidate by its label with its name under it, as the room add dialog lists them, and a name the room already
-// carries kept among the choices even where ownership leaves it outside the candidates, so an edit never drops it unseen.
+// carries kept among the choices even where it stands in the room, so an edit never drops it unseen.
 const supervisorItems = computed(() => {
   const offered = candidates.value.map((one) => ({ label: one.label, value: one.name, description: one.name }));
   const known = new Set(offered.map((one) => one.value));
@@ -142,10 +144,10 @@ watch(
 
 async function readSupervisors(): Promise<void> {
   try {
-    const [list, offered] = await Promise.all([$fetch<RoomSupervisorsView>(`/api/rooms/${props.chatId}/supervisors`), $fetch<SupervisorView[]>("/api/supervisors")]);
+    const read = await $fetch<RoomSupervisorsView>(`/api/rooms/${props.chatId}/supervisors`);
 
-    supervisors.value = list.supervisors;
-    candidates.value = offered;
+    supervisors.value = read.supervisors;
+    candidates.value = read.candidates;
   } catch (error) {
     supervisorsFailed.value = failureText(error, t("room.error.supervisors_read_failed"));
   }
@@ -179,7 +181,7 @@ async function setSupervisors(next: string[]): Promise<void> {
   supervisorsFailed.value = "";
 
   try {
-    supervisors.value = (await $fetch<RoomSupervisorsView>(`/api/rooms/${props.chatId}/supervisors`, { method: "PUT", body: { supervisors: next } })).supervisors;
+    supervisors.value = (await $fetch<RoomNamedSupervisors>(`/api/rooms/${props.chatId}/supervisors`, { method: "PUT", body: { supervisors: next } })).supervisors;
   } catch (error) {
     supervisorsFailed.value = failureText(error, t("room.error.supervisors_save_failed"));
   } finally {

@@ -1616,8 +1616,8 @@ todo:
     review_turns: 報告ターン
     result: 結果
     round_result: "{round} 回目の結果"
-    run_id: "実行 #{id}"
-    run_id_took: "実行 #{id} · {time}"
+    run: 実行 {run}
+    run_took: "実行 {run} · {time}"
     runner: "{worker} · {road}"
     skip_reason: スキップする理由
     skipped_at: "スキップした理由 · {time}"
@@ -3091,6 +3091,7 @@ agents:
     agency_unprocessable: エージェンシーが受け付けられない値です。
     agent_name_taken: すでにあるキーです。
     bad_agent_name: エージェント名が正しくありません。
+    bad_job_id: Job番号が正しくありません。
     bad_credential_kind: 認証情報は設定ディレクトリかトークンファイルです。
     bad_depth: 検索の深さが正しくありません。
     bad_launch_agent: 実行するエージェントが正しくありません。
@@ -3107,6 +3108,7 @@ agents:
     log_read_failed: ログを読み取れませんでした。しばらくしてからもう一度お試しください。
     models_load_failed: モデルの一覧を読み込めませんでした。
     no_such_agent: エージェントが見つかりません。
+    no_such_job: Jobが見つかりません。
     notice_switches_read_failed: "通知設定を読み込めませんでした。"
     pick_account: アカウントを選択してください。
     provider_off: オフのプロバイダーです。自動か、オンのプロバイダーを選択してください。

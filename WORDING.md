@@ -167,6 +167,12 @@
 - what an agent is doing now → 상태, its column's name: an agent with nothing going → 유휴; a supervisor answering in
   rooms → 답변 중; a run of a role's agent → the pack's word for the source that asked it (Job, 협업, 요청 …)
   and what it works on. Never 쉬는 중, 대기 or 비어 있음 for an idle agent: 대기 is a run waiting in its role's line.
+- a run named where a person reads it → its own name: `job-<번호>` for a job's run, with its 항목 and the agent that
+  did the work beside it (`job-908260`, then `#3999 · coder-01`). A screen may instead name the work the run does, as
+  the sidebar row of a run does; what it must not do is name the same run three ways on three screens. 실행 is the word for a run, and Job the unit of work
+  it is a run of (above). Never the run ledger's row name, which stands the 체크아웃 before the run, never the 세션
+  id, and never a 체크아웃's name, in a run's place. A screen that speaks of the session itself says 세션 and gives
+  the session's own id; a place's own name is none of a run's names either.
 - the whole deployment resting while the platform's Claude logins are at their limit or the service is down → 휴식:
   an agent whose road it closes → `휴식 중 · {time}까지`, or 휴식 중 alone where it names no moment; its kinds → 사용량
   한도, 공급자 장애; ending it by hand → 휴식 끝내기. The owner's chat told of a restart and of a rest → 재시작 알림, 휴식

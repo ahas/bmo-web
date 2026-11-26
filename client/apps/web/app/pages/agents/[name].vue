@@ -102,14 +102,16 @@
           ref="view"
           :key="`${repositoryJob.agent}:${repositoryJob.run}`"
           :agent="repositoryJob.agent"
-          :place="{ run: repositoryJob.run }"
+          :place="{ job: repositoryJob.job }"
           :run="repositoryJob.run"
           job
           stepper
           end
         />
       </template>
-      <WorkView v-else ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="false" :end="opensAtEnd" />
+      <!-- A screen opened at one job stands that job's head even under an agent the catalogue holds no worker for,
+           since the job is what its lines and its figures are read by. -->
+      <WorkView v-else ref="view" :agent="name" :place="place" :live="chatTurns" :run="placeRun" :job="placeJob !== null" :end="opensAtEnd" />
 
       <SupervisorSettingsDialog v-if="writable && settingsKind === 'supervisor'" v-model:open="settingsOpen" :name="name" :reread="refreshCatalogue" />
       <RoleSettingsDialog v-else-if="writable && settingsKind === 'role'" v-model:open="settingsOpen" :name="name" @saved="() => void refreshCatalogue()" />
@@ -139,6 +141,7 @@
 import { useInitialRead } from "bmo-ui/app/domain/loading";
 import { TAB_ROW_LINE } from "bmo-ui/app/domain/tabs";
 import { isAgentName, POLL_INTERVAL_MS, WORKER_AGENT } from "#shared/config";
+import { jobRunNameOf } from "#shared/run-name";
 import { agentMetaOf, catalogueAgents, groupLabel, launchableAgent, roomTitle, runOfAgent } from "~/domain/agents";
 import { useAgentFace, wearsFace } from "~/domain/agent-face";
 import { useAdministrator } from "~/domain/access";
@@ -286,15 +289,15 @@ const agentPicture = computed(() => faceOf.value(meta.value) ?? avatarFor(new Ma
 // its foot: the catalogue says which names are repositories.
 const isRepository = computed<boolean>(() => row.value?.kind === "repository");
 
-// The job a repository's screen stands: the run the address names where it is one of its jobs, otherwise the one going,
-// otherwise the latest; undefined until it is read, and null where the repository has none.
+// The job a repository's screen stands: the job or the run the address names where it is one of its jobs, otherwise
+// the one going, otherwise the latest; undefined until it is read, and null where the repository has none.
 const repositoryJob = ref<JobLine | null | undefined>(undefined);
 
 async function readRepositoryJob(): Promise<void> {
   if (!isRepository.value) return;
 
   try {
-    const query = placeRun.value === null ? {} : { run: placeRun.value };
+    const query = placeJob.value !== null ? { job: placeJob.value } : placeRun.value === null ? {} : { run: placeRun.value };
 
     repositoryJob.value = (await $fetch<{ job: JobLine | null }>(`/api/agents/${encodeURIComponent(name)}/job`, { query })).job;
   } catch {
@@ -308,8 +311,18 @@ onMounted(() => void readRepositoryJob());
 // Whether the log opens at its end whatever run it was opened at, as the log dialog that sent the reader here did.
 const opensAtEnd = computed<boolean>(() => route.query.end === "1");
 
-// The run the screen was opened at, which the job line speaks of where it is one of this worker's jobs.
-const placeRun = computed<string | null>(() => (typeof route.query.run === "string" && route.query.run !== "" ? route.query.run : null));
+// The job the screen was opened at, whose own lines the log then reads whatever turn of it the ledger has lost.
+const placeJob = computed<number | null>(() => {
+  const id = Number(route.query.job);
+
+  return typeof route.query.job === "string" && Number.isSafeInteger(id) && id > 0 ? id : null;
+});
+
+// The run the screen was opened at, which the job line speaks of where it is one of this worker's jobs. A screen
+// opened at a job is opened at that job's run, which is named by the job.
+const placeRun = computed<string | null>(() =>
+  typeof route.query.run === "string" && route.query.run !== "" ? route.query.run : placeJob.value === null ? null : jobRunNameOf(placeJob.value)
+);
 
 // What this screen may launch on the owner's own words, and what it launches it as. The rule is
 // the catalogue's rather than this screen's, so a worker the owner added gets its box without
@@ -404,6 +417,12 @@ useBotEvents((event) => {
 // reader here for one run — at the place that run begins. A runner and a job name their run
 // outright; a gate names the second it began and the room it ran for.
 const place = computed<LogPlace | null>(() => {
+  const job = placeJob.value;
+
+  if (job !== null) {
+    return { job };
+  }
+
   const run = typeof route.query.run === "string" ? route.query.run : "";
 
   if (run !== "") {
@@ -443,7 +462,7 @@ useLiveRefresh(
   () => {
     void readLiveStatus();
     // A job starting or ending in a repository moves which job its screen stands, unless the address names one.
-    if (placeRun.value === null) void readRepositoryJob();
+    if (placeRun.value === null && placeJob.value === null) void readRepositoryJob();
   },
   { on: ["worker-run"], everyMs: POLL_INTERVAL_MS }
 );

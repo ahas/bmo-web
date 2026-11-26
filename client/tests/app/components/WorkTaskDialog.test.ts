@@ -34,8 +34,8 @@ describe("the shell a task opens in", () => {
 describe("what the dialog shows of a task", () => {
   test("everything an unfolded row showed, and how long it took", () => {
     expect(source).toContain("task.instruction");
-    expect(source).toContain('$t("todo.label.run_id", { id: task.jobId })');
-    expect(source).toContain('$t("todo.label.run_id_took", { id: task.jobId, time: spanClock($t, took) })');
+    expect(source).toContain('$t("todo.label.run", { run: taskRun })');
+    expect(source).toContain('$t("todo.label.run_took", { run: taskRun, time: spanClock($t, took) })');
     expect(source).toContain("task.result");
     expect(source).toContain("task.error");
     expect(source).toContain("taskSeconds(task.value, props.ended)");
@@ -49,9 +49,10 @@ describe("what the dialog shows of a task", () => {
     expect(source).toContain('<UTooltip :text="wholeModelLine" :disabled="wholeModelLine === modelLine">');
   });
 
-  test("stands the task in the work view, narrowed to its run, and draws nothing where none is open", () => {
-    expect(source).toContain(':place="task.unit === null ? null : { run: task.unit }"');
-    expect(source).toContain(':only="task.unit"');
+  test("stands the task in the work view, at its job where it has one and its run otherwise, and draws nothing where none is open", () => {
+    expect(source).toContain(':place="taskPlace"');
+    expect(source).toContain('task.value.jobId !== null ? { job: task.value.jobId } : task.value.unit === null ? null : { run: task.value.unit }');
+    expect(source).toContain(':only="taskOnly"');
     expect(source).toContain("<template #order>");
     expect(source).toContain('<template v-if="hasDetail" #result>');
     expect(source).toContain("step: WorkStep | null");

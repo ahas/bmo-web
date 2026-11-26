@@ -2,7 +2,7 @@ import { agency, agencyCall } from "./agency";
 
 import type { TokenSplit } from "#shared/types";
 
-// What a job's run has done so far, read off its log: the calls whose result has come back, and what its model's
+// What a job has done so far, read off its own lines: the calls whose result has come back, and what its model's
 // requests have reported spending. The agency answers a job's usage only once its turn has ended and no count of its
 // calls at all (docs/boundary.md, 「Gaps the console meets」), while every line a model's request produced keeps that
 // request's id and its usage in the metadata the writer filed, the same usage on every line of one request. So a
@@ -22,14 +22,14 @@ interface RequestUsage {
   cacheWrite: number;
 }
 
-// One run's tally: the newest line read, the results counted, and every request's usage by its id.
+// One job's tally: the newest line read, the results counted, and every request's usage by its id.
 interface RunTally {
   after: number;
   calls: number;
   requests: Map<string, RequestUsage>;
 }
 
-/** What a run has done so far: its calls whose result has come back, and its spend, null where no request has
+/** What a job has done so far: its calls whose result has come back, and its spend, null where no request has
  * reported any. */
 export interface RunFigures {
   calls: number;
@@ -81,12 +81,12 @@ export function spendOf(requests: Iterable<RequestUsage>): TokenSplit | null {
   };
 }
 
-// The tally of a run, made the newest one kept.
-function tallyOf(runId: number): RunTally {
-  const tally = tallies.get(runId) ?? { after: 0, calls: 0, requests: new Map() };
+// The tally of a job, made the newest one kept.
+function tallyOf(jobId: number): RunTally {
+  const tally = tallies.get(jobId) ?? { after: 0, calls: 0, requests: new Map() };
 
-  tallies.delete(runId);
-  tallies.set(runId, tally);
+  tallies.delete(jobId);
+  tallies.set(jobId, tally);
 
   for (const oldest of tallies.keys()) {
     if (tallies.size <= RUNS_KEPT) break;
@@ -96,14 +96,16 @@ function tallyOf(runId: number): RunTally {
   return tally;
 }
 
-/** What a run has done so far, read on from where the last read of it stopped. A read that fails leaves the figures
- * as far as they were read: they stand beside the job's line, not as part of it. */
-export async function runFigures(runId: number): Promise<RunFigures> {
-  const tally = tallyOf(runId);
+/** What one job has done so far, read on from where the last read of its lines stopped, and read by the job — the
+ * one name its lines carry, which reaches every turn of it and asks nothing of the run ledger (docs/web.md,
+ * 「Where the log comes from」). A read that fails leaves the figures as far as they were read: they stand beside
+ * the job's line, not as part of it. */
+export async function jobFigures(jobId: number): Promise<RunFigures> {
+  const tally = tallyOf(jobId);
 
   try {
     for (;;) {
-      const page = await agencyCall(agency().GET("/log-lines", { params: { query: { runId, after: tally.after, limit: AGENCY_PAGE } } }));
+      const page = await agencyCall(agency().GET("/log-lines", { params: { query: { jobId, after: tally.after, limit: AGENCY_PAGE } } }));
 
       for (const line of page.items) {
         // Two reads of one run may overlap; a line the other has counted already is passed over.

@@ -119,6 +119,12 @@ export function unitLink(agent: string, unit: string): string {
   return `${agentLink(agent)}?run=${encodeURIComponent(unit)}`;
 }
 
+// A job's own lines, read by the job: where the screen knows the job, this is the road that reaches every turn of
+// it, whichever agent did that turn's work and whether or not the run ledger holds a row for it.
+export function jobLink(agent: string, jobId: number): string {
+  return `${agentLink(agent)}?job=${jobId}`;
+}
+
 // A moment in an agent's log. The screen opens on the run that moment falls in, so this is how
 // anything that knows when something happened — a gate's verdict, a request the cache watch
 // saw — sends a reader to the lines it happened in.

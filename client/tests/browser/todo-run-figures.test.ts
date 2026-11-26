@@ -48,7 +48,7 @@ function item(running: boolean): TodoItem {
 
 function job(finishedAt: number | null, tools: number, outputTokens: number): JobLine {
   return {
-    run: "run-a", agent: "worker-a", todoId: ITEM, title: null, purpose: null, startedAt: STARTED, finishedAt, tools, models: [],
+    job: 12, run: "run-a", agent: "worker-a", todoId: ITEM, title: null, purpose: null, startedAt: STARTED, finishedAt, tools, models: [],
     spent: { inputTokens: 5, outputTokens, cacheReadTokens: 80_000, cacheWriteTokens: 900 }
   };
 }

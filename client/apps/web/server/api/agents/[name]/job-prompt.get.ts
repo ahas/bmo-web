@@ -19,7 +19,7 @@ export default defineEventHandler(async (event): Promise<{ prompt: JobPrompt | n
 
   await requireReadableAgent(event, name);
 
-  const run = getQuery(event).run;
+  const query = getQuery(event);
 
-  return { prompt: await readWorkerJobPrompt(name, typeof run === "string" ? run : null) };
+  return { prompt: await readWorkerJobPrompt(name, typeof query.run === "string" ? query.run : null, readJobId(query.job)) };
 });

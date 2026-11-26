@@ -1616,8 +1616,8 @@ todo:
     review_turns: 报告轮次
     result: 结果
     round_result: "第 {round} 轮结果"
-    run_id: "运行 #{id}"
-    run_id_took: "运行 #{id} · {time}"
+    run: 运行 {run}
+    run_took: "运行 {run} · {time}"
     runner: "{worker} · {road}"
     skip_reason: 跳过原因
     skipped_at: "跳过原因 · {time}"
@@ -3091,6 +3091,7 @@ agents:
     agency_unprocessable: 代理中心无法接受此值。
     agent_name_taken: 此键已存在。
     bad_agent_name: 智能体名称无效。
+    bad_job_id: Job 编号无效。
     bad_credential_kind: 凭据须为配置目录或令牌文件。
     bad_depth: 搜索深度无效。
     bad_launch_agent: 要运行的智能体无效。
@@ -3107,6 +3108,7 @@ agents:
     log_read_failed: 无法读取日志。请稍后重试。
     models_load_failed: 无法加载模型列表。
     no_such_agent: 找不到智能体。
+    no_such_job: 找不到 Job。
     notice_switches_read_failed: "无法加载通知设置。"
     pick_account: 请选择账号。
     provider_off: 此提供商已关闭。请选择自动或已开启的提供商。

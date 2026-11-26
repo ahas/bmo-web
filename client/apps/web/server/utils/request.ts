@@ -75,6 +75,22 @@ export function readCursor(value: unknown): number | null {
   return cursor;
 }
 
+// The job a link names, by its number: what a job's log, its line and its prompt are read by. A link that names
+// none reads as none, so a screen opened for a worker's job now rather than one job in particular still works.
+export function readJobId(value: unknown): number | null {
+  if (value === undefined || value === null || value === "") {
+    return null;
+  }
+
+  const id = Number(value);
+
+  if (!Number.isSafeInteger(id) || id <= 0) {
+    throw fail(400, wording("agents.error.bad_job_id"));
+  }
+
+  return id;
+}
+
 // A moment a link names, in the unix seconds this console keeps. A value that is no moment reads as none rather than
 // failing the page, since a moment left out of a log opens its newest page and a reader is served either way.
 export function readMoment(value: unknown): number | null {

@@ -1,6 +1,8 @@
 import { formatElapsed, modelLabel } from "./status";
+import { jobRunNameOf } from "#shared/run-name";
 
 import type { AgentRun, RoleReservation } from "#shared/agent-runs";
+import type { RunIdentity } from "#shared/run-name";
 import type { Translate } from "#shared/wording";
 import type { LogPlace } from "./log";
 
@@ -24,6 +26,9 @@ export interface AgentDoing {
   since: number | null;
   // Where pressing the cell opens the log; null for the log's newest lines.
   place: LogPlace | null;
+  // The run this is, named as every screen names it, with its item and its agent beside it; none for a turn of a
+  // supervisor's room, which is a room's own and not one run of work.
+  identity: RunIdentity | null;
 }
 
 /** Every run let in on an agent of a role, the earliest first. An agent carries more than one where a job of its waits
@@ -34,14 +39,26 @@ export function runsOfAgent(runs: readonly AgentRun[], agent: string): AgentRun[
     .sort((one, other) => (one.since ?? Number.MAX_SAFE_INTEGER) - (other.since ?? Number.MAX_SAFE_INTEGER));
 }
 
-/** Where a run opens its role's log, in the order the agency's `docs/api.md` (「slots」) gives: at the run it names,
- * from its start; with no run named but a role session held, at the log's newest lines, which is no place (null); with
- * neither, at the moment the run took the slot; and at the newest lines where even that is not known. */
-export function runLogPlace(run: Pick<AgentRun, "log" | "session" | "since">): LogPlace | null {
+/** Where a run opens its log: at its job, which is what the job's own lines carry and which reaches every turn of
+ * it; else at the run the agency names, from its start; with no run named but a role session held, at the log's
+ * newest lines, which is no place (null); with neither, at the moment the run took the slot; and at the newest
+ * lines where even that is not known. */
+export function runLogPlace(run: Pick<AgentRun, "job" | "log" | "session" | "since">): LogPlace | null {
+  const job = run.job ?? null;
+
+  if (job !== null) return { job };
   if (run.log !== null) return { run: run.log };
   if (run.session !== null || run.since === null) return null;
 
   return { at: Math.floor(run.since / 1000) };
+}
+
+/** How one run is named wherever it stands: its run's name, with the item its job is a run of and the agent that
+ * did the work beside it. A turn of a room is no run of work and is named by its room instead. */
+export function runIdentityOf(run: AgentRun): RunIdentity | null {
+  if (run.job === null) return null;
+
+  return { run: run.log ?? jobRunNameOf(run.job), item: run.itemId, agent: run.agent };
 }
 
 /** What a run works on: the item's number for a job of an item, else the line naming its work, else its place. */
@@ -63,7 +80,8 @@ export function runDoing(t: Translate, run: AgentRun): AgentDoing {
     item: run.itemId,
     detail: [run.path ?? run.place, ...(road.length === 0 ? [] : [road.join(" · ")])],
     since: run.since,
-    place: runLogPlace(run)
+    place: runLogPlace(run),
+    identity: runIdentityOf(run)
   };
 }
 
@@ -81,7 +99,7 @@ export function turnsDoing(t: Translate, turns: readonly SupervisorTurn[], roomN
   const first = ordered[0]!;
   const line = t("live.label.answering", { rooms: ordered.map((turn) => roomName(turn.chatId)).join(", ") });
 
-  return { line, note: null, item: null, detail: [], since: first.startedAt * 1000, place: { at: first.startedAt, chat: first.chatId } };
+  return { line, note: null, item: null, detail: [], since: first.startedAt * 1000, place: { at: first.startedAt, chat: first.chatId }, identity: null };
 }
 
 /** How long an agent has been at it, from `since` to `now`, both in epoch milliseconds. */

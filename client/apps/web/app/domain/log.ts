@@ -38,10 +38,17 @@ export interface LogRow {
   clock?: ToolClockView;
 }
 
-// Where in a log a screen is to open: the log's own name for one run, or the second one began
-// and the room it ran for.
-// A run to open at, and whether the log stands that run's lines alone, as a job's log does; or a moment.
-export type LogPlace = { run: string; only?: boolean } | { at: number; chat?: number };
+// Where in a log a screen is to open: one job's own lines, the log's own name for one run, or the second one began
+// and the room it ran for. A run to open at, and whether the log stands that run's lines alone, as a run's log does;
+// or a moment. A job is opened by its number, which is what its lines carry: no screen has to know the agent, the
+// checkout or the turn's ledger row behind them.
+export type LogPlace = { job: number } | { run: string; only?: boolean } | { at: number; chat?: number };
+
+// Which log one screen reads: an agent's whole log, one run of it, or one job's own lines.
+export interface LogScope {
+  run?: string | null;
+  job?: number | null;
+}
 
 export interface AgentLogFeed {
   rows: ComputedRef<LogRow[]>;
@@ -571,10 +578,11 @@ export async function readRunLines(agent: string, run: string): Promise<AgentLog
   return page.lines.filter((line) => line.run === run);
 }
 
-// A feed scoped to one run reads that run's own lines alone, every page asked for that run: it opens on the run's
-// newest lines as the whole log opens on its own, however long the run has gone, reads the run's older lines as the
-// reader scrolls up and its newer ones as they come (docs/web.md, the TODO panel's job log entry).
-export function useAgentLog(t: Translate, name: string, run: string | null = null): AgentLogFeed {
+// A feed scoped to one run or to one job reads those lines alone, every page asked for them: it opens on their
+// newest lines as the whole log opens on its own, however long the run has gone, reads the older lines as the reader
+// scrolls up and the newer ones as they come (docs/web.md, the TODO panel's job log entry).
+export function useAgentLog(t: Translate, name: string, scope: LogScope = {}): AgentLogFeed {
+  const { run, job } = { run: scope.run ?? null, job: scope.job ?? null };
   const describe = (error: unknown): string => failureText(error, t("agents.error.log_read_failed"));
 
   const lines = ref<AgentLogLine[]>([]);
@@ -584,7 +592,8 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
   const loading = ref(true);
   const loadingOlder = ref(false);
 
-  const path = `/api/agents/${encodeURIComponent(name)}/log`;
+  // A job's lines are read by the job, whatever agent's log they stand in.
+  const path = job === null ? `/api/agents/${encodeURIComponent(name)}/log` : `/api/jobs/${job}/log`;
 
   // Each row stays the one in hand while it reads the same, so a line arriving draws its own row and no other.
   const rows = computed<LogRow[]>((before) => sameRowsKept(before, buildLog(lines.value), (row) => row.key));
@@ -619,7 +628,10 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
   }
 
   async function fetchPage(query: Record<string, number | string | undefined>, limit = AGENT_LOG_PAGE_SIZE): Promise<AgentLogPage> {
-    return await $fetch<AgentLogPage>(path, { query: { ...query, ...(run === null ? {} : { run }), limit } });
+    // A job's own lines need no run, and reading them by one would lose every turn the job ran before its ledger row.
+    const scoped = job === null && run !== null ? { ...query, run } : query;
+
+    return await $fetch<AgentLogPage>(path, { query: { ...scoped, limit } });
   }
 
   async function load(): Promise<void> {
@@ -649,12 +661,14 @@ export function useAgentLog(t: Translate, name: string, run: string | null = nul
     failure.value = null;
 
     try {
-      // The page is asked at the run's start, the lines after none, or at the moment; whether the log stands the run
-      // alone is the screen's.
-      const page = await fetchPage("run" in place ? { run: place.run, after: 0 } : { ...place });
+      // The page is asked at the place the screen names: a job's own lines from their first, one run from its
+      // start, or the moment. Whether the log stands the place alone is the screen's; a job's lines have nothing of
+      // another job above them, so an older page is never said to wait.
+      const page = await fetchPage("job" in place || "run" in place ? { after: 0, ...("run" in place ? { run: place.run } : {}) } : { ...place });
 
       merge(page);
-      older.value = run === null && page.hasOlder === true;
+
+      older.value = "job" in place ? false : run === null && page.hasOlder === true;
       newer.value = page.hasMore;
 
       return page.lines[0]?.id ?? null;

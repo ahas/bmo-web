@@ -102,7 +102,8 @@ export function jobLineView(t: Translate, job: JobLine, now: number): JobLineVie
 export function useJobPrompt(
   agent: string,
   run: Readonly<Ref<string | null>>,
-  open: Readonly<Ref<boolean>>
+  open: Readonly<Ref<boolean>>,
+  jobId: Readonly<Ref<number | null>> | null = null
 ): { prompt: Ref<JobPrompt | null>; loaded: Ref<boolean>; failed: Ref<boolean> } {
   const prompt = ref<JobPrompt | null>(null);
   const loaded = ref(false);
@@ -110,7 +111,9 @@ export function useJobPrompt(
 
   async function read(asked: string): Promise<void> {
     try {
-      const answer = await $fetch<{ prompt: JobPrompt | null }>(`/api/agents/${encodeURIComponent(agent)}/job-prompt`, { query: { run: asked } });
+      const answer = await $fetch<{ prompt: JobPrompt | null }>(`/api/agents/${encodeURIComponent(agent)}/job-prompt`, {
+        query: jobId === null || jobId.value === null ? { run: asked } : { job: jobId.value }
+      });
 
       if (run.value === asked) {
         prompt.value = answer.prompt;
@@ -142,14 +145,19 @@ export function useJobPrompt(
 
 // The job a worker's screen keeps its line for, read again on the poll and whenever a turn ends. A
 // question that failed leaves the line as it stood: it is beside the log, not part of it.
-export function useJobLine(agent: string, run: Readonly<Ref<string | null>>, everyMs: number = POLL_INTERVAL_MS): { job: Ref<JobLine | null>; loaded: Ref<boolean> } {
+export function useJobLine(
+  agent: string,
+  run: Readonly<Ref<string | null>>,
+  everyMs: number = POLL_INTERVAL_MS,
+  jobId: Readonly<Ref<number | null>> | null = null
+): { job: Ref<JobLine | null>; loaded: Ref<boolean> } {
   const job = ref<JobLine | null>(null);
   const loaded = ref(false);
 
   async function read(): Promise<void> {
     try {
       const answer = await $fetch<{ job: JobLine | null }>(`/api/agents/${encodeURIComponent(agent)}/job`, {
-        query: run.value === null ? {} : { run: run.value }
+        query: jobId === null || jobId.value === null ? (run.value === null ? {} : { run: run.value }) : { job: jobId.value }
       });
 
       job.value = answer.job;
@@ -161,7 +169,7 @@ export function useJobLine(agent: string, run: Readonly<Ref<string | null>>, eve
   }
 
   if (import.meta.client) {
-    watch(run, () => void read(), { immediate: true });
+    watch([run, jobId ?? ref<number | null>(null)], () => void read(), { immediate: true });
   }
 
   // The line is read again the moment the agency's stream says a turn, a run, a session or a job moved, and on

@@ -1475,7 +1475,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
         : Response.json({ code: "no-runner", error: "the account has no PC its personal apps run on" }, { status: 409 });
     }
 
-    // A long job's log, read by its run from the TODO panel (tests/support/job-log.ts).
+    // A long job's log, read by the job from the TODO panel (tests/support/job-log.ts).
     const jobLog = jobLogAnswer(new URL(request.url));
 
     if (jobLog !== null) return jobLog;

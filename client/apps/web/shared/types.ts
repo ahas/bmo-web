@@ -1667,6 +1667,9 @@ export interface AgentReasoningView {
 // One job of a worker's as the foot of its screen reads it, the way the CLI's own status line does:
 // which item it is, how long it went, how many tools it called and what each model it used spent.
 export interface JobLine {
+  // The job itself, by its number: what its log is read by and what its run's name is built from.
+  job: number;
+  // Its run's one name (docs/web.md, 「A run is named by the run its log lines are kept under」).
   run: string;
   // The agent under whose name the job's log lines stand: the worker it ran on, the agent of its session.
   agent: string;

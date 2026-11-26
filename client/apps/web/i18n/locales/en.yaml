@@ -1616,8 +1616,8 @@ todo:
     review_turns: Report turns
     result: Result
     round_result: "Round {round} result"
-    run_id: "Run #{id}"
-    run_id_took: "Run #{id} · {time}"
+    run: "Run {run}"
+    run_took: "Run {run} · {time}"
     runner: "{worker} · {road}"
     skip_reason: Reason for skipping
     skipped_at: "Reason skipped · {time}"
@@ -3069,6 +3069,7 @@ agents:
     agency_unprocessable: "The agency can't accept this value."
     agent_name_taken: This key already exists.
     bad_agent_name: Invalid agent name.
+    bad_job_id: Invalid job number.
     bad_credential_kind: Credentials are either a config directory or a token file.
     bad_depth: Invalid search depth.
     bad_launch_agent: Invalid agent to run.
@@ -3085,6 +3086,7 @@ agents:
     log_read_failed: "Couldn't read the log. Try again in a moment."
     models_load_failed: "Couldn't load the model list."
     no_such_agent: Agent not found.
+    no_such_job: Job not found.
     notice_switches_read_failed: "Couldn't load the notice settings."
     pick_account: Choose an account.
     provider_off: "This provider is off. Choose Auto or a provider that's on."

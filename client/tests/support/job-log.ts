@@ -1,8 +1,10 @@
-// A long job's log as the agency holds it (the agency's `docs/api.md`, 「log-lines」), for the browser check that opens
-// it from the TODO panel (tests/browser/agent-log-open.test.ts). The seat that ran the job holds a log of thousands of
-// lines across two jobs, the running one's lines carrying the job's run by name and a run id of nought, its calls
-// returning results tens of thousands of characters long; the run ledger names the job's run for the worker it was
-// ordered for, a name no line stands under (docs/web.md, 「Where the log comes from」).
+// A long job's log as the agency holds it (the agency's `docs/api.md`, 「log-lines」, 「assignments and jobs」), for the
+// browser checks that open it from the TODO panel (tests/browser/agent-log-open.test.ts, tests/browser/todo-job-log.test.ts).
+// The seat that ran the job holds a log of thousands of lines across two jobs, the running one's lines carrying the
+// job by number and a `runId` of nought, their results running to tens of thousands of characters. The run ledger
+// names the job's run for the checkout it ran in, one row per turn of it, under a name no line stands under, and a
+// turn that has published no row leaves the job with no run name at all; the job's lines answer to the job alone,
+// which is what every screen opens them by (docs/web.md, 「Where the log comes from」).
 
 export const JOB_LOG = {
   seat: "seat-a",
@@ -45,21 +47,56 @@ function limitOf(url: URL): number {
   return Math.min(Number(url.searchParams.get("limit") ?? "500"), 500);
 }
 
+/** The job as the agency's job row holds it: its lines under the seat that did the work, its run named for the
+ * checkout it ran in, and its session numbered by the agency rather than by the job. */
+const JOB_ROW = {
+  id: JOB_LOG.job,
+  itemId: JOB_LOG.item,
+  leaseId: 12,
+  holderName: "owner",
+  assignmentId: 31,
+  workerName: JOB_LOG.worker,
+  repositoryName: "repo-a",
+  roleName: "coder",
+  agentName: JOB_LOG.seat,
+  sessionId: `${JOB_LOG.worker}@run:4908`,
+  runId: JOB_LOG.ledgerRun,
+  runName: JOB_LOG.run,
+  roomId: null,
+  state: "running",
+  outcome: null,
+  report: null,
+  tokenCount: 0,
+  usage: null,
+  startedAt: BASE_AT,
+  endedAt: null
+};
+
 /** The agency's answer to a read of this log, or null for a path it does not hold. */
 export function jobLogAnswer(url: URL): Response | null {
+  const job = url.pathname.match(/^\/jobs\/(\d+)$/);
+
+  if (job !== null) return Number(job[1]) === JOB_LOG.job ? Response.json(JOB_ROW) : Response.json({ code: "not-found", error: "no such job" }, { status: 404 });
+
+  if (url.pathname === "/jobs" && url.searchParams.get("running") === "true") {
+    return Response.json({ items: [JOB_ROW], more: false });
+  }
+
   if (url.pathname === "/runs" && url.searchParams.get("names") === JOB_LOG.run) {
     return Response.json({
-      items: [{ id: JOB_LOG.ledgerRun, name: JOB_LOG.run, agentName: JOB_LOG.worker, unitName: JOB_LOG.run, workerName: null, jobId: null, state: "running", startedAt: BASE_AT, endedAt: null }],
+      items: [{ id: JOB_LOG.ledgerRun, name: `${JOB_LOG.worker}:${JOB_LOG.run}`, agentName: JOB_LOG.worker, unitName: JOB_LOG.run, workerName: null, jobId: null, state: "running", startedAt: BASE_AT, endedAt: null }],
       more: false
     });
   }
 
+  // The job's own lines, by the job alone: the lines before a line id read upward, the lines after one read on.
+  if (url.pathname === "/log-lines" && url.searchParams.get("jobId") === String(JOB_LOG.job)) {
+    return page(JOB_LINES, url);
+  }
+
   // The run's own lines, forward from its start or a line: the ledger's run reads as the job's lines.
   if (url.pathname === "/log-lines" && Number(url.searchParams.get("runId")) === JOB_LOG.ledgerRun) {
-    const after = Number(url.searchParams.get("after") ?? "0");
-    const found = JOB_LINES.filter((line) => (line.id as number) > after);
-
-    return Response.json({ items: found.slice(0, limitOf(url)), more: found.length > limitOf(url) });
+    return page(JOB_LINES, url);
   }
 
   // The worker the ledger names holds no line.
@@ -86,4 +123,26 @@ export function jobLogAnswer(url: URL): Response | null {
   }
 
   return null;
+}
+
+// One page of the lines, oldest first, read upward from a line id or on past it: upward reads the last lines under
+// the id, which is how the newest of a job are reached.
+function page(held: Record<string, unknown>[], url: URL): Response {
+  const limit = limitOf(url);
+  const before = url.searchParams.get("before");
+  const after = url.searchParams.get("after");
+
+  if (after !== null) {
+    const newer = held.filter((line) => (line.id as number) > Number(after));
+
+    return Response.json({ items: newer.slice(0, limit), more: newer.length > limit });
+  }
+
+  if (before !== null) {
+    const older = held.filter((line) => (line.id as number) < Number(before));
+
+    return Response.json({ items: older.slice(-limit), more: older.length > limit });
+  }
+
+  return Response.json({ items: held.slice(0, limit), more: held.length > limit });
 }

@@ -9,6 +9,7 @@ import { UNIT } from "../../support/ids";
 import KO from "../../fixtures/app/domain/job-line.test.ko.json";
 
 const job = (over: Partial<JobLine>): JobLine => ({
+  job: 1_082,
   run: UNIT,
   agent: "worker-a",
   todoId: 1082,

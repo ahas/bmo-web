@@ -19,6 +19,10 @@ import type { AgentLogClock, AgentLogClockEvent, AgentLogLine, AgentLogPage, Age
 // The most lines one read of the agency answers.
 const AGENCY_PAGE = 500;
 
+// A line id above every line the agency holds. Its line ids rise in one shared sequence that only ever gains, so
+// reading a page before this id reads the newest page of whatever else narrows the read.
+const ABOVE_EVERY_LINE = Number.MAX_SAFE_INTEGER;
+
 // The page a link names where the agency holds no such run: an empty page the screen says it cannot read.
 const UNAVAILABLE: AgentLogPage = { lines: [], hasMore: false, unavailable: true };
 
@@ -174,6 +178,31 @@ export async function readRunBack(run: string, before: number | null, limit: num
   const oldest = held[0];
 
   return { lines: held, hasMore: oldest !== undefined && oldest.id > first.id };
+}
+
+/** One page of one job's log, oldest line first: its newest page where the reader holds no line, the job's lines
+ * before the oldest line held, or the lines that landed after the newest one.
+ *
+ * The job is the one name that reaches a job's lines whole: they carry their job and stand under the agent that did
+ * the work, while the run ledger holds a row per turn under a name built from the checkout, and a screen can be
+ * standing under the checkout, the role or the agent alike (docs/web.md, 「Where the log comes from」). */
+export async function readJobLog(jobId: number, read: AgentLogRead, limit: number): Promise<AgentLogPage> {
+  // An id of nought names no line, so asking after it is the read from the job's first line, not the newest page.
+  const after = read.after === undefined || read.after < 0 ? null : read.after;
+  const before = read.before === undefined || read.before <= 0 ? null : read.before;
+  const page = await agencyCall(
+    agency().GET("/log-lines", {
+      params: {
+        query: {
+          jobId,
+          limit: Math.min(limit, AGENCY_PAGE),
+          ...(after === null ? { before: before ?? ABOVE_EVERY_LINE } : { after })
+        }
+      }
+    })
+  );
+
+  return { lines: page.items.map(asLine), hasMore: page.more };
 }
 
 // Where a page of an agent's log is read from: no place is its newest page.

@@ -36,9 +36,9 @@
             v-if="task && props.agent !== null"
             :key="task.id"
             :agent="props.agent"
-            :place="task.unit === null ? null : { run: task.unit }"
-            :only="task.unit"
-            :run="task.unit"
+            :place="taskPlace"
+            :only="taskOnly"
+            :run="taskRun"
             :stepper="false"
           >
             <template #order>
@@ -47,7 +47,7 @@
 
             <template v-if="hasDetail" #result>
               <p v-if="task.jobId" class="text-sm text-muted tabular-nums">
-                {{ took === null ? $t("todo.label.run_id", { id: task.jobId }) : $t("todo.label.run_id_took", { id: task.jobId, time: spanClock($t, took) }) }}
+                {{ took === null ? $t("todo.label.run", { run: taskRun }) : $t("todo.label.run_took", { run: taskRun, time: spanClock($t, took) }) }}
               </p>
               <template v-if="task.result">
                 <BuilderResult v-if="builderRead !== null" :read="builderRead" :text="task.result" />
@@ -111,7 +111,10 @@ import { useNarrow } from "bmo-ui/app/domain/screen";
 import { formatStamp, spanClock } from "bmo-ui/app/domain/time";
 import { readBuilderResult, stepHeading, stepModelLine, taskHeading, taskModelLine, taskSeconds, taskStateIcon, taskVerbs } from "~/domain/workorder";
 
+import { jobRunNameOf } from "#shared/run-name";
+
 import type { TaskVerb, WorkStep } from "~/domain/workorder";
+import type { LogPlace } from "~/domain/log";
 import type { WorkOrder } from "#shared/types";
 import type { WorkOrderView } from "#shared/types";
 
@@ -141,6 +144,17 @@ const emit = defineEmits<{ "update:open": [open: boolean]; changed: [order: Work
 const taskKey = ref("");
 const task = computed(() => props.step?.tasks.find((one) => one.id === taskKey.value) ?? props.step?.tasks[0] ?? null);
 const took = computed(() => (task.value === null ? null : taskSeconds(task.value, props.ended)));
+
+// The task's run, named the way every screen names a run: by its job, which is what the name the task carries is
+// built from. Its log opens at the job, so every turn of it is read and not only the turn the ledger holds a row for.
+const taskRun = computed(() => (task.value === null ? "" : task.value.unit ?? (task.value.jobId === null ? "" : jobRunNameOf(task.value.jobId))));
+// A task read by its job needs no line filter beside it: the job is what its own lines carry. A task read by the
+// run name the bot gave it keeps that name as its filter, since the log it opens in holds other runs' lines too.
+const taskOnly = computed<string | null>(() => (task.value === null ? null : task.value.jobId !== null ? null : task.value.unit));
+
+const taskPlace = computed<LogPlace | null>(() =>
+  task.value === null ? null : task.value.jobId !== null ? { job: task.value.jobId } : task.value.unit === null ? null : { run: task.value.unit }
+);
 
 const narrow = useNarrow();
 

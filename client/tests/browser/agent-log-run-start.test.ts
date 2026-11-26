@@ -6,11 +6,11 @@ import { ROLE_LOG, RUN_FROM } from "../support/role-log";
 
 import type { Browser, Page } from "playwright-core";
 
-// A working agent's state cell opens its role's log where that run started, not at the log's end (docs/web.md,
-// 「Agent screen」): the role's log holds the lines of several agents, one of them running a job since the middle of
-// it, and the run's first line stands at the top of the log's view once the lines above it have been read in, with
-// none of the log's newer lines followed. The log is the console's own read through the agency's stand-in
-// (tests/support/role-log.ts).
+// A working agent's state cell opens the job its run works, at that job's first line rather than at the end of the
+// seat's log (docs/web.md, 「Agent screen」, 「Where the log comes from」): the seat's log holds the lines of the
+// runs it has worked through, and the job's own lines are what the cell reads, so the run's first line stands at the
+// top of the view with no other run's line above it and none of the job's newer lines followed. The log is the
+// console's own read through the agency's stand-in (tests/support/role-log.ts).
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up; the suite
 // stands up no console, so there it skips.
@@ -76,7 +76,7 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
             runs: [
               {
                 role: ROLE_LOG.role, agent: ROLE_LOG.seat, place: ROLE_LOG.checkout, path: `/srv/checkouts/${ROLE_LOG.checkout}`, source: "Job", provider: null,
-                model: null, since: now - 600_000, title: "Running item", itemId: ROLE_LOG.item, log: ROLE_LOG.run, session: null,
+                model: null, since: now - 600_000, title: "Running item", itemId: ROLE_LOG.item, job: ROLE_LOG.job, log: ROLE_LOG.run, session: null,
                 stop: { kind: "item", id: String(ROLE_LOG.item) }
               }
             ],
@@ -87,7 +87,7 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
 
       try {
         const page = await context.newPage();
-        const log = new RegExp(`/api/agents/${ROLE_LOG.role}/log\\?`);
+        const log = new RegExp(`/api/jobs/${ROLE_LOG.job}/log\\?`);
         const reads: string[] = [];
 
         page.on("request", (request) => {
@@ -104,18 +104,19 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
         const dialog = page.getByRole("dialog").filter({ has: page.locator("[data-agent-log]") }).last();
         const header = dialog.getByText(ROLE_LOG.header, { exact: true });
 
-        // The run is read from its start, and the lines above it are read in once it stands.
+        // The job's lines are read from their first: there is nothing of another run above them to read in.
         await header.waitFor({ timeout: 15_000 });
-        await dialog.locator(`[data-log-row="${RUN_FROM - 1}"]`).waitFor({ state: "attached", timeout: 15_000 });
+        await dialog.locator(`[data-log-row="${RUN_FROM + 1}"]`).waitFor({ state: "attached", timeout: 15_000 });
         await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
-        expect(reads.slice(0, 2)).toEqual([`?run=${ROLE_LOG.run}&after=0&limit=200`, `?before=${RUN_FROM}&limit=200`]);
+        expect(reads[0]).toBe("?after=0&limit=200");
+        expect(reads.some((one) => one.includes("before="))).toBe(false);
 
         const stands = await runStart(page);
 
         expect(stands.rowAbove).toBe(false);
         expect(Math.abs(stands.offset)).toBeLessThanOrEqual(1);
-        expect(stands.scrolled).toBeGreaterThan(0);
+        expect(stands.scrolled).toBe(0);
         expect(await header.isVisible()).toBe(true);
         // The log's newer lines are not followed: the way to its end stands.
         expect(await dialog.locator("[data-log-to-end]").isVisible()).toBe(true);

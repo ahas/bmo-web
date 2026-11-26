@@ -171,9 +171,12 @@ usePolling(() => {
   clock.value = Math.floor(Date.now() / 1000);
 }, 1000);
 
+// The job this view speaks of, by its number where the screen was opened at one: the number is what its log, its
+// line and its prompt are read by, whatever name the screen was opened under.
+const jobId = computed<number | null>(() => (props.place !== null && "job" in props.place ? props.place.job ?? null : null));
 const jobRun = computed(() => props.run ?? props.only);
 // Read again every few seconds, so a running job's tool calls and tokens move as they happen.
-const { job: jobRead } = useJobLine(props.agent, jobRun, 3000);
+const { job: jobRead } = useJobLine(props.agent, jobRun, 3000, jobId);
 // A stage's view speaks of that stage's own run alone, never of whatever its worker runs now.
 const job = computed(() => (props.job && (props.only === null || jobRead.value?.run === props.only) ? jobRead.value : null));
 const view = computed(() => (job.value === null ? null : jobLineView(t, job.value, clock.value)));
@@ -181,7 +184,7 @@ const running = computed(() => job.value !== null && job.value.finishedAt === nu
 
 // The job's prompt, read once the job is known; a stage's view hands its own work order instead.
 const promptRun = computed(() => (slots.order === undefined && job.value !== null ? job.value.run : null));
-const { prompt, loaded: promptLoaded, failed: promptFailed } = useJobPrompt(props.agent, promptRun, ref(true));
+const { prompt, loaded: promptLoaded, failed: promptFailed } = useJobPrompt(props.agent, promptRun, ref(true), jobId);
 
 const rows = ref<LogRow[]>([]);
 const lines = ref<AgentLogLine[]>([]);

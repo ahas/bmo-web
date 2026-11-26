@@ -184,7 +184,10 @@ export interface RosterSession {
 /** One run of a person's agents. */
 export interface RosterRun {
   id: number;
+  // The run ledger's own name for the row, its agent before its run.
   name: string;
+  // The run's one name, as every screen that shows it names it; null where the ledger row carries no run.
+  run: string | null;
   agent: string;
   startedAt: number;
   endedAt: number | null;

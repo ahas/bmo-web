@@ -58,6 +58,7 @@ test("an ended item keeps its last job's line: its start and end, its tool calls
     ranOn: { provider: "deepseek", model: "deepseek-flash", changed: false },
     plan: [{ title: "read", state: "done" }, { title: "build", state: "running" }],
     latest: {
+      job: 2,
       run: "run-2",
       agent: "worker-a",
       todoId: 7,
@@ -70,7 +71,7 @@ test("an ended item keeps its last job's line: its start and end, its tool calls
       spent: SPENT
     }
   });
-  expect(agency.asked.map((one) => one.path)).toContain("/log-lines?runId=22&agentName=worker-a&after=0&limit=500");
+  expect(agency.asked.map((one) => one.path)).toContain("/log-lines?jobId=2&after=0&limit=500");
 });
 
 test("a running item's last job has no end yet", async () => {

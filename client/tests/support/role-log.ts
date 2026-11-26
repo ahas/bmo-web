@@ -78,8 +78,43 @@ function pageOf(lines: Record<string, unknown>[], url: URL): Response {
   return Response.json({ items: lines.slice(-limit), hasMore: lines.length > limit, hasOlder: false });
 }
 
+// A page of the job's own lines, read the way the agency reads `GET /log-lines?jobId=`: from the start, after a
+// line, or the page just before one.
+function jobPage(lines: Record<string, unknown>[], url: URL): Response {
+  const limit = limitOf(url);
+  const before = url.searchParams.get("before");
+  const after = url.searchParams.get("after");
+
+  if (after !== null) {
+    const newer = lines.filter((line) => (line.id as number) > Number(after));
+
+    return Response.json({ items: newer.slice(0, limit), more: newer.length > limit });
+  }
+
+  if (before !== null) {
+    const older = lines.filter((line) => (line.id as number) < Number(before));
+
+    return Response.json({ items: older.slice(-limit), more: older.length > limit });
+  }
+
+  return Response.json({ items: lines.slice(0, limit), more: lines.length > limit });
+}
+
 /** The agency's answer to a read of this log, or null for a path it does not hold. */
 export function roleLogAnswer(url: URL): Response | null {
+  // The job the seat runs, and its own lines: the job is what they carry, and what every screen reads them by.
+  if (url.pathname === `/jobs/${ROLE_LOG.job}`) {
+    return Response.json({
+      id: ROLE_LOG.job, itemId: ROLE_LOG.item, leaseId: 7, holderName: "owner", assignmentId: 12, workerName: ROLE_LOG.checkout, repositoryName: "repo-b",
+      roleName: ROLE_LOG.role, agentName: ROLE_LOG.seat, sessionId: `${ROLE_LOG.checkout}@run:4908`, runId: ROLE_LOG.ledgerRun, runName: ROLE_LOG.run,
+      roomId: null, state: "running", outcome: null, report: null, tokenCount: 0, usage: null, startedAt: BASE_AT + RUN_FROM * 1_000, endedAt: null
+    });
+  }
+
+  if (url.pathname === "/log-lines" && url.searchParams.get("jobId") === String(ROLE_LOG.job)) {
+    return jobPage(RUN_LINES, url);
+  }
+
   if (url.pathname === "/runs" && url.searchParams.get("names") === ROLE_LOG.run) {
     return Response.json({
       items: [

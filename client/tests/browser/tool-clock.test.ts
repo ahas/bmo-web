@@ -6,7 +6,7 @@ import { chromium } from "playwright-core";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 import { wording } from "../../apps/web/shared/wording";
 
-import type { Browser, BrowserContext } from "playwright-core";
+import type { Browser, BrowserContext, Route } from "playwright-core";
 import type { AgentLogClock, AgentLogLine, AgentLogPage, JobLine, LiveRun, StatusView } from "../../apps/web/shared/types";
 
 // A call's clock as the browser lays it out (docs/web.md, 「A call's clock lines are no line of the log either」 and 「A
@@ -39,7 +39,7 @@ const LIVE: LiveRun = {
   depth: null, model: null, startedBy: null, todoId: null, progress: null, stop: null
 };
 
-const JOB: JobLine = { run: RUN, agent: AGENT, todoId: null, title: null, purpose: "a waiting job", startedAt: NOW - 3_600, finishedAt: null, tools: 4, models: [],
+const JOB: JobLine = { job: 7, run: RUN, agent: AGENT, todoId: null, title: null, purpose: "a waiting job", startedAt: NOW - 3_600, finishedAt: null, tools: 4, models: [],
   spent: null };
 
 let id = 0;
@@ -135,11 +135,15 @@ async function open(look: (typeof LOOKS)[number]): Promise<BrowserContext> {
 
     await route.fulfill({ json: { ...status, live: [LIVE] } });
   });
-  await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), (route) => {
+  // The worker's screen stands the job's own lines, read by the job (docs/web.md, 「Where the log comes from」).
+  const jobLog = (route: Route): Promise<void> => {
     const after = new URL(route.request().url()).searchParams.get("after");
 
     return route.fulfill({ json: after === null ? LOG : { lines: [], hasMore: false } });
-  });
+  };
+
+  await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), jobLog);
+  await context.route(new RegExp(`/api/jobs/${JOB.job}/log(\\?|$)`), jobLog);
   await context.route(new RegExp(`/api/agents/(${AGENT}|${REPOSITORY})/job(\\?|$)`), (route) => route.fulfill({ json: { job: JOB } }));
   await context.route(new RegExp(`/api/agents/${AGENT}/job-prompt(\\?|$)`), (route) => route.fulfill({ json: { prompt: { text: "prompt", english: null } } }));
 

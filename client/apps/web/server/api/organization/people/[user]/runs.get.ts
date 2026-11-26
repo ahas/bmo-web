@@ -21,6 +21,7 @@ export default defineEventHandler(async (event): Promise<RosterRun[]> => {
     .map((run) => ({
       id: run.id,
       name: run.name,
+      run: run.unitName,
       agent: run.agentName,
       startedAt: run.startedAt,
       endedAt: run.endedAt,

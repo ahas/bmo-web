@@ -149,8 +149,8 @@ async function open(live: LiveRun[]): Promise<BrowserContext> {
 
     await route.fulfill({ json: { ...board, queue: [item()], standing: { ...board.standing, queue: 1, running: 1 } } });
   });
-  // A running job's log opens at its end, the newest page, whichever run it was opened at.
-  await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
+  // A running job's log opens at its end, the newest page, read by the job the row speaks of.
+  await context.route(new RegExp(`/api/jobs/${RUN.id}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
   // An item with no work order is answered with no body, as the console's route answers it; the log must stand anyway.
   await context.route(new RegExp(`/api/todos/${ITEM}/work-order$`), (route) => route.fulfill({ status: 204, body: "" }));
 

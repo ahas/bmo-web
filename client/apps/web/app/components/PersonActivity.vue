@@ -106,14 +106,14 @@
       <p v-else-if="runs.data.value.length === 0" class="py-3 text-sm text-muted">{{ $t("roster.label.no_runs") }}</p>
       <ul v-else class="flex flex-col py-1" data-roster-runs>
         <li v-for="run in runs.data.value" :key="run.id">
-          <NuxtLink :to="momentLink(run.agent, toUnixSeconds(run.startedAt))" :class="ROW_LINK">
+          <NuxtLink :to="runLink(run)" :class="ROW_LINK">
             <span :class="ROW_LINES">
               <span :class="ROW_LINE">
                 <HintTip :text="run.agent" cut press class="min-w-0 flex-1 truncate text-highlighted">{{ run.agent }}</HintTip>
                 <span class="shrink-0 text-muted tabular-nums">{{ formatStamp(toUnixSeconds(run.startedAt)) }}</span>
               </span>
               <span :class="ROW_LINE" class="text-muted">
-                <HintTip :text="run.roomTitle ?? run.name" cut press class="min-w-0 flex-1 truncate">{{ run.roomTitle ?? run.name }}</HintTip>
+                <HintTip :text="run.roomTitle ?? run.run ?? run.name" cut press class="min-w-0 flex-1 truncate">{{ run.roomTitle ?? run.run ?? run.name }}</HintTip>
                 <span v-if="run.endedAt !== null" class="shrink-0 tabular-nums">{{ tookText(run.startedAt, run.endedAt) }}</span>
                 <span class="shrink-0">{{ endingText(run) }}</span>
               </span>
@@ -135,7 +135,8 @@ import { groupRead } from "~/domain/group-read";
 import { countText } from "~/domain/numbers";
 import { personBase } from "~/domain/person-panes";
 import { runEnding } from "~/domain/roster";
-import { agentLink, momentLink } from "~/domain/status";
+import { jobOfRunName } from "#shared/run-name";
+import { agentLink, jobLink, momentLink } from "~/domain/status";
 
 import type { AgentMarkSubject } from "~/domain/agent-face";
 import type { PersonPaneProps } from "~/domain/person-panes";
@@ -197,6 +198,14 @@ function endingText(run: RosterRun): string {
   const ending = runEnding(run);
 
   return ending.outcome === null ? t(ending.key) : t(ending.key, { outcome: ending.outcome });
+}
+
+// Where a run's row leads: to its job's own lines where the run is a job's, since the job is what its lines carry
+// and the turn the ledger holds a row for is only one of them; to the moment it began for every other run.
+function runLink(run: RosterRun): string {
+  const job = jobOfRunName(run.run);
+
+  return job === null ? momentLink(run.agent, toUnixSeconds(run.startedAt)) : jobLink(run.agent, job);
 }
 
 onMounted(() => {

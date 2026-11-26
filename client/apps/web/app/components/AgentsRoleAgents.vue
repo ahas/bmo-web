@@ -114,7 +114,7 @@
     <p v-if="refusal !== ''" role="alert" class="px-4 py-2 break-words text-sm text-error">{{ refusal }}</p>
 
     <AgentSettingsDialog v-model:open="editing" :name="editingAgent" />
-    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.role" :place="log.place" :rooms="rooms ?? []" />
+    <AgentLogDialog v-if="log !== null" v-model:open="logOpen" :name="log.agent" :place="log.place" :run="log.run" :rooms="rooms ?? []" />
   </section>
 </template>
 
@@ -138,6 +138,7 @@ import type { RoleAgentView, RoleSessions, RolesView } from "#shared/axes";
 import type { RestView } from "#shared/rest";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { AgentDoing } from "~/domain/agent-state";
+import type { RunIdentity } from "#shared/run-name";
 import type { LogPlace } from "~/domain/log";
 import type { CellChoice } from "~/domain/settings-cells";
 import type { SettingsColumn } from "~/domain/settings-columns";
@@ -205,8 +206,9 @@ async function stop(run: AgentRun): Promise<void> {
   refusal.value = stops.errorOf(target);
 }
 
-// A working agent opens its role's log where the run asked for stands; an idle one opens nothing.
-const log = ref<{ role: string; place: LogPlace | null } | null>(null);
+// A working agent opens where the run asked for stands, under the agent that is doing it and named as that run is
+// named everywhere; an idle one opens nothing.
+const log = ref<{ agent: string; place: LogPlace | null; run: RunIdentity | null } | null>(null);
 const logOpen = ref(false);
 
 function openLog(agent: RoleAgentView, at: number): void {
@@ -214,7 +216,7 @@ function openLog(agent: RoleAgentView, at: number): void {
 
   if (doing === undefined) return;
 
-  log.value = { role: agent.role, place: doing.place };
+  log.value = { agent: agent.name, place: doing.place, run: doing.identity };
   logOpen.value = true;
 }
 

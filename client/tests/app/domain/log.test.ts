@@ -401,7 +401,7 @@ describe("a log feed scoped to one run", () => {
 
   test("opens on the run's newest lines in one read of the opening size, the rest said to wait above", async () => {
     const { asked } = feedOf([{ lines: [line({ id: 40, kind: "text", run: "job-1" }), line({ id: 42, kind: "text", run: "job-1" })], hasMore: true }]);
-    const log = useAgentLog((key) => key, "coder-01", "job-1");
+    const log = useAgentLog((key) => key, "coder-01", { run: "job-1" });
 
     await log.load();
 
@@ -417,7 +417,7 @@ describe("a log feed scoped to one run", () => {
       { lines: [line({ id: 40, kind: "text", run: "job-1" })], hasMore: true },
       { lines: [line({ id: 10, kind: "start", run: "job-1" }), line({ id: 12, kind: "text", run: "job-1" })], hasMore: false }
     ]);
-    const log = useAgentLog((key) => key, "coder-01", "job-1");
+    const log = useAgentLog((key) => key, "coder-01", { run: "job-1" });
 
     await log.load();
 
@@ -433,7 +433,7 @@ describe("a log feed scoped to one run", () => {
       { lines: [line({ id: 40, kind: "text", run: "job-1" })], hasMore: false },
       { lines: [line({ id: 44, kind: "text", run: "job-1" })], hasMore: false }
     ]);
-    const log = useAgentLog((key) => key, "coder-01", "job-1");
+    const log = useAgentLog((key) => key, "coder-01", { run: "job-1" });
 
     await log.load();
 
@@ -443,7 +443,7 @@ describe("a log feed scoped to one run", () => {
 
   test("a feed opened at a run's head asks for that run from its start", async () => {
     const { asked } = feedOf([{ lines: [line({ id: 10, kind: "start", run: "job-1" })], hasMore: true }]);
-    const log = useAgentLog((key) => key, "coder-01", "job-1");
+    const log = useAgentLog((key) => key, "coder-01", { run: "job-1" });
 
     // The view stands the reader at the page's first line.
     expect(await log.loadAt({ run: "job-1" })).toBe(10);

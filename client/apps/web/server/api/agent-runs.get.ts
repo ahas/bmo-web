@@ -1,3 +1,5 @@
+import { jobRunName } from "#shared/run-name";
+
 import { providerLabelOf, slotSourceOf } from "../utils/agency-words";
 import { repositorySummary, runPlace, slotRunsOf } from "../utils/agent-list";
 
@@ -35,7 +37,7 @@ async function jobsGoing(asked: AgencyClient): Promise<Map<number, JobGoing>> {
   try {
     const page = await agencyCall(asked.GET("/jobs", { params: { query: { running: true, limit: 500 } } }));
 
-    return new Map(page.items.map((job) => [job.id, { run: job.runName ?? String(job.runId ?? job.id), itemId: job.itemId }]));
+    return new Map(page.items.map((job) => [job.id, { run: jobRunName(job), itemId: job.itemId }]));
   } catch {
     return new Map();
   }
@@ -70,6 +72,7 @@ export default defineEventHandler(async (event): Promise<AgentRunsView> => {
       since: run.since,
       title: run.title,
       itemId,
+      job: run.jobId ?? null,
       log: job?.run ?? run.runName,
       session: run.session,
       stop

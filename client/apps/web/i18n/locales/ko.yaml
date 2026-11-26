@@ -1625,8 +1625,8 @@ todo:
     review_turns: 보고 턴
     result: 결과
     round_result: "{round}차 결과"
-    run_id: "실행 #{id}"
-    run_id_took: "실행 #{id} · {time}"
+    run: 실행 {run}
+    run_took: "실행 {run} · {time}"
     runner: "{worker} · {road}"
     skip_reason: 건너뛰는 이유
     skipped_at: "건너뛴 이유 · {time}"
@@ -3084,6 +3084,7 @@ agents:
     agency_unprocessable: 에이전시가 받아들일 수 없는 값입니다.
     agent_name_taken: 이미 있는 키입니다.
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
+    bad_job_id: Job 번호가 올바르지 않습니다.
     bad_credential_kind: 자격 증명은 설정 디렉터리이거나 토큰 파일입니다.
     bad_depth: 검색 깊이가 올바르지 않습니다.
     bad_launch_agent: 실행할 에이전트가 올바르지 않습니다.
@@ -3100,6 +3101,7 @@ agents:
     log_read_failed: 로그를 읽지 못했습니다. 잠시 뒤 다시 시도해 주세요.
     models_load_failed: 모델 목록을 불러오지 못했습니다.
     no_such_agent: 에이전트를 찾을 수 없습니다.
+    no_such_job: Job을 찾을 수 없습니다.
     notice_switches_read_failed: "알림 설정을 불러오지 못했습니다."
     pick_account: 계정을 선택해 주세요.
     provider_off: 꺼진 공급자입니다. 자동 또는 켜진 공급자를 선택해 주세요.

@@ -318,7 +318,16 @@
   <!-- The log of the job running a row, opened from the row's menu at its run and following it.
        Drawn only by the panel a person is looking at, as the item dialog is; the state is shared, so the
        press answers in that panel whichever one took it. -->
-  <AgentLogDialog v-if="showsDetail && logAgent !== null" :key="logOpenings" v-model:open="logOpen" :name="logAgent" :place="logPlace" :rooms="rooms ?? []" end />
+  <AgentLogDialog
+    v-if="showsDetail && logAgent !== null"
+    :key="logOpenings"
+    v-model:open="logOpen"
+    :name="logAgent"
+    :place="logPlace"
+    :run="logRun"
+    :rooms="rooms ?? []"
+    end
+  />
 
   <!-- Words added to a row from its menu: the same added instructions the opened row adds. -->
   <UModal v-if="showsDetail" v-model:open="appendOpen" :title="appendItem === null ? '' : `#${appendItem.id} ${$t('todo.title.notes')}`">
@@ -443,6 +452,8 @@ import type {
 import type { SearchMatch } from "bmo-ui/shared/search";
 import type { RowVerb, TodoActFields, TodoConditions, TodoFilter } from "~/domain/todos";
 import type { DragPoint, RowBox, RowHandle } from "~/domain/row-drag";
+import { jobRunNameOf } from "#shared/run-name";
+import type { RunIdentity } from "#shared/run-name";
 import type { LogPlace } from "~/domain/log";
 import type { ContextMenuItem } from "@nuxt/ui";
 
@@ -1188,27 +1199,35 @@ function swallowLift(event: MouseEvent): void {
 const logOpen = useState<boolean>("todo-job-log-open", () => false);
 const logAgent = useState<string | null>("todo-job-log-agent", () => null);
 const logPlace = useState<LogPlace | null>("todo-job-log-place", () => null);
+const logRun = useState<RunIdentity | null>("todo-job-log-run", () => null);
 // Mounted afresh at each opening, so it stands over the item's detail it is opened from, which is set up after it
 // (docs/web.md, 「Floating things」).
 const logOpenings = useOpenings(() => logOpen.value);
 
-// The row says a job runs it, or ran it; which agent that job is and the run to follow, the live picture of runs
-// says, and where no run of the item is live, the item's runs name its latest job. A job that cannot be found has
-// no log to open, so the press answers with the message pill rather than leaving only a line under the list.
+// The row says a job runs it, or ran it: which job that is, the live picture of runs says, and where no run of the
+// item is live, the item's runs name its latest job. Its log is then opened at the job, which is what its lines
+// carry: the agent that did the work, the checkout it was done in and the ledger's row for one turn each name the
+// same work differently, and a turn that published no row leaves a screen with nothing to open by. A job that cannot
+// be found has no log to open, so the press answers with the message pill rather than leaving only a line under
+// the list.
 async function openJobLog(item: TodoItem): Promise<void> {
   try {
     const { live } = await $fetch<StatusView>("/api/status");
     const run = live.find((one) => one.kind === "worker" && one.todoId === item.id);
-    const place = run === undefined ? (await $fetch<ItemRuns>(`/api/todos/${item.id}/runs`)).latest : { agent: run.agent, run: run.unit ?? String(run.id) };
+    const found =
+      run === undefined
+        ? (await $fetch<ItemRuns>(`/api/todos/${item.id}/runs`)).latest
+        : { job: run.id, run: run.unit ?? jobRunNameOf(run.id), agent: run.agent, todoId: run.todoId };
 
-    if (place === null) {
+    if (found === null) {
       island.say({ tone: "warning", title: t("todo.error.job_ended", { id: item.id }) });
 
       return;
     }
 
-    logAgent.value = place.agent;
-    logPlace.value = { run: place.run, only: true };
+    logAgent.value = found.agent;
+    logRun.value = { run: found.run, item: found.todoId ?? item.id, agent: found.agent };
+    logPlace.value = { job: found.job };
     logOpen.value = true;
   } catch (error) {
     island.fail(error, t("todo.error.job_read_failed", { id: item.id }));

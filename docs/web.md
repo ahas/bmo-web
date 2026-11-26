@@ -536,7 +536,11 @@ console page. No answer says which framework drew it. Strict transport is the re
   administrator's.** They quote what was said in the agent's rooms, a person's private room with their own BMO
   among them, so a reader other than the administrator reads them of the agents their own account owns alone —
   their own BMO and a role agent standing as theirs, as the agency names each agent's owner account — whatever
-  sections they hold, and a run named by its id is read only where it is that agent's. Every other agent's — another
+  sections they hold, and a run named by its id is read only where it is that agent's.
+  - A job's log is read by the job's number, and it is held to the same judge as the log of the agent the job's
+    lines stand under: the reader must see the job at all, which the agency answers for the reader alone, and then
+    may read that agent. A job's lines are never reached through the checkout its run ledger names, which is no
+    agent's owner and holds none of them. Every other agent's — another
   person's BMO, a shared role agent, a repository's worker — answers them as if it did not stand, its supervisor's
   page, road, rooms, settings and draft among them. What runs for them on the shared engines is read there; what
   runs for another account is not.
@@ -3720,12 +3724,14 @@ alone (「Access」); another account's agents are reached from 시스템 및 �
     cell has nothing more to say than its line, so it carries no tooltip of its own, a cut line taking the shared
     one (「A line longer than its box」).
   - **Pressing a working cell opens the live log** as a dialog in the middle of a wide screen and a sheet from the
-    bottom edge of a phone. A role's agent opens its role's log in the order the agency's `docs/api.md` (「slots」)
-    gives: a job's run where the agency names the job (`jobId`), from that run's start and following its newest
-    lines; else the run its `runName` names, the same way; else, for a run bound to a role session between two of
-    its turns (`session`), the role's log at its newest lines, following them; and, for a run bound to nothing yet,
-    the role's log at the moment it took the slot. A supervisor opens its own log at the moment its earliest running
-    turn began, in that turn's room. An idle cell opens nothing.
+    bottom edge of a phone. A role's agent opens the log **under itself**, in the order the agency's `docs/api.md`
+    (「slots」) gives: at the job where the agency names one (`jobId`) — that job's own lines, from their first and
+    following on to wherever the job has reached, whoever sat at the seat for each of its turns, and with no other
+    job's lines above them; else at the run its `runName` names, the same way; else, for a run bound to a role session between two of its turns (`session`),
+    at the log's newest lines, following them; and, for a run bound to nothing yet, at the moment it took the slot.
+    A supervisor opens its own log at the moment its earliest running turn began, in that turn's room. An idle cell
+    opens nothing. Where the run is a job's, the dialog is headed by that run's name with its item and its agent
+    beside it (「Where the log comes from」).
   - **A run tied to an item is stopped from its row's more-menu, 중지,** for a reader who may write the tab, one entry
     a run tied to an item, named `<the run's line> 중지` where the agent carries more than one. It asks
     「이 작업의 실행을 중지할까요?」 in a dialog naming what the cell says the run works on, and on confirming the item
@@ -4304,18 +4310,25 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
 #### Where the log comes from
 
 - The log is **the agency's run log** (the agency's `docs/api.md`, 「Run log and run records」): the very process
-  reading the run's stream writes it a line at a time as it reads, and the console reads one agent's whole log —
-  every line it left, across its runs — through the agency's `GET /log/agents/{agentName}/lines`. The screen opens
-  on the newest page, reads the page before the oldest line it holds and follows the newest, and opens at the page
-  a moment stands in, narrowed to a room where the link names one. A screen opened at one run's head reads that
-  run from the agency's `GET /log-lines`, narrowed to it and to the agent its first line names — never the agent the
-  run ledger names it for, since a job's run is named for the checkout it ran in while its lines stand under the
-  agent that ran it — and the lines above it are the same agent log: a page read upward from a run lands on the
-  lines the run before it left.
-- **A log that stands one run's lines alone opens on that run's newest lines.** The agency's read of one run answers
-  from the run's start only, so the console server reads the newest of a run, and the page before a line of it it
-  holds, out of the log of the agent its lines stand under: the agent the run's first line names, which for a job is
-  the seat that ran it rather than the worker the run ledger names, and which is the only log that holds them.
+  reading the run's stream writes it a line at a time as it reads. The console reads it three ways, by what the
+  screen stands at: one agent's whole log — every line it left, across its runs — through the agency's
+  `GET /log/agents/{agentName}/lines`; one run of an agent's through the agency's `GET /log-lines` narrowed to that
+  run; and **one job's own lines through the same read narrowed to the job** (`GET /api/jobs/{jobId}/log` over the
+  agency's `GET /log-lines?jobId=`), which is how every job's log is opened. A page of any of the three is asked for
+  the newest lines first, then for the page before the oldest line held and after the newest, and a log read by
+  agent or run opens at the page a moment stands in, narrowed to a room where the link names one.
+  - **A job's log is read by the job because the job is the one name its lines carry.** They stand under the agent
+    that did the work, while the run ledger names a job's run for the checkout it ran in and holds a row of its own
+    for every turn of it, and a turn that has published no row leaves the ledger with nothing to read by. Narrowing
+    a job's read to a ledger row, or to the agent a screen happens to stand under, therefore answers a page with
+    nothing of the job in it: the row names the checkout for one turn, and the lines of the other turns stand where
+    that row never reaches. The agent a job's lines stand under is still read, both to judge whether the reader may
+    see them (「Access」) and to name the job's agent beside it.
+- **A log that stands one run's lines alone opens on that run's newest lines.** This is how a run that is no job's is
+  read — a supervisor's turn, a search, a browse, a co-work branch. The agency's read of one run answers from the
+  run's start only, so the console server reads the newest of a run, and the page before a line of it it holds, out
+  of the log of the agent its lines stand under: the agent the run's first line names, which is never the agent the
+  run ledger names the run for, and which is the only log that holds them.
   Whether lines stand above a run read from its start is asked of that same agent's log. A job's lines stand in the
   agent's log under their job and no run, so the run's lines kept there are those carrying its run or, for a job's
   run, the job its first line carries. The read goes newest page first, keeping that run's lines alone and going
@@ -4330,6 +4343,17 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
   at the last line the process before it wrote. A line of the log marks where the agency takes the turn up, and
   where no record the agency can read names the turn, the log says so on a line of its own: the screen never
   stands a line from before the restart as the live one.
+- **One run reads one name, everywhere.** A job's run is named by its job, `job-<job id>` — the name the run ledger
+  keys its row by, the name every line the run left carries, and the name the agency gives the run itself where its
+  record has none yet — and the console shows that name wherever it shows the run: in a log dialog's head, on a
+  room's run line, in a person's recent activity, on a work order's task, and beside the figures of a job. Each of
+  those stands the run's item and the agent that did the work beside the name, in that order, the item left out
+  where no item is named and the agent where none is named yet. A screen never names a run by a turn's ledger row,
+  by the checkout it ran in, or by the session it went out on: those are the turn, the folder and the session, and
+  each of them says something the run's name does not. Where a screen speaks of the session itself, it says session
+  and gives the session's own id. The name is built in one place, and every reader of a job's number builds it the
+  same way, so the row the console draws, the pane the owner watches in herdr and the place that turn speaks in all
+  carry the one name.
 - **Why it is written rather than streamed:** each arriving line is kept, so a run killed from outside stays up to
   just before it died, and a finished run rewinds by going back by id. Relaying the stream alone would lose a killed
   run's end and could not rewind a finished one, and pushing what one job pours to each connected browser is the
@@ -6870,18 +6894,22 @@ Four bounds keep it from growing forever.
 - **A right press, or a held finger, on a line stands that item's menu.** It carries the line's quick acts, so they
   are done without opening it:
   1. **Job 로그** on a line a job is running for, or one whose job has ended and whose commit is still on its way
-     live — that job's log and nothing else: the lines of that one run alone, opened at once over the panel and
-     followed where the run still goes, in the same log dialog a room's run line opens. It opens on the run's
-     newest lines alone, as many as fill a screen (`AGENT_LOG_OPENING_SIZE`), stood at its end at once, however
-     long the run has gone: its older lines are read a page at a time as the reader scrolls up, and its newer ones
-     as they come. Only that run's lines stand, never another run's of the same agent (「Where the log comes
-     from」). A line no job ever ran for has nothing to show, so the entry is not
-     there. A line whose job cannot be found, one that ended with no run of its own, answers with the message pill
-     saying so. In the opened item the state mark at its head,
-     실행 중 and the stage it names, is the same press: it opens that job's log over the item.
+     live — that job's log and nothing else: the lines that job left, all of its turns, opened at once over the
+     panel and followed where the job still goes, in the same log dialog a room's run line opens. It is opened
+     **at the job, by its number** — not at a run name, a checkout or an agent the screen happens to stand under —
+     so a job whose turn has published no run row, and a job whose turns were worked at by more than one seat, open
+     as whole as any other (「Where the log comes from」). It opens on the job's newest lines alone, as many as fill a
+     screen (`AGENT_LOG_OPENING_SIZE`), stood at their end at once, however long the job has gone: its older lines
+     are read a page at a time as the reader scrolls up, and its newer ones as they come. Only that job's lines
+     stand, never another job's of the same agent. A line no job ever ran for has nothing to show, so the entry is
+     not there. A line whose job cannot be found answers with the message pill saying so. In the opened item the
+     state mark at its head, 실행 중 and the stage it names, is the same press: it opens that job's log over the item.
      - The job is the one the agency lists as starting, running or reviewing for the item, read off each job's own state, so
        a list that answers more than it was asked for never hands the log a job that has ended; where none is
-       running, it is the item's latest job, read with the item's runs, at the run that job went as.
+       running, it is the item's latest job, read with the item's runs.
+     - The dialog's head names the run and stands its item and its agent beside it, and its worker's view is the
+       job's own: the seat that did the work carries no entry of the agent catalogue, so the head, the stages and
+       the job's figures are read by the job number rather than by the name the dialog was opened under.
   2. **승인** on a request waiting on them.
   3. **보류** on a line in the queue, running or waiting; **보류 해제** in its place on a line set aside, stopped
      lines among them, which moves the item back to `open` through bmo-job, the same write the opened item's
@@ -8717,7 +8745,9 @@ account's rooms or agents (「Access」).
     serves or its scope, its road and how much context it held at its last turn.
   - **최근 활동:** the person's last twenty runs, those of the agents filed under their account as the agency's run
     ledger holds them, the newest first, one row each with when it began, the agent, the room it ran for or, where it
-    ran for none, the run's name, how long it took and how it ended. A row opens that agent's log at the run.
+    ran for none, the run's own name — never the ledger's row name, which stands the checkout before it — how long
+    it took and how it ended. A row opens the log of the run it names: at the job where the run is a job's, and at
+    the moment it began for every other run.
 - **A head reads their people's 계정 without the contact details, 조직 and BMO,** and no 활동: their rooms, agents,
   sessions and runs quote what a person said in their own rooms, which nobody but the person and the administrator
   reads (「Access」).

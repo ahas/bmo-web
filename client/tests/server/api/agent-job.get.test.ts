@@ -71,8 +71,11 @@ const agency = standIn("AGENCY", (one) => {
 
   if (url.pathname === "/log-lines") {
     const after = Number(url.searchParams.get("after") ?? "0");
+    // A screen asks the same lines by the job that left them or by the run they were written under; here each job's
+    // lines are the ones standing under its own number.
+    const askedBy = url.searchParams.get("jobId") ?? url.searchParams.get("runId");
 
-    return answer({ items: RUN_LINES.filter((line) => String(line.runId) === url.searchParams.get("runId") && (line.id as number) > after), more: false });
+    return answer({ items: RUN_LINES.filter((line) => String(line.runId) === askedBy && (line.id as number) > after), more: false });
   }
 
   if (url.pathname === "/jobs") {
@@ -157,9 +160,10 @@ describe("a worker's job line", () => {
 
     const read = await asked(line, { params: { name: "worker-b" }, query: { run: "job-unit-1" } });
 
-    expect(agency.asked.map((one) => one.path)).toEqual(["/jobs?repositoryName=worker-b&limit=50", "/log-lines?runId=8&after=0&limit=500"]);
+    expect(agency.asked.map((one) => one.path)).toEqual(["/jobs?repositoryName=worker-b&limit=50", "/log-lines?jobId=8&after=0&limit=500"]);
     expect(read.answer).toEqual({
       job: {
+        job: 8,
         run: "job-unit-1",
         agent: "worker-b",
         todoId: 41,
@@ -189,8 +193,8 @@ describe("a worker's job line", () => {
     expect(second?.tools).toBe(2);
     expect(second?.spent).toEqual({ inputTokens: 6, outputTokens: 375, cacheReadTokens: 3_000, cacheWriteTokens: 30 });
     expect(agency.asked.map((one) => one.path).filter((path) => path.startsWith("/log-lines"))).toEqual([
-      "/log-lines?runId=12&after=0&limit=500",
-      "/log-lines?runId=12&after=4&limit=500"
+      "/log-lines?jobId=12&after=0&limit=500",
+      "/log-lines?jobId=12&after=4&limit=500"
     ]);
   });
 
@@ -204,7 +208,7 @@ describe("a worker's job line", () => {
     agency.asked.length = 0;
 
     expect((await asked(line, { params: { name: "worker-c" } })).answer).toEqual({ job: null });
-    expect(agency.asked.map((one) => one.path)).toEqual(["/jobs?repositoryName=worker-c&limit=50", "/jobs?roleName=worker-c&limit=50"]);
+    expect(agency.asked.map((one) => one.path)).toEqual(["/jobs?repositoryName=worker-c&limit=50", "/repositories", "/jobs?roleName=worker-c&limit=50"]);
   });
 
   test("refuses a name no agent can have, without asking the agency", async () => {

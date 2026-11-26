@@ -20,6 +20,7 @@ const run = (over: Partial<AgentRun> = {}): AgentRun => ({
   since: 5_000,
   title: "Title A",
   itemId: null,
+  job: null,
   log: null,
   session: null,
   stop: null,
@@ -53,11 +54,15 @@ describe("a role's agent at work", () => {
 });
 
 describe("where a working role's agent opens its log", () => {
+  test("is the job it is a run of, whatever run the slot names beside it", () => {
+    expect(runLogPlace({ job: 12, log: "run-a", session: "session-a", since: 5_000 })).toEqual({ job: 12 });
+  });
+
   test("is the run it names, else the newest lines of a role session's, else the moment it took the slot", () => {
-    expect(runLogPlace({ log: "run-a", session: "session-a", since: 5_000 })).toEqual({ run: "run-a" });
-    expect(runLogPlace({ log: null, session: "session-a", since: 5_000 })).toBeNull();
-    expect(runLogPlace({ log: null, session: null, since: 5_000 })).toEqual({ at: 5 });
-    expect(runLogPlace({ log: null, session: null, since: null })).toBeNull();
+    expect(runLogPlace({ job: null, log: "run-a", session: "session-a", since: 5_000 })).toEqual({ run: "run-a" });
+    expect(runLogPlace({ job: null, log: null, session: "session-a", since: 5_000 })).toBeNull();
+    expect(runLogPlace({ job: null, log: null, session: null, since: 5_000 })).toEqual({ at: 5 });
+    expect(runLogPlace({ job: null, log: null, session: null, since: null })).toBeNull();
   });
 });
 

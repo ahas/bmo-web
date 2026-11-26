@@ -22,6 +22,9 @@ export interface AgentRun {
   title: string | null;
   // The item the run is a job of, where it is one.
   itemId: number | null;
+  // The job the run is a run of, where it is one: its number is what its log is read by, whatever the run ledger
+  // holds for the turn.
+  job: number | null;
   // The run its log opens at: its job's run where the agency names the job, else the run its binding names; none
   // while no run is named.
   log: string | null;

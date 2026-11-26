@@ -99,6 +99,7 @@ import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
 import { CELL_BUTTON, CELL_TEXT } from "~/domain/settings-cells";
+import { jobLink } from "~/domain/status";
 
 import type { RepositoryView } from "#shared/axes";
 import type { MonitorNode } from "#shared/types";
@@ -199,10 +200,21 @@ function openAdd(): void {
 const removing = ref("");
 const removeFailed = ref("");
 
+// Where a repository's row leads for its log: to the job a checkout of it holds, and otherwise to the repository's
+// own screen.
+function logLink(repository: RepositoryView): string {
+  const held = repository.checkouts.find((one) => one.job?.jobId != null);
+  const screen = `/agents/${encodeURIComponent(repository.name)}`;
+
+  return held?.job?.jobId == null ? screen : jobLink(repository.name, held.job.jobId);
+}
+
 function menuOf(repository: RepositoryView): DropdownMenuItem[] {
   const held = heldCount(repository) > 0;
   // The log is read, and stands to a reader whose part is read alone; the edit and the removal need its write.
-  const log: DropdownMenuItem = { label: t("agents.action.log"), icon: "i-material-symbols-article-outline", to: `/agents/${encodeURIComponent(repository.name)}` };
+  // Where one of its checkouts holds a job, the entry leads to that job's own lines: a repository keeps no log of
+  // its own across its jobs, so its name alone would open nothing of what is running in it.
+  const log: DropdownMenuItem = { label: t("agents.action.log"), icon: "i-material-symbols-article-outline", to: logLink(repository) };
 
   if (props.readonly) return [log];
 

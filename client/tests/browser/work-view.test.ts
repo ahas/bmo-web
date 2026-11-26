@@ -58,7 +58,7 @@ const LOG: AgentLogPage = {
   hasMore: false
 };
 
-const JOB: JobLine = { run: "run-b", agent: AGENT, todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [],
+const JOB: JobLine = { job: 21, run: "run-b", agent: AGENT, todoId: ITEM, title: "item-title", purpose: null, startedAt: NOW - 600, finishedAt: null, tools: 2, models: [],
   spent: { inputTokens: 1_500, outputTokens: 37_000, cacheReadTokens: 640_000, cacheWriteTokens: 9_000 } };
 
 function task(id: string, state: WorkTask["state"], over: Partial<WorkTask> = {}): WorkTask {
@@ -131,6 +131,8 @@ async function open(viewport: (typeof WIDTHS)[number]): Promise<BrowserContext> 
     await route.fulfill({ json: { ...status, live: [RUN] } });
   });
   await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
+  // The view's log is read by the job the worker's screen stands, not by the run name either screen might carry.
+  await context.route(new RegExp(`/api/jobs/${JOB.job}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
   await context.route(new RegExp(`/api/agents/(${AGENT}|${REPOSITORY})/job(\\?|$)`), (route) => route.fulfill({ json: { job: JOB } }));
   await context.route(new RegExp(`/api/agents/${AGENT}/job-prompt(\\?|$)`), (route) => route.fulfill({ json: { prompt: { text: "prompt-ko", english: null } } }));
   await context.route(/\/api\/agents\/agent-a\/log\?/, (route: Route) => {

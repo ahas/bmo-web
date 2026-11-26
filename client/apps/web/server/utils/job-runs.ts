@@ -1,8 +1,9 @@
 import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
+import { jobRunName } from "#shared/run-name";
 
 import { agency, agencyCall, agencyRoute, isJobUnderWay } from "./agency";
 import { job as jobService, jobCall } from "./job";
-import { runFigures } from "./run-tally";
+import { jobFigures } from "./run-tally";
 import { planOf } from "../../app/domain/tool-view";
 
 import type { Job as AgencyJob } from "@agency/client";
@@ -18,12 +19,23 @@ const seconds = (ms: number): number => Math.floor(ms / 1000);
 // How many jobs under way the board reads. More than any machine runs at once, and the agency's largest page.
 const LIVE_JOBS_LIMIT = 500;
 
-// The jobs a screen of the agency's names keeps its line for, newest first: a repository's, the jobs run in it, and
-// otherwise a role's, the jobs run as it (the agency's `docs/api.md`, 「assignments and jobs」).
+// The jobs a screen of the agency's names keeps its line for: a repository's, the jobs run in it, and where the
+// name is a checkout of one, that checkout's jobs; otherwise a role's, the jobs run as it (the agency's
+// `docs/api.md`, 「assignments and jobs」 — it filters by repository, role, item, room and holder, and a checkout
+// is none of those, so its repository is asked for and its own jobs kept).
 async function jobsOf(name: string): Promise<AgencyJob[]> {
   const inRepository = await agencyCall(agency().GET("/jobs", { params: { query: { repositoryName: name, limit: 50 } } }));
 
   if (inRepository.items.length > 0) return inRepository.items;
+
+  const base = await repositoryOf(name);
+
+  if (base !== null && base !== name) {
+    const inBase = await agencyCall(agency().GET("/jobs", { params: { query: { repositoryName: base, limit: 50 } } }));
+    const ofCheckout = inBase.items.filter((job) => job.workerName === name);
+
+    if (ofCheckout.length > 0) return ofCheckout;
+  }
 
   // The published client names no `roleName` filter, which the agency's document states; it is asked as written there,
   // and the answer is held to the role all the same.
@@ -32,29 +44,53 @@ async function jobsOf(name: string): Promise<AgencyJob[]> {
   return asked.items.filter((job) => job.roleName === name);
 }
 
+// The repository a checkout's name belongs to, as the agency's list of repositories says; null where the name is
+// no checkout of one it holds.
+async function repositoryOf(checkout: string): Promise<string | null> {
+  const page = await agencyCall(agency().GET("/repositories")).catch(() => null);
+
+  return page?.items.find((repository) => repository.checkouts?.some((one) => one.name === checkout))?.name ?? null;
+}
+
 // The job a line speaks of: the run named where it is one of these jobs, otherwise the one going — starting, running
 // or under its orderer's review — otherwise the latest.
 function jobChosen(jobs: readonly AgencyJob[], run: string | null): AgencyJob | null {
-  const named = run === null || run.trim() === "" ? undefined : jobs.find((job) => job.runName === run.trim() || String(job.runId ?? job.id) === run.trim());
+  // A link names a run by its name, which for a job is its number's name even before its row has been given one, or
+  // by the bare number of a row of the ledger it was drawn from.
+  const asked = run?.trim() ?? "";
+  const named = asked === "" ? undefined : jobs.find((job) => jobRunName(job) === asked || String(job.runId ?? job.id) === asked);
   const live = jobs.find((job) => isJobUnderWay(job.state));
 
   return named ?? live ?? [...jobs].sort((one, other) => other.startedAt - one.startedAt)[0] ?? null;
 }
 
-/** The job a repository's or a role's screen keeps a line for, or null where it has none. */
-export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
-  const job = jobChosen(await jobsOf(worker), run);
+/** The job a screen keeps its line for: the job its link names, or the one the worker's or role's own jobs speak
+ * of, or null where it has none. */
+export async function readWorkerJob(worker: string, run: string | null, jobId: number | null = null): Promise<JobLine | null> {
+  const job = jobId === null ? jobChosen(await jobsOf(worker), run) : await jobById(jobId);
 
   return job === null ? null : await jobLineOf(job, job.agentName ?? job.workerName ?? job.roleName ?? worker);
+}
+
+// The job of one number, or null where the agency holds none the reader may see.
+async function jobById(jobId: number): Promise<AgencyJob | null> {
+  try {
+    return await agencyCall(agency().GET("/jobs/{jobId}", { params: { path: { jobId } } }));
+  } catch (error) {
+    if ((error as { statusCode?: number }).statusCode === 404) return null;
+
+    throw error;
+  }
 }
 
 // One job as its line reads it, under the agent its log lines stand under: when it started and ended as its record
 // holds them, and its tool calls and tokens as its run counts them.
 async function jobLineOf(job: AgencyJob, agent: string): Promise<JobLine> {
-  const figures: RunFigures = job.runId === null ? { calls: 0, spent: null } : await runFigures(job.runId);
+  const figures: RunFigures = await jobFigures(job.id);
 
   return {
-    run: job.runName ?? String(job.runId ?? job.id),
+    job: job.id,
+    run: jobRunName(job),
     agent,
     todoId: job.itemId,
     title: null,
@@ -69,8 +105,8 @@ async function jobLineOf(job: AgencyJob, agent: string): Promise<JobLine> {
 }
 
 /** The prompt of the job that line speaks of, or null where the worker has none. */
-export async function readWorkerJobPrompt(worker: string, run: string | null): Promise<JobPrompt | null> {
-  const job = await jobNamed(worker, run);
+export async function readWorkerJobPrompt(worker: string, run: string | null, jobId: number | null = null): Promise<JobPrompt | null> {
+  const job = jobId === null ? await jobNamed(worker, run) : await jobById(jobId);
 
   if (job === null) return null;
 
@@ -155,7 +191,7 @@ function liveRunOf(job: AgencyJob, room: number | null): LiveRun {
     chatId: room,
     messageId: null,
     startedAt: seconds(job.startedAt),
-    unit: job.runName ?? String(job.runId ?? job.id),
+    unit: jobRunName(job),
     capSeconds: null,
     depth: null,
     model: null,
@@ -216,12 +252,12 @@ export async function itemRunsOf(worker: string | null, todoId: number): Promise
     latest: null
   };
 
-  if (latest === undefined || latest.runId === null) return runs;
+  if (latest === undefined) return runs;
 
   const agent = latest.agentName ?? latest.workerName ?? latest.roleName;
   const [jobLine, read] = await Promise.all([
     jobLineOf(latest, agent),
-    agencyCall(agency().GET("/log-lines", { params: { query: { runId: latest.runId, agentName: agent, after: 0, limit: RUN_LINES } } }))
+    agencyCall(agency().GET("/log-lines", { params: { query: { jobId: latest.id, after: 0, limit: RUN_LINES } } }))
   ]);
   const lines = read.items;
 

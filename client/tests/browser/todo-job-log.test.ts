@@ -151,8 +151,8 @@ async function open(width: number, height: number, live: LiveRun[]): Promise<Bro
 
     await route.fulfill({ json: { ...board, queue: [item()], standing: { ...board.standing, queue: 1, running: 1 } } });
   });
-  // A running job's log opens at its end, the newest page, whichever run it was opened at.
-  await context.route(new RegExp(`/api/agents/${AGENT}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
+  // A running job's log opens at its end, the newest page, read by the job the row speaks of.
+  await context.route(new RegExp(`/api/jobs/${RUN.id}/log(\\?|$)`), (route) => route.fulfill({ json: LOG }));
   // An item with no work order is answered with no body, as the console's route answers it; the log must stand anyway.
   await context.route(new RegExp(`/api/todos/${ITEM}/work-order$`), (route) => route.fulfill({ status: 204, body: "" }));
 
@@ -206,6 +206,10 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
         const dialog = page.getByRole("dialog").last();
 
         expect(await dialog.isVisible()).toBe(true);
+        // The head names the run and stands its item and the agent that does the work beside it, as every screen
+        // that shows the run names it (docs/web.md, 「Where the log comes from」).
+        expect(await dialog.locator("[data-log-title]").innerText()).toBe(RUN.unit!);
+        expect(await dialog.locator("[data-log-run]").innerText()).toBe(`#${ITEM} · ${AGENT}`);
       } finally {
         await context.close();
       }

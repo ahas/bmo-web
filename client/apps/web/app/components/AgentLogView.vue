@@ -104,7 +104,8 @@ const feedRef = useTemplateRef<{ $el?: HTMLElement }>("feed");
 // One view reads one agent's log, so whoever shows a second agent keys this by the name and
 // gets a view of its own rather than a changed one.
 const { t } = useI18n();
-const log = useAgentLog(t, props.name, props.only);
+// A job's log is read by the job; a run's by the name the log itself gives that run.
+const log = useAgentLog(t, props.name, { job: props.place !== null && "job" in props.place ? props.place.job ?? null : null, run: props.only });
 
 // Whether the reader is still at the newest line. New lines arrive while they read, so what
 // keeps the view at the end is this, not the scroll position.

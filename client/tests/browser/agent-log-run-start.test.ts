@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
-import { ROLE_LOG, RUN_FROM } from "../support/role-log";
+import { ROLE_LOG, RUN_FROM, RUN_NEXT } from "../support/role-log";
 
 import type { Browser, Page } from "playwright-core";
 
@@ -40,8 +40,10 @@ afterAll(async () => {
 }, BROWSER_HOOK_MS);
 
 // Where the run's first line stands in the box the log scrolls in, below whatever head stays at its top: how far its
-// top is from the top of what is in view, and whether a row of the log stands in view above it.
-async function runStart(page: Page): Promise<{ offset: number; rowAbove: boolean; scrolled: number }> {
+// top is from the top of what is in view, whether a row of the log stands in view above it, and whether the box stands
+// at the end of the log. How far the box has scrolled says nothing on its own: the view's head, its work order and its
+// stages stand above the log in the same box, and are scrolled past to bring the run's first line to the top.
+async function runStart(page: Page): Promise<{ offset: number; rowAbove: boolean; atEnd: boolean }> {
   return await page.evaluate((header) => {
     const log = document.querySelector("[role=dialog] [data-agent-log]")!;
     let scroller = log.parentElement!;
@@ -54,7 +56,11 @@ async function runStart(page: Page): Promise<{ offset: number; rowAbove: boolean
     const at = rows.findIndex((row) => row.getAttribute("data-log-row") === String(header));
     const above = rows.slice(0, at).filter((row) => row.getBoundingClientRect().bottom > top + 1);
 
-    return { offset: Math.round(rows[at]!.getBoundingClientRect().top - top), rowAbove: above.length > 0, scrolled: scroller.scrollTop };
+    return {
+      offset: Math.round(rows[at]!.getBoundingClientRect().top - top),
+      rowAbove: above.length > 0,
+      atEnd: scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 8
+    };
   }, RUN_FROM);
 }
 
@@ -106,7 +112,7 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
 
         // The job's lines are read from their first: there is nothing of another run above them to read in.
         await header.waitFor({ timeout: 15_000 });
-        await dialog.locator(`[data-log-row="${RUN_FROM + 1}"]`).waitFor({ state: "attached", timeout: 15_000 });
+        await dialog.locator(`[data-log-row="${RUN_NEXT}"]`).waitFor({ state: "attached", timeout: 15_000 });
         await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 
         expect(reads[0]).toBe("?after=0&limit=200");
@@ -116,7 +122,7 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
 
         expect(stands.rowAbove).toBe(false);
         expect(Math.abs(stands.offset)).toBeLessThanOrEqual(1);
-        expect(stands.scrolled).toBe(0);
+        expect(stands.atEnd).toBe(false);
         expect(await header.isVisible()).toBe(true);
         // The log's newer lines are not followed: the way to its end stands.
         expect(await dialog.locator("[data-log-to-end]").isVisible()).toBe(true);

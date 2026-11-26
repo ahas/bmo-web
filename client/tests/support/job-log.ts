@@ -74,9 +74,11 @@ const JOB_ROW = {
 
 /** The agency's answer to a read of this log, or null for a path it does not hold. */
 export function jobLogAnswer(url: URL): Response | null {
+  // Only this job's row: another stand-in's job is left for it to answer, so a job number that is not this fixture's
+  // claims nothing.
   const job = url.pathname.match(/^\/jobs\/(\d+)$/);
 
-  if (job !== null) return Number(job[1]) === JOB_LOG.job ? Response.json(JOB_ROW) : Response.json({ code: "not-found", error: "no such job" }, { status: 404 });
+  if (job !== null) return Number(job[1]) === JOB_LOG.job ? Response.json(JOB_ROW) : null;
 
   if (url.pathname === "/jobs" && url.searchParams.get("running") === "true") {
     return Response.json({ items: [JOB_ROW], more: false });

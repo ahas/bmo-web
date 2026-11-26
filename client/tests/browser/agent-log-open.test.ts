@@ -126,7 +126,9 @@ describe.skipIf(!origin || !touchReady())("a long job's log opened from the TODO
         await page.locator("[data-item-state-log]").click({ timeout: 20_000 });
 
         const dialog = page.getByRole("dialog").filter({ has: page.locator("[data-agent-log]") }).last();
-        const newest = dialog.getByText(JOB_LOG.newest, { exact: true });
+        // The line is looked for in the log itself: the view's head repeats the newest line it wrote as what the
+        // session is doing now, and that stands beside the log rather than in it.
+        const newest = dialog.locator("[data-agent-log]").getByText(JOB_LOG.newest, { exact: true });
 
         await newest.waitFor({ timeout: 10_000 });
         expect(await newest.isVisible()).toBe(true);

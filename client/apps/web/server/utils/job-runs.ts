@@ -2,11 +2,13 @@ import { STATUS_HISTORY_LIMIT, WORKER_AGENT } from "#shared/config";
 import { jobRunName } from "#shared/run-name";
 
 import { agency, agencyCall, agencyRoute, isJobUnderWay } from "./agency";
+import { requireReadableAgent } from "./agent-reach";
 import { job as jobService, jobCall } from "./job";
 import { jobFigures } from "./run-tally";
 import { planOf } from "../../app/domain/tool-view";
 
 import type { Job as AgencyJob } from "@agency/client";
+import type { H3Event } from "h3";
 import type { ItemRuns, JobLine, JobPrompt, JobRecord, LiveRun, RanOn } from "#shared/types";
 import type { RunFigures } from "./run-tally";
 
@@ -66,21 +68,34 @@ function jobChosen(jobs: readonly AgencyJob[], run: string | null): AgencyJob | 
 
 /** The job a screen keeps its line for: the job its link names, or the one the worker's or role's own jobs speak
  * of, or null where it has none. */
-export async function readWorkerJob(worker: string, run: string | null, jobId: number | null = null): Promise<JobLine | null> {
-  const job = jobId === null ? jobChosen(await jobsOf(worker), run) : await jobById(jobId);
+export async function readWorkerJob(worker: string, run: string | null): Promise<JobLine | null> {
+  const job = jobChosen(await jobsOf(worker), run);
 
   return job === null ? null : await jobLineOf(job, job.agentName ?? job.workerName ?? job.roleName ?? worker);
 }
 
-// The job of one number, or null where the agency holds none the reader may see.
-async function jobById(jobId: number): Promise<AgencyJob | null> {
+/** The job of one number, read as the signed-in person reads it: a job the agency holds back from them answers as one
+ * that does not stand, and the agent its lines stand under is then judged as every agent is, so a screen reaches its
+ * job through its number whatever name stands in its address (docs/web.md, 「Access」). */
+export async function readableJob(event: H3Event, jobId: number): Promise<AgencyJob | null> {
+  let job: AgencyJob | null;
+
   try {
-    return await agencyCall(agency().GET("/jobs/{jobId}", { params: { path: { jobId } } }));
+    job = await agencyCall(agency(event).GET("/jobs/{jobId}", { params: { path: { jobId } } }));
   } catch (error) {
     if ((error as { statusCode?: number }).statusCode === 404) return null;
 
     throw error;
   }
+
+  await requireReadableAgent(event, job.agentName ?? job.workerName ?? job.roleName ?? "");
+
+  return job;
+}
+
+/** The line of a job the reader has already been held to. */
+export async function readJobLine(job: AgencyJob): Promise<JobLine> {
+  return jobLineOf(job, job.agentName ?? job.workerName ?? job.roleName ?? "");
 }
 
 // One job as its line reads it, under the agent its log lines stand under: when it started and ended as its record
@@ -105,11 +120,14 @@ async function jobLineOf(job: AgencyJob, agent: string): Promise<JobLine> {
 }
 
 /** The prompt of the job that line speaks of, or null where the worker has none. */
-export async function readWorkerJobPrompt(worker: string, run: string | null, jobId: number | null = null): Promise<JobPrompt | null> {
-  const job = jobId === null ? await jobNamed(worker, run) : await jobById(jobId);
+export async function readWorkerJobPrompt(worker: string, run: string | null): Promise<JobPrompt | null> {
+  const job = await jobNamed(worker, run);
 
-  if (job === null) return null;
+  return job === null ? null : readJobPrompt(job);
+}
 
+/** The prompt of a job the reader has already been held to, or null where it left none. */
+export async function readJobPrompt(job: AgencyJob): Promise<JobPrompt | null> {
   try {
     const prompt = await agencyCall(agency().GET("/jobs/{jobId}/prompt", { params: { path: { jobId: job.id } } }));
 

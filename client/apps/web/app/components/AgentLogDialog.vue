@@ -5,13 +5,13 @@
   <component :is="narrow ? UDrawer : UModal" v-bind="shell" :open="props.open" @update:open="emit('update:open', $event)">
     <template #content>
       <div class="flex h-full min-h-0 flex-col">
-        <div class="flex items-center gap-2 border-b border-default px-4 py-3">
+        <div class="flex items-center gap-2 border-b border-default px-4 py-3" data-log-head>
           <AgentMark :agent="meta" size="3xs" icon-class="size-4" class="text-dimmed" />
           <p class="min-w-0 truncate text-sm font-medium text-highlighted" data-log-title>{{ shell.title }}</p>
 
           <!-- The run's one name with its item and its agent beside it: the same run the pane, the place and the
                session stand, so the reader knows this log is that one run. -->
-          <p v-if="beside !== ''" class="min-w-0 shrink truncate text-xs tabular-nums text-muted" data-log-run>{{ beside }}</p>
+          <p v-if="beside !== ''" class="min-w-0 shrink truncate text-sm tabular-nums text-muted" data-log-run>{{ beside }}</p>
           <span class="min-w-0 flex-1" aria-hidden="true" />
 
           <UButton

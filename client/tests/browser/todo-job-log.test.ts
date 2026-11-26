@@ -190,6 +190,43 @@ async function pressLog(page: Page): Promise<string> {
   return label;
 }
 
+// What the dialog's head is measured to be, through the console's own measuring module
+// (tests/browser/measure.ts): the run line's type size and the contrast its muted words ended with, the gap and the
+// padding the head row settled on, and how far apart the centres of the title and the run line stand
+// (ahas-ux-design-rules, 「Typography and icons」, 「Color and contrast」, 「Spacing」).
+async function headStanding(page: Page): Promise<{ size: string; ratio: number; gap: string; pad: string; spread: number }> {
+  await page.evaluate(async (base) => {
+    const loaded = await import(/* @vite-ignore */ `${base}/measure.js`);
+
+    loaded.install();
+  }, new URL(origin!).pathname.replace(/\/$/, ""));
+
+  return await page.evaluate(() => {
+    // The measuring module stands on the window under one name once the line above has loaded it.
+    const scope = globalThis as typeof globalThis & {
+      measure?: {
+        styles: (selector: string, properties: readonly string[]) => Record<string, string>[];
+        contrast: (selector: string) => { ratio: number }[];
+        middles: (selector: string) => { middle: number[] };
+      };
+    };
+    const measure = scope.measure!;
+
+    const line = measure.styles("[data-log-run]", ["font-size"])[0]!;
+    const read = measure.contrast("[data-log-run]")[0]!;
+    const head = measure.styles("[data-log-head]", ["row-gap", "padding-block"])[0]!;
+    const centres = measure.middles("[data-log-head] [data-log-title], [data-log-head] [data-log-run]");
+
+    return {
+      size: line["font-size"]!,
+      ratio: read.ratio,
+      gap: head["row-gap"]!,
+      pad: head["padding-block"]!,
+      spread: Math.max(...centres.middle) - Math.min(...centres.middle)
+    };
+  });
+}
+
 describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
   for (const viewport of [{ width: 1500, height: 950 }, { width: 900, height: 810 }]) {
     test(`opens the running job's log in the panel being read at ${viewport.width}px`, async () => {
@@ -210,6 +247,16 @@ describe.skipIf(!origin || !touchReady())("the TODO row menu's job log", () => {
         // that shows the run names it (docs/web.md, 「Where the log comes from」).
         expect(await dialog.locator("[data-log-title]").innerText()).toBe(RUN.unit!);
         expect(await dialog.locator("[data-log-run]").innerText()).toBe(`#${ITEM} · ${AGENT}`);
+
+        // The head is measured, not looked at: the run line is metadata size and its muted words still contrast, and
+        // what stands in the head shares its centre line and the head's own gaps (ahas-ux-design-rules).
+        const head = await headStanding(page);
+
+        expect(head.size).toBe("14px");
+        expect(head.gap).toBe("8px");
+        expect(head.pad).toBe("12px");
+        expect(head.ratio).toBeGreaterThanOrEqual(4.5);
+        expect(head.spread).toBeLessThanOrEqual(1);
       } finally {
         await context.close();
       }

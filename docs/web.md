@@ -537,10 +537,12 @@ console page. No answer says which framework drew it. Strict transport is the re
   among them, so a reader other than the administrator reads them of the agents their own account owns alone —
   their own BMO and a role agent standing as theirs, as the agency names each agent's owner account — whatever
   sections they hold, and a run named by its id is read only where it is that agent's.
-  - A job's log is read by the job's number, and it is held to the same judge as the log of the agent the job's
-    lines stand under: the reader must see the job at all, which the agency answers for the reader alone, and then
-    may read that agent. A job's lines are never reached through the checkout its run ledger names, which is no
-    agent's owner and holds none of them. Every other agent's — another
+  - Whatever of a job is read by its number — its log, its line, its work order and its spend — is held to one
+    judge: the reader must see the job at all, which the agency answers for the reader alone, and then may read the
+    agent its lines stand under. A job is never reached through the checkout its run ledger names, which is no
+    agent's owner and holds none of its lines, nor through the name the screen reading it happens to stand under:
+    the number is what its parts are kept under, and the agent, the checkout and the turn behind it are three names
+    the agency may each change. Every other agent's — another
   person's BMO, a shared role agent, a repository's worker — answers them as if it did not stand, its supervisor's
   page, road, rooms, settings and draft among them. What runs for them on the shared engines is read there; what
   runs for another account is not.

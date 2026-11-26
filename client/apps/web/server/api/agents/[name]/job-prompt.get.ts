@@ -17,9 +17,20 @@ export default defineEventHandler(async (event): Promise<{ prompt: JobPrompt | n
     throw fail(400, wording("agents.error.bad_agent_name"));
   }
 
+  const query = getQuery(event);
+  const jobId = readJobId(query.job);
+
+  // The same job the line was read by and judged the same way: the prompt is one of the job's own parts, whatever
+  // name the screen was opened under (docs/web.md, 「Access」).
+  if (jobId !== null) {
+    const job = await readableJob(event, jobId);
+
+    if (job === null) throw fail(404, wording("agents.error.no_such_job"));
+
+    return { prompt: await readJobPrompt(job) };
+  }
+
   await requireReadableAgent(event, name);
 
-  const query = getQuery(event);
-
-  return { prompt: await readWorkerJobPrompt(name, typeof query.run === "string" ? query.run : null, readJobId(query.job)) };
+  return { prompt: await readWorkerJobPrompt(name, typeof query.run === "string" ? query.run : null) };
 });

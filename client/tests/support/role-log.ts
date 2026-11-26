@@ -18,6 +18,10 @@ export const ROLE_LOG = {
 
 // The id of the running job's first line; the role's lines before it are every agent's earlier work.
 export const RUN_FROM = 1_501;
+
+// The job's next line: three agents of the role write in turn, so the seat's next line of the same job stands three
+// along, and a read narrowed to the job brings nothing of the two between them.
+export const RUN_NEXT = RUN_FROM + 3;
 const LINE_COUNT = 2_400;
 const BASE_AT = 1_790_000_000_000;
 

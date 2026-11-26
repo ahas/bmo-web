@@ -18,9 +18,21 @@ export default defineEventHandler(async (event): Promise<{ job: JobLine | null }
     throw fail(400, wording("agents.error.bad_agent_name"));
   }
 
+  const query = getQuery(event);
+  const jobId = readJobId(query.job);
+
+  // A screen that names its job by number is read through the job and judged by the agent the job's lines stand
+  // under: the name in the address may be the checkout the job ran in or the role it was asked of, and neither holds
+  // the work (docs/web.md, 「Access」).
+  if (jobId !== null) {
+    const job = await readableJob(event, jobId);
+
+    if (job === null) throw fail(404, wording("agents.error.no_such_job"));
+
+    return { job: await readJobLine(job) };
+  }
+
   await requireReadableAgent(event, name);
 
-  const query = getQuery(event);
-
-  return { job: await readWorkerJob(name, typeof query.run === "string" ? query.run : null, readJobId(query.job)) };
+  return { job: await readWorkerJob(name, typeof query.run === "string" ? query.run : null) };
 });

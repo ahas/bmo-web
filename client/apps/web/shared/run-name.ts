@@ -19,11 +19,18 @@ export function jobRunNameOf(jobId: number): string {
   return `${JOB_RUN_HEAD}${jobId}`;
 }
 
+// What follows the head in a name the rule wrote: the job's number, written in digits.
+const JOB_RUN_TAIL = /^[0-9]+$/;
+
 /** The number of the job a run name speaks of, or null for a name that is no job's. */
 export function jobOfRunName(name: string | null | undefined): number | null {
   if (name === null || name === undefined || !name.startsWith(JOB_RUN_HEAD)) return null;
 
-  const id = Number(name.slice(JOB_RUN_HEAD.length));
+  const tail = name.slice(JOB_RUN_HEAD.length);
+
+  if (!JOB_RUN_TAIL.test(tail)) return null;
+
+  const id = Number(tail);
 
   return Number.isSafeInteger(id) && id > 0 ? id : null;
 }

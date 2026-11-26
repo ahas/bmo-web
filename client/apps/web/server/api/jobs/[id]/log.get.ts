@@ -1,11 +1,7 @@
 import { wording } from "#shared/wording";
 
-import { agency, agencyCall } from "../../../utils/agency";
-import { requireReadableAgent } from "../../../utils/agent-reach";
 import { readJobLog } from "../../../utils/agentlog";
 
-import type { Job } from "@agency/client";
-import type { H3Event } from "h3";
 import type { AgentLogPage } from "#shared/types";
 
 // One page of one job's own log, for every screen that follows what a job is doing (docs/web.md,
@@ -23,9 +19,7 @@ export default defineEventHandler(async (event): Promise<AgentLogPage> => {
 
   if (jobId === null) throw fail(400, wording("agents.error.bad_job_id"));
 
-  const job = await readJob(event, jobId);
-
-  await requireReadableAgent(event, job.agentName ?? job.workerName ?? job.roleName ?? "");
+  if ((await readableJob(event, jobId)) === null) throw fail(404, wording("agents.error.no_such_job"));
 
   const query = getQuery(event);
   const before = readCursor(query.before);
@@ -33,14 +27,3 @@ export default defineEventHandler(async (event): Promise<AgentLogPage> => {
 
   return await readJobLog(jobId, { ...(before === null ? {} : { before }), ...(after === null ? {} : { after }) }, readLimit(query.limit));
 });
-
-// The job whose log is asked for, or a refusal answering as if it did not stand.
-async function readJob(event: H3Event, jobId: number): Promise<Job> {
-  try {
-    return await agencyCall(agency(event).GET("/jobs/{jobId}", { params: { path: { jobId } } }));
-  } catch (error) {
-    if ((error as { statusCode?: number }).statusCode === 404) throw fail(404, wording("agents.error.no_such_job"));
-
-    throw error;
-  }
-}

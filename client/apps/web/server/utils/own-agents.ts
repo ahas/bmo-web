@@ -1,12 +1,17 @@
 import { isOwnRoad } from "#shared/own-agents";
 import { wording } from "#shared/wording";
 
+import { setChainValue } from "./account-service";
 import { agencyRoute } from "./agency";
+import { syncAgency } from "./agency-sync";
 import { fail } from "./fail";
 import { unitNamed } from "./chain-names";
 
 import type { SignedIn } from "./accounts";
 import type { AgencyCall } from "./agency";
+
+// The kind a person's own instructions stand on, as the agency lists it (its `GET /setting-kinds`).
+const PERSONAL_TEXT_KIND = "agency.personal-instructions.text";
 import type { DecidedBy } from "#shared/organisation-agents";
 import type { InstructedAgent, OwnAgentView, OwnAgentsView, OwnInstructionsView, OwnModel, OwnPermission, OwnProvider, OwnRoad, OwnRoleView } from "#shared/own-agents";
 
@@ -241,7 +246,15 @@ export async function ownInstructions(signed: SignedIn): Promise<OwnInstructions
 
 /** The reader's own instructions written whole. */
 export async function setOwnInstructions(signed: SignedIn, all: string | null, agents: Record<string, string>): Promise<OwnInstructionsView> {
-  return await instructionsOf(await agencyRoute<AgencyInstructions>("PUT", `/own-instructions/${accountOf(signed)}`, { all, agents }, CALL));
+  // The agency judges them against the agents the person may give them to; the console writes them on the person's own
+  // link of its chain and tells the agency what now resolves (docs/web.md, 「The agency's organisation」).
+  const account = accountOf(signed);
+  const judged = await agencyRoute<{ value: unknown }>("POST", `/own-instructions/${account}/judge`, { all, agents }, CALL);
+
+  await setChainValue(PERSONAL_TEXT_KIND, `person:${account}`, judged.value, { key: String(account), role: "member" });
+  await syncAgency();
+
+  return await ownInstructions(signed);
 }
 
 /** A road as a request's body gives it: undefined where none is given, null to follow the asker. */

@@ -99,13 +99,15 @@ async function syncOnce(): Promise<void> {
   if (key === null) return;
 
   const caller = { key, role: "administrator" as const };
-  const declared = await agencyRoute<{ kinds: { key: string }[] }>("GET", "/setting-kinds");
+  const declared = await agencyRoute<{ kinds: { key: string }[]; reads?: string[]; prefixes?: string[] }>("GET", "/setting-kinds");
 
   for (const kind of declared.kinds) await declareChainKind(kind.key, kind);
 
   const [units, users] = await Promise.all([listUnits(caller), listUsers(caller)]);
-  const known = new Set((await chainKinds()).map((kind) => kind.key));
-  const keys = declared.kinds.map((kind) => kind.key).filter((one) => known.has(one));
+  const known = (await chainKinds()).map((kind) => kind.key);
+  // The agency's own kinds, the kinds others declare that it names, and every kind under a head it names.
+  const asked = new Set([...declared.kinds.map((kind) => kind.key), ...(declared.reads ?? [])]);
+  const keys = known.filter((key) => asked.has(key) || (declared.prefixes ?? []).some((head) => key.startsWith(head)));
   const settings: SubjectSettingRow[] = [];
 
   for (const setting of keys) {

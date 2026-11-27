@@ -20,6 +20,12 @@ standIn("RECEIVER", (call) => {
 });
 standIn("WEB_SERVER", (call) => {
   if (call.path === "/senders/users") return answer({ links: [] });
+  // Unit 6 stands under unit 5, as the console's own organisation answers it.
+  if (call.path.startsWith("/units/5/subtree")) return answer({ units: [{ id: 5 }, { id: 6 }] });
+  // The reader holds every part of agent management.
+  if (/^\/users\/[^/]+\/sections/.test(call.path)) {
+    return answer({ sections: ["supervisors", "roles", "repositories", "models", "model-files"].map((section) => ({ section, read: true, write: true })) });
+  }
 
   return answer({ code: "failed", error: "Not served here." }, 500);
 });
@@ -50,13 +56,13 @@ const MODEL = { key: "registered::model-a-0-1", provider: "registered", model: "
 const agency = standIn(
   "AGENCY",
   (call) => {
-    if (call.method === "GET" && call.path === "/supervisors?unit=5&unitSubtree=true") return answer({ items: [SUPERVISOR, UNIT_SUPERVISOR], more: false });
+    if (call.method === "GET" && call.path === "/supervisors?unit=5&unitSubtree=6") return answer({ items: [SUPERVISOR, UNIT_SUPERVISOR], more: false });
     if (call.method === "GET" && call.path === "/supervisors?ownerAccount=7") return answer({ items: [UNIT_SUPERVISOR], more: false });
     if (call.method === "GET" && call.path === "/supervisors") return answer({ items: [SUPERVISOR, UNIT_SUPERVISOR], more: false });
     if (call.method === "GET" && call.path === "/roles") return answer({ roles: [ROLE, IDLE_ROLE], bundles: [], skills: [], lines: ["worker"] });
-    if (call.method === "GET" && call.path === "/role-agents?unit=5&unitSubtree=true") return answer({ items: [REACHED], more: false });
+    if (call.method === "GET" && call.path === "/role-agents?unit=5&unitSubtree=6") return answer({ items: [REACHED], more: false });
     if (call.method === "POST" && call.path === "/role-agents") return answer({ ...REACHED, ...(call.body ?? {}) }, 201);
-    if (call.method === "GET" && call.path === "/repositories?unit=5&unitSubtree=true") return answer({ items: [REPOSITORY], more: false });
+    if (call.method === "GET" && call.path === "/repositories?unit=5&unitSubtree=6") return answer({ items: [REPOSITORY], more: false });
     if (call.method === "GET" && call.path === "/repositories") return answer({ items: [REPOSITORY], more: false });
     if (call.method === "GET" && call.path === "/models?unit=3") return answer({ items: [MODEL], more: false });
     if (call.method === "GET" && call.path === "/models") return answer({ items: [MODEL], more: false });
@@ -87,7 +93,7 @@ describe("a scoped read of the agency's lists", () => {
 
     const got = await asked(supervisors, { query: UNIT });
 
-    expect(shapes(calls)).toEqual([{ method: "GET", path: "/supervisors?unit=5&unitSubtree=true", body: null }]);
+    expect(shapes(calls)).toEqual([{ method: "GET", path: "/supervisors?unit=5&unitSubtree=6", body: null }]);
     // The agency already judged the reach: unit 5's own head reads the row of account 9 that an unscoped read keeps out.
     expect((got.answer ?? []).map((one) => one.name)).toEqual(["agent-a", "unit-agent"]);
   });
@@ -104,7 +110,7 @@ describe("a scoped read of the agency's lists", () => {
 
     const got = await asked(roles, { query: UNIT });
 
-    expect(calls.map((call) => call.path).sort()).toEqual(["/role-agents?unit=5&unitSubtree=true", "/roles"]);
+    expect(calls.map((call) => call.path).sort()).toEqual(["/role-agents?unit=5&unitSubtree=6", "/roles"]);
     expect((got.answer?.roles ?? []).map((one) => one.agents.map((agent) => agent.name))).toEqual([["unit-worker"], []]);
   });
 
@@ -113,7 +119,7 @@ describe("a scoped read of the agency's lists", () => {
 
     const got = await asked(repositories, { query: UNIT });
 
-    expect(shapes(calls)).toEqual([{ method: "GET", path: "/repositories?unit=5&unitSubtree=true", body: null }]);
+    expect(shapes(calls)).toEqual([{ method: "GET", path: "/repositories?unit=5&unitSubtree=6", body: null }]);
     expect(got.answer?.[0]).toMatchObject({ name: "unit-repo", path: "/work/unit-repo" });
   });
 

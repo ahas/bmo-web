@@ -15,6 +15,15 @@ import type { RouteEvent } from "../../support/nitro";
 
 const MEMBER = 7;
 
+// The member holds every part of agent management, as the account service answers the console's guard.
+standIn("WEB_SERVER", (call) => {
+  if (/^\/users\/[^/]+\/sections/.test(call.path)) {
+    return answer({ sections: ["supervisors", "roles", "repositories", "models", "model-files"].map((section) => ({ section, read: true, write: true })) });
+  }
+
+  return answer({ code: "not-found", error: "no such route" }, 404);
+});
+
 const agency = standIn("AGENCY", (one) => {
   const path = one.path.split("?")[0] ?? "";
 

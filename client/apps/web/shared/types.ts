@@ -2798,8 +2798,6 @@ export interface RoomProvidersView {
   avatarOffered: boolean;
 }
 
-// A room's mode as its registration holds it, for the administrator alone: `avatar`, its agents answering under the
-// owner's account; `record-only`, read and recorded and never answered; null for a room that was never added.
 // One thing that waits for a room (docs/web.md, the room screen's list of what waits): an asynchronous call the tool
 // host keeps running with its wake for the room — a watch with how often its check runs, a reminder with the moment it
 // waits for, or any other call by its tool's name — or background work a supervisor's program still runs for the room,
@@ -2821,10 +2819,6 @@ export interface BackgroundView {
 }
 
 export type RoomMode = "avatar" | "record-only";
-
-export interface RoomModeView {
-  mode: RoomMode | null;
-}
 
 // One supervisor a room may be told to call, by its registration name and the name it is called by on screen.
 export interface RoomSupervisorOption {

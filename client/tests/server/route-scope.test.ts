@@ -337,8 +337,7 @@ describe("a console route as another user meets it", () => {
     // What stays the administrator's beside them.
     for (const route of [
       { file: "rooms/[chatId]/pin.post", method: "POST", path: "/api/rooms/-7/pin" },
-      { file: "rooms/[chatId]/messages/[messageId]/forward.post", method: "POST", path: "/api/rooms/-7/messages/21/forward" },
-      { file: "rooms/[chatId]/mode.put", method: "PUT", path: "/api/rooms/-7/mode" }
+      { file: "rooms/[chatId]/messages/[messageId]/forward.post", method: "POST", path: "/api/rooms/-7/messages/21/forward" }
     ]) {
       expect({ route: route.file, status: await answer(route) }).toEqual({ route: route.file, status: 404 });
     }

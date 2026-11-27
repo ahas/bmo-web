@@ -120,8 +120,6 @@ async function guarded(method: string, path: string): Promise<number> {
 const ADMINISTRATOR_ROUTES: [string, string][] = [
   ["GET", "/api/organization/units"],
   ["GET", "/api/users"],
-  ["GET", `/api/rooms/${GROUP}/mode`],
-  ["PUT", `/api/rooms/${GROUP}/mode`],
   ["POST", `/api/rooms/${GROUP}/pin`]
 ];
 
@@ -154,8 +152,7 @@ describe("an administrator the account command made, whose seal recorded none", 
     receiver.asked.length = 0;
 
     expect((await asked(await route("rooms/[chatId]/pin.post"), roomOnly(GROUP, { pinned: true }))).status).toBe(200);
-    expect((await asked(await route("rooms/[chatId]/mode.put"), roomOnly(GROUP, { mode: "record-only" }))).status).toBe(200);
-    expect(receiverWrites().map((one) => one.body?.account)).toEqual([SECOND, SECOND]);
+    expect(receiverWrites().map((one) => one.body?.account)).toEqual([SECOND]);
   });
 
   test("reads another account's private room, and every change there is refused before a unit hears of it", async () => {
@@ -167,8 +164,7 @@ describe("an administrator the account command made, whose seal recorded none", 
 
     for (const [file, body] of [
       ["rooms/[chatId]/say.post", { text: "hello" }],
-      ["rooms/[chatId]/pin.post", { pinned: true }],
-      ["rooms/[chatId]/mode.put", { mode: "avatar" }]
+      ["rooms/[chatId]/pin.post", { pinned: true }]
     ] as const) {
       expect({ file, ...(await asked(await route(file), roomOnly(PRIVATE, body))) }).toMatchObject({ file, status: 403, message: wording("room.error.private_room") });
     }

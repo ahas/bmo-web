@@ -8,7 +8,7 @@ import { exactJson, exactJsonText } from "./exact-json";
 import { unitAt, unitFetch } from "./units";
 import { answered } from "./unit-answer";
 
-import type { ExactMessageId, FileLimit, RoomHolding, RoomMode, RoomModeView, RoomProvidersView } from "#shared/types";
+import type { ExactMessageId, FileLimit, RoomHolding, RoomMode, RoomProvidersView } from "#shared/types";
 import type { components, paths } from "@bmo/receiver-client/schema";
 import type { WithExactIds } from "./exact-json";
 import type { UnitAnswerCall } from "./unit-answer";
@@ -299,14 +299,6 @@ export async function roomFileLimit(roomId: number): Promise<FileLimit | null> {
   if (limit === null) return null;
 
   return { bytes: limit.bytes, by: chatRoadName(limit.provider) };
-}
-
-/** A room's mode off its registration, read as the web unit knows the administrator: null where no one has set a
- * mode for it yet, which the administrator's switch sets where the room's own road offers the avatar mode. */
-export async function roomMode(roomId: number, by: string): Promise<RoomModeView> {
-  const registration = await receiverCall(receiver().GET("/rooms/{roomId}/registration", { params: { path: { roomId }, query: { by } } }), { codes: ADMINISTRATOR_ONLY });
-
-  return { mode: modeOf(registration) };
 }
 
 /** The mode a registration answer names, null where it names none the console knows. */

@@ -1,8 +1,9 @@
 <template>
   <!-- A room added from a chat service (docs/web.md, 「Sidebar」): choices made in turn, each offered by what the
        service declares and never by its name — the service, a room of its account or a conversation started with
-       its contacts, which are the signed-in person's own account's and say so, and the mode with a title that may
-       be left empty. A group names its supervisor, one of the signed-in person's own or none. A refusal the receiver
+       its contacts, which are the signed-in person's own account's and say so, and a title that may be left empty.
+       The room is added answered where the service answers in the person's own account, and kept for the record
+       alone where it does not; who answers it is the supervisors its members tab stands. A group names its supervisor, one of the signed-in person's own or none. A refusal the receiver
        answers with a code is said in the pack's sentence under the form. The dialog keeps no unsaved-changes guard. -->
   <SettingsDialog v-model:open="open" :title="$t('room.title.room_add')">
     <form id="room-add-form" class="flex flex-col gap-4" @submit.prevent="void add()">
@@ -11,7 +12,6 @@
       <UFormField
         :label="$t('room.label.room_add_service')"
         name="service"
-        :help="service === null || service.modes.length === 0 ? undefined : $t('room.label.room_add_modes', { modes: service.modes.map(modeLabel).join(', ') })"
       >
         <ChoiceSelect
           v-model="serviceKey"
@@ -113,10 +113,7 @@
         <p v-if="contactsFailed !== ''" role="alert" class="mt-2 text-sm text-error">{{ contactsFailed }}</p>
       </UFormField>
 
-      <div v-if="chosen" class="grid gap-4 sm:grid-cols-2">
-        <UFormField :label="$t('room.label.room_add_mode')" name="mode" :help="mode === undefined ? undefined : modeHelp(mode)">
-          <ChoiceSelect v-model="mode" :items="modeItems" value-key="value" class="w-full" :aria-label="$t('room.label.room_add_mode')" />
-        </UFormField>
+      <div v-if="chosen" class="grid gap-4">
         <UFormField :label="group ? $t('room.label.room_add_group_title') : $t('room.label.room_add_title')" name="title" :required="group">
           <UInput v-model="title" class="w-full" :placeholder="chosenTitle" :aria-label="group ? $t('room.label.room_add_group_title') : $t('room.label.room_add_title')" />
         </UFormField>
@@ -210,7 +207,6 @@ const found = computed(() => {
 // The modes the service offers, an avatar only where the room itself holds the service's avatar mode.
 const chosenRoom = computed(() => (tab.value === "rooms" ? (rooms.value.find((room) => room.id === roomId.value) ?? null) : null));
 const offeredModes = computed(() => (service.value?.modes ?? []).filter((one) => one !== "avatar" || chosenRoom.value?.modes == null || chosenRoom.value.modes.includes("human-avatar")));
-const modeItems = computed(() => offeredModes.value.map((one) => ({ label: modeLabel(one), value: one })));
 // A group names the signed-in person's own supervisor or none: the supervisors the agency files under their account,
 // and no other person's.
 const ownSupervisors = computed(() => {
@@ -238,14 +234,6 @@ const startHelp = computed(() => {
   return group.value ? t("room.message.room_add_group", { n: contactIds.value.length }) : t("room.message.room_add_one_to_one");
 });
 
-// What a mode does to the room, said under the choice.
-function modeHelp(value: RoomAddMode): string {
-  return value === "avatar" ? t("room.message.room_add_mode_avatar") : t("room.message.room_add_mode_record_only");
-}
-
-function modeLabel(value: RoomAddMode): string {
-  return value === "avatar" ? t("room.label.room_add_mode_avatar") : t("room.label.room_add_mode_record_only");
-}
 
 function kindLabel(kind: string): string {
   if (kind === "owner") return t("room.label.room_add_kind_owner");
@@ -395,9 +383,10 @@ async function readContacts(): Promise<void> {
   }
 }
 
-// The mode offered alone is the one taken; with two, the choice is left to the reader.
+// The room is added answered where the service answers it in the person's own account, and for the record alone
+// where it does not; the reader chooses nothing, since the supervisors standing in the room say who answers it.
 function settleMode(): void {
-  mode.value = offeredModes.value.length === 1 ? offeredModes.value[0] : offeredModes.value.includes(mode.value as RoomAddMode) ? mode.value : undefined;
+  mode.value = offeredModes.value.includes("avatar") ? "avatar" : offeredModes.value[0];
 }
 
 function chooseRoom(room: RoomAddCandidate): void {

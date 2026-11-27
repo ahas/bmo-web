@@ -605,7 +605,6 @@ room:
     removal_not_administrator: Only an administrator can delete a room registration.
     removal_owners_chat: "This is the administrator's own private chat, so it can't be deleted."
     mode_no_chat_service: "This room isn't connected to any chat service, so avatar mode can't be turned on."
-    mode_save_failed: "Couldn't change the room's mode."
     supervisors_read_failed: "Couldn't load the room's supervisors."
     supervisors_save_failed: "Couldn't change the room's supervisors."
     mode_takes_no_avatar: "This room's chat service doesn't take replies, so avatar mode can't be turned on."
@@ -849,10 +848,6 @@ room:
     room_add_kind_group: Group
     room_add_kind_owner: Private
     room_add_kind_person: Person
-    room_add_mode: Mode
-    room_add_mode_avatar: Avatar
-    room_add_mode_record_only: Record only
-    room_add_modes: "Modes: {modes}"
     room_add_room: Room
     room_add_search: Search names
     road_record: Room record
@@ -969,8 +964,6 @@ room:
     removal_stays: "Items, Jobs, Job questions, searches and usage made from this room stay."
     room_removed: "This room's registration was deleted, so you've been moved to Home."
     text_copied: Text copied.
-    room_add_mode_avatar: "The room's agent answers as your account."
-    room_add_mode_record_only: "Only reads and records, and doesn't answer."
     room_add_nothing: "This chat service provides neither a room list nor contacts, so rooms can't be added here."
     room_add_contacts_mine: "My account's contacts"
     room_add_contacts_service: "Chat service account's contacts"

@@ -605,7 +605,6 @@ room:
     removal_not_administrator: ルームの登録を削除できるのは管理者だけです。
     removal_owners_chat: 管理者自身の個人チャットのため削除できません。
     mode_no_chat_service: どのチャットサービスにもつながっていないルームのため、アバターモードをオンにできません。
-    mode_save_failed: ルームのモードを変更できませんでした。
     supervisors_read_failed: ルームのスーパーバイザーを読み込めませんでした。
     supervisors_save_failed: ルームのスーパーバイザーを変更できませんでした。
     mode_takes_no_avatar: このルームはチャットサービスが返信を受け付けないため、アバターモードをオンにできません。
@@ -849,10 +848,6 @@ room:
     room_add_kind_group: グループ
     room_add_kind_owner: 個人
     room_add_kind_person: 人
-    room_add_mode: モード
-    room_add_mode_avatar: アバター
-    room_add_mode_record_only: 記録のみ
-    room_add_modes: "モード: {modes}"
     room_add_room: ルーム
     room_add_search: 名前を検索
     road_record: 会話記録
@@ -969,8 +964,6 @@ room:
     removal_stays: このルームで作成した項目、Job、Job の質問、検索、使用量は残ります。
     room_removed: このルームの登録が削除されたため、ホームに移動しました。
     text_copied: テキストをコピーしました。
-    room_add_mode_avatar: ルームのエージェントがあなたのアカウントとして返信します。
-    room_add_mode_record_only: 読んで記録するだけで返信しません。
     room_add_nothing: このチャットサービスはルーム一覧も連絡先も提供していないため、ここでは追加できません。
     room_add_contacts_mine: 自分のアカウントの連絡先
     room_add_contacts_service: チャットサービスのアカウントの連絡先

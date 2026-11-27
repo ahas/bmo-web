@@ -1771,8 +1771,7 @@ Four groups.
   - **채팅 서비스 방 추가 adds a room** for the administrator, in a dialog of choices made in
     turn, each offered by what the chat service declares and never by its name (the receiver's `docs/api.md`,
     「Rooms」):
-    - **A chat service:** every one the receiver names that takes a mode, each with the modes it states said
-      under the choice. One that neither lists its account's rooms (`listsRooms`) nor its contacts
+    - **A chat service:** every one the receiver names that takes a mode. One that neither lists its account's rooms (`listsRooms`) nor its contacts
       (`listsContacts`) is still offered, and says in one sentence that nothing can be added from it here.
     - **A room, in one of two tabs.** 기존 방, where the service lists its rooms, holds them page by page, the
       next page read as the reader reaches the list's end inside its own scroll — skeleton rows where it will land
@@ -1793,10 +1792,10 @@ Four groups.
       one-to-one where the service starts one (`startsChats`); where it starts groups (`startsGroups`), several may be
       chosen, and a group's name is then asked. A service that lists contacts but starts neither shows them and
       says that it starts no conversation. A tab the service does not offer does not stand.
-    - **A mode** among the service's `roomModes` — 아바타, the room's agents answering under the owner's account,
-      offered only where the room's own modes, where the service states them, hold `human-avatar`; or 기록 전용,
-      the room read and recorded and never answered — each said under the choice, with a title that may be left
-      empty, which a group needs.
+    - **A title** that may be left empty, which a group needs. The reader chooses no mode: the room is added
+      `avatar` where the service's `roomModes` offer it and the room's own modes, where the service states them,
+      hold `human-avatar`, and `record-only` otherwise. Who answers it is the supervisors standing in it, which its
+      members tab shows and sets (「대화상대」).
     - **A group's supervisor,** where several contacts are chosen and the service starts groups: 그룹 감독관, one
       of the signed-in person's own supervisors or 감독관 없음, said under the choice. The group carries only that
       supervisor, never another person's; added with none it carries none, and the default answerer answers it.

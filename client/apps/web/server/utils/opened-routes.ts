@@ -254,8 +254,6 @@ export const openedRoutes: readonly OpenedRoute[] = [
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/remove$/, scope: "user", administrator: true },
   { method: "POST", path: /^\/api\/rooms\/-?\d+\/remove$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/providers$/, scope: "user", administrator: true },
-  { method: "GET", path: /^\/api\/rooms\/-?\d+\/mode$/, scope: "user", administrator: true },
-  { method: "PUT", path: /^\/api\/rooms\/-?\d+\/mode$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/supervisors$/, scope: "user", administrator: true },
   { method: "PUT", path: /^\/api\/rooms\/-?\d+\/supervisors$/, scope: "user", administrator: true },
   { method: "GET", path: /^\/api\/rooms\/-?\d+\/background$/, scope: "user", administrator: true },

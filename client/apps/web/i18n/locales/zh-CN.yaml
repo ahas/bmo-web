@@ -605,7 +605,6 @@ room:
     removal_not_administrator: 仅管理员可以删除房间登记。
     removal_owners_chat: 这是管理员自己的私人聊天，无法删除。
     mode_no_chat_service: 此房间未连接任何聊天服务，无法开启代答模式。
-    mode_save_failed: 无法更改房间模式。
     supervisors_read_failed: 无法加载房间主管。
     supervisors_save_failed: 无法更改房间主管。
     mode_takes_no_avatar: 此房间的聊天服务不接收回复，无法开启代答模式。
@@ -849,10 +848,6 @@ room:
     room_add_kind_group: 群组
     room_add_kind_owner: 个人
     room_add_kind_person: 人员
-    room_add_mode: 模式
-    room_add_mode_avatar: 代答
-    room_add_mode_record_only: 仅记录
-    room_add_modes: "模式：{modes}"
     room_add_room: 房间
     room_add_search: 搜索名称
     road_record: 对话记录
@@ -969,8 +964,6 @@ room:
     removal_stays: 在此房间创建的条目、Job、Job 提问、搜索和用量将保留。
     room_removed: 此房间的登记已删除，已跳转到首页。
     text_copied: 已复制文本。
-    room_add_mode_avatar: 房间的智能体以你的账号回复。
-    room_add_mode_record_only: 只读取和记录，不回复。
     room_add_nothing: 此聊天服务既不提供房间列表也不提供联系人，无法在此添加。
     room_add_contacts_mine: 我的账号联系人
     room_add_contacts_service: 聊天服务账号联系人

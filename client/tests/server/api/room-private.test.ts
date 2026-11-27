@@ -163,7 +163,6 @@ const ADMINISTRATOR_ACTS: WriteAct[] = [
   { name: "forward into", handler: forward, event: (room) => message(GROUP, { body: { to: room } }), unit: "receiver" },
   { name: "forward out of", handler: forward, event: (room) => message(room, { body: { to: GROUP } }), unit: "receiver" },
   { name: "pin the room", handler: await route("rooms/[chatId]/pin.post"), event: (room) => roomOnly(room, { body: { pinned: true } }), unit: "receiver" },
-  { name: "set its mode", handler: await route("rooms/[chatId]/mode.put"), event: (room) => roomOnly(room, { body: { mode: "record-only" } }), unit: "receiver" },
   { name: "set its picture", handler: await route("avatars/[kind]/[id].put"), event: (room) => roomPicture(room, { parts: [picture] }), unit: "receiver" },
   { name: "drop its picture", handler: await route("avatars/[kind]/[id].delete"), event: (room) => roomPicture(room), unit: "receiver" }
 ];

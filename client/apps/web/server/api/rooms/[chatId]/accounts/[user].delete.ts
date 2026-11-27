@@ -1,7 +1,7 @@
 import { signedInUser } from "../../../../utils/accounts";
 import { takeOutOfRoom } from "../../../../utils/console-rooms";
 import { fail } from "../../../../utils/fail";
-import { requireEntry } from "../../../../utils/room-entry";
+import { requireEntry, requireLeavable } from "../../../../utils/room-entry";
 import { requireWritableRoom, roomReachChanged } from "../../../../utils/room-reach";
 
 import { wording } from "#shared/wording";
@@ -21,7 +21,8 @@ export default defineEventHandler(async (event): Promise<void> => {
 
   const leaving = signed.id !== null && user === String(signed.id);
 
-  if (!leaving) await requireEntry(signed, room, user, "take-out");
+  if (leaving) await requireLeavable(room);
+  else await requireEntry(signed, room, user, "take-out");
 
   await takeOutOfRoom(room, user, leaving ? user : String(signed.id));
   roomReachChanged({ account: Number(user), room, left: true });

@@ -33,7 +33,7 @@ const MEMBERS = {
     { person: null, name: LONG, status: "status-c", account: null, inConsole: false, grants: null }
   ],
   chatMembers: "listed",
-  entry: { letIn: false, takeOut: false },
+  entry: { letIn: false, takeOut: false, messenger: false, leaves: true },
   mayGrant: false
 } satisfies RoomMembersView;
 
@@ -108,7 +108,7 @@ async function rightsSheet(width: number, height: number, phone: boolean, kept: 
       body: JSON.stringify({
         members: kept.map((one) => ({ person: null, name: one.name, status: null, account: one.account, inConsole: true, grants: one.grants })),
         chatMembers: "listed",
-        entry: { letIn: true, takeOut: true },
+        entry: { letIn: true, takeOut: true, messenger: false, leaves: true },
         mayGrant: true
       } satisfies RoomMembersView)
     });
@@ -234,7 +234,7 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
   }, 90_000);
 
   test("with no members of a room no chat service carries, say there are none and why, and stand no list", async () => {
-    const none = { members: [], chatMembers: "no-service", entry: { letIn: false, takeOut: false }, mayGrant: false } satisfies RoomMembersView;
+    const none = { members: [], chatMembers: "no-service", entry: { letIn: false, takeOut: false, messenger: false, leaves: true }, mayGrant: false } satisfies RoomMembersView;
     const { page, close } = await sheetOpen(360, 780, true, { status: 200, body: none });
 
     try {
@@ -248,6 +248,35 @@ describe.skipIf(!origin || !touchReady())("a room's members", () => {
       await close();
     }
   }, 90_000);
+
+  // A room a messenger carries takes its people from the messenger: the tab says so where the add would stand, and no
+  // row stands rights to hand out (docs/web.md, the room screen's section on opening a room and letting people in).
+  for (const [width, height, phone] of [
+    [1280, 900, false],
+    [360, 780, true]
+  ] as const) {
+    test(`of a room a messenger carries, say people are added in the messenger and stand no add, ${width}px wide`, async () => {
+      const carried = { ...MEMBERS, entry: { letIn: false, takeOut: false, messenger: true, leaves: true }, mayGrant: true } satisfies RoomMembersView;
+      const { page, close } = await sheetOpen(width, height, phone, { status: 200, body: carried });
+
+      try {
+        const said = page.locator("[data-room-messenger-members]");
+
+        await said.waitFor({ timeout: 10_000 });
+        expect(await said.innerText()).toBe(wording("members.label.messenger_room"));
+        expect(await page.locator("[data-room-let-in]").count()).toBe(0);
+        expect(await page.locator("[data-member-rights]").count()).toBe(0);
+
+        // The line stands inside the sheet's width, read whole without a sideways scroll.
+        const box = (await said.boundingBox())!;
+
+        expect(box.x).toBeGreaterThanOrEqual(0);
+        expect(box.x + box.width).toBeLessThanOrEqual(width);
+      } finally {
+        await close();
+      }
+    }, 90_000);
+  }
 
   test("refused, say the refusal in the sheet's error band and stand no list", async () => {
     const said = wording("members.error.unheld");

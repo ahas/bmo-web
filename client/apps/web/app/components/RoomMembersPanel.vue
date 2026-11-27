@@ -8,7 +8,9 @@
        what that member may do to the room's people besides being one, which a reader the receiver would take such a
        writing from sets there, and nobody else sees. -->
   <div class="flex min-w-0 flex-col">
-    <div v-if="loaded && entry.letIn" class="mb-2 flex justify-end">
+    <!-- A room a messenger carries takes its people from the messenger, which this line says in place of the add. -->
+    <p v-if="loaded && entry.messenger" class="mb-2 text-sm text-muted" data-room-messenger-members>{{ $t("members.label.messenger_room") }}</p>
+    <div v-else-if="loaded && entry.letIn" class="mb-2 flex justify-end">
       <UButton size="sm" icon="i-material-symbols-person-add-outline" :label="$t('members.action.let_in')" data-room-let-in @click="letInOpen = true" />
     </div>
 
@@ -52,7 +54,7 @@
             <RoomMemberLine :member="member" :avatars="props.avatars" :presence="presenceOf(member)" />
           </div>
           <IconButton
-            v-if="member.inConsole && member.account !== null && member.account === mine"
+            v-if="member.inConsole && member.account !== null && member.account === mine && entry.leaves"
             icon="i-material-symbols-logout"
             class="mt-2"
             :label="$t('members.action.leave')"
@@ -61,7 +63,7 @@
             @click="void takeOut(member.account)"
           />
           <IconButton
-            v-else-if="member.inConsole && member.account !== null && entry.takeOut"
+            v-else-if="member.inConsole && member.account !== null && member.account !== mine && entry.takeOut"
             icon="i-material-symbols-person-remove-outline"
             class="mt-2"
             :label="$t('members.action.take_out')"
@@ -75,7 +77,7 @@
              standing as the receiver keeps it. The line stands under the member it names, on the member's own
              column, and only where the receiver would take this reader's writing of it. -->
         <div
-          v-if="mayGrant && member.grants !== null"
+          v-if="mayGrant && member.grants !== null && member.account !== mine && !entry.messenger"
           class="flex flex-wrap items-center gap-x-4 gap-y-2 pb-2 pl-13"
           role="group"
           :aria-label="$t('members.label.rights')"
@@ -149,7 +151,7 @@ const access = useSectionAccess();
 const mayOpenPeople = computed<boolean>(() => props.administrator || mayRead(access.value, "account"));
 
 const members = ref<RoomMember[]>([]);
-const entry = ref<RoomEntry>({ letIn: false, takeOut: false });
+const entry = ref<RoomEntry>({ letIn: false, takeOut: false, messenger: false, leaves: false });
 // Whether this reader may hand a member the rights of letting people in and taking members out, as the receiver says
 // it beside the rights themselves.
 const mayGrant = ref(false);

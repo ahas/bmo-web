@@ -2322,6 +2322,7 @@ members:
   title:
     let_in: 대화상대 추가
   label:
+    messenger_room: 대화상대는 메신저에서 직접 추가합니다.
     console_user: 콘솔 사용자
     none: 대화상대 없음
     no_service: 채팅 서비스가 없는 방입니다.
@@ -2341,6 +2342,8 @@ members:
     leave: 나가기
     take_out: 내보내기
   error:
+    messenger_room: 메신저에서 받은 방이라 대화상대는 메신저에서 직접 추가해야 합니다.
+    leave_private: 에이전트와의 1:1 대화방에서는 나갈 수 없습니다.
     load_failed: 대화상대를 불러오지 못했습니다.
     unheld: 채팅 서비스에서 이 방의 대화상대를 읽지 못했습니다.
     accounts_failed: 콘솔 사용자인지 확인하지 못했습니다.

@@ -92,16 +92,17 @@ describe("the members tab", () => {
     expect(sheet).toContain('props.administrator || mayRead(access.value, "account")');
   });
 
-  test("offers letting a person in to a reader who may, leaving on their own row and taking out to a reader who may", () => {
-    expect(sheet).toContain('v-if="loaded && entry.letIn"');
+  test("offers letting a person in to a reader who may in a room the console made, leaving on their own row of a room one leaves, and taking out to a reader who may", () => {
+    expect(sheet).toContain('v-if="loaded && entry.messenger"');
+    expect(sheet).toContain('v-else-if="loaded && entry.letIn"');
     expect(sheet).toContain('<RoomLetInDialog v-model:open="letInOpen"');
-    expect(sheet).toContain('v-if="member.inConsole && member.account !== null && member.account === mine"');
-    expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && entry.takeOut"');
+    expect(sheet).toContain('v-if="member.inConsole && member.account !== null && member.account === mine && entry.leaves"');
+    expect(sheet).toContain('v-else-if="member.inConsole && member.account !== null && member.account !== mine && entry.takeOut"');
     expect(sheet).toContain("await $fetch(`/api/rooms/${props.chatId}/accounts/${account}`, { method: \"DELETE\" });");
   });
 
-  test("stands a member's rights in the room under their row for a reader the receiver would take a writing from, and nowhere else", () => {
-    expect(sheet).toContain('v-if="mayGrant && member.grants !== null"');
+  test("stands a member's rights in the room under their row for a reader the receiver would take a writing from, never on the reader's own row nor in a messenger's room, and nowhere else", () => {
+    expect(sheet).toContain('v-if="mayGrant && member.grants !== null && member.account !== mine && !entry.messenger"');
     expect(sheet).toContain(':model-value="member.grants?.[offered.key] === true"');
     expect(sheet).toContain('await $fetch<RoomGrants>(at, { method: "PUT", body: { right: offered.right } });');
     expect(sheet).toContain('await $fetch(at, { method: "DELETE", query: { right: offered.right } });');

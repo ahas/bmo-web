@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import { globalsRestoredAfter } from "../../support/globals";
+import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
@@ -161,6 +162,21 @@ describe("an account with no chat service's identity", () => {
     expect((await asked(takeOut, { params: { chatId: String(GROUP), user: String(INVITED) } })).status).toBe(200);
     expect(receiver.asked.some((one) => one.path === `/rooms/${GROUP}/accounts/${INVITED}?by=${INVITED}`)).toBe(true);
     expect(accounts.asked.some((one) => one.path === "/checks/entry")).toBe(false);
+  });
+
+  // A messenger's room takes its people from the messenger, and a person's own room with an agent is left by nobody.
+  test("lets nobody into a messenger's room, and lets nobody leave a private room, writing nothing", async () => {
+    signedAs(INVITED);
+    receiver.asked.length = 0;
+
+    const toChat = await asked(letIn, { params: { chatId: String(CHAT), user: String(COLLEAGUE) } });
+
+    expect({ status: toChat.status, message: toChat.message }).toEqual({ status: 403, message: wording("members.error.messenger_room") });
+
+    const leaving = await asked(takeOut, { params: { chatId: String(PRIVATE), user: String(INVITED) } });
+
+    expect({ status: leaving.status, message: leaving.message }).toEqual({ status: 403, message: wording("members.error.leave_private") });
+    expect(writes()).toEqual([]);
   });
 
   test("has its own BMO beside the group room, over the room the receiver names its private room", async () => {

@@ -1,7 +1,7 @@
 import { signedInUser } from "../../../../utils/accounts";
 import { letSeveralIntoRoom, letUnitIntoRoom, roomAccounts } from "../../../../utils/console-rooms";
 import { fail } from "../../../../utils/fail";
-import { requireEntry } from "../../../../utils/room-entry";
+import { requireConsoleRoom, requireEntry } from "../../../../utils/room-entry";
 import { requireWritableRoom, roomReachChanged } from "../../../../utils/room-reach";
 import { unitsPeople } from "../../../../utils/room-units";
 
@@ -34,6 +34,7 @@ export default defineEventHandler(async (event): Promise<void> => {
   const throughUnits = new Set(organisations.flatMap((unit) => unit.people));
   const alone = fresh(accounts).filter((account) => !throughUnits.has(account));
 
+  await requireConsoleRoom(room);
   await Promise.all(fresh([...alone, ...throughUnits]).map((account) => requireEntry(signed, room, account, "let-in")));
 
   const by = String(signed.id);

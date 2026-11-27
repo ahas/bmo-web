@@ -21,6 +21,11 @@ const receiver = standIn("RECEIVER", (one) => {
   if (one.path === `/rooms/${ROOM}/accounts`) return answer({ accounts: [{ account: "7", addedBy: null, addedAt: 1 }, { account: "12", addedBy: "7", addedAt: 2 }] });
   if (one.path === "/rooms/-12/accounts") return answer({ accounts: [{ account: "12", addedBy: null, addedAt: 1 }, { account: "13", addedBy: "12", addedAt: 2 }] });
   if (one.path.endsWith("/accounts")) return answer({ accounts: [] });
+  // The chat services each room stands on: -12, -14 and -15 the record alone, as rooms the console made; every other
+  // room a messenger carries beside it.
+  if (/^\/rooms\/-?\d+\/providers$/.test(one.path)) {
+    return answer({ providers: ["/rooms/-12/providers", "/rooms/-14/providers", "/rooms/-15/providers"].includes(one.path) ? ["record"] : ["record", "chat-a"] });
+  }
   // Whose private room each room is: -14 is an account's own private room, -15 a sealed one, every other room no one's.
   if (/^\/rooms\/-?\d+$/.test(one.path)) {
     return answer({ id: Number(one.path.split("/")[2]), title: null, privateOf: one.path === "/rooms/-14" ? 12 : null, sealed: one.path === "/rooms/-15" });
@@ -78,7 +83,8 @@ describe("a room's members", () => {
         { person: null, name: "person-12", status: null, account: "12", inConsole: true, grants: null }
       ],
       chatMembers: "listed",
-      entry: { letIn: true, takeOut: true },
+      // A messenger carries the room: its people are let in there, never here.
+      entry: { letIn: false, takeOut: true, messenger: true, leaves: true },
       mayGrant: false
     });
     // One lookup for every member with a number, and none for the member without one or the row with no name; then
@@ -89,9 +95,9 @@ describe("a room's members", () => {
     ]);
   });
 
-  test("of a private room, sealed or not, offer nobody to let in, the administrator included, since the receiver keeps them as they stand", async () => {
-    expect((await asked(read, { params: { chatId: "-14" } })).answer?.entry).toEqual({ letIn: false, takeOut: false });
-    expect((await asked(read, { params: { chatId: "-15" } })).answer?.entry).toEqual({ letIn: false, takeOut: false });
+  test("of a private room, sealed or not, offer nobody to let in and nobody a leave, the administrator included, since the receiver keeps them as they stand", async () => {
+    expect((await asked(read, { params: { chatId: "-14" } })).answer?.entry).toEqual({ letIn: false, takeOut: false, messenger: false, leaves: false });
+    expect((await asked(read, { params: { chatId: "-15" } })).answer?.entry).toEqual({ letIn: false, takeOut: false, messenger: false, leaves: false });
   });
 
   test("of a room no chat service carries are its accounts alone, each by its person's name, its login where none stands", async () => {
@@ -101,13 +107,13 @@ describe("a room's members", () => {
         { person: null, name: "account-13", status: null, account: "13", inConsole: true, grants: null }
       ],
       chatMembers: "no-service",
-      entry: { letIn: true, takeOut: true },
+      entry: { letIn: true, takeOut: true, messenger: false, leaves: true },
       mayGrant: false
     });
   });
 
-  test("of a room whose chat service lists no members are its accounts alone, none here, with no refusal", async () => {
-    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", entry: { letIn: true, takeOut: true }, mayGrant: false });
+  test("of a room whose chat service lists no members are its accounts alone, none here, with no refusal, and a messenger's to let people in", async () => {
+    expect((await asked(read, { params: { chatId: "-9" } })).answer).toEqual({ members: [], chatMembers: "unlisted", entry: { letIn: false, takeOut: true, messenger: true, leaves: true }, mayGrant: false });
   });
 
   test("say the receiver's refusal by the pack's sentence for its code, and ask the account service nothing", async () => {

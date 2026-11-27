@@ -2301,6 +2301,7 @@ members:
   title:
     let_in: Add members
   label:
+    messenger_room: People are added to this room in the messenger itself.
     console_user: Console user
     none: No members
     no_service: This room has no chat service.
@@ -2320,6 +2321,8 @@ members:
     leave: Leave
     take_out: Remove
   error:
+    messenger_room: A messenger carries this room, so people are added in the messenger itself.
+    leave_private: A one-to-one room with an agent cannot be left.
     load_failed: "Couldn't load members."
     unheld: "Couldn't read this room's members from the chat service."
     accounts_failed: "Couldn't check whether they're console users."

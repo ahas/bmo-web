@@ -39,7 +39,7 @@ const AVATARS: AvatarRef[] = [
   { kind: "room", id: OWNER_CHAT, url: "/api/images/owner-room-face.png" },
   { kind: "room", id: OWN_BMO_CHAT, url: "/api/images/own-room-face.png" }
 ];
-const MEMBERS = { members: [{ person: null, name: PERSON.name, status: null, account: null, inConsole: true, grants: null }], chatMembers: "listed", entry: { letIn: false, takeOut: false }, mayGrant: false } satisfies RoomMembersView;
+const MEMBERS = { members: [{ person: null, name: PERSON.name, status: null, account: null, inConsole: true, grants: null }], chatMembers: "listed", entry: { letIn: false, takeOut: false, messenger: false, leaves: true }, mayGrant: false } satisfies RoomMembersView;
 
 const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");
 const WIDTHS = [

@@ -2317,6 +2317,7 @@ members:
   title:
     let_in: メンバーを追加
   label:
+    messenger_room: メンバーはメッセンジャーで直接追加します。
     console_user: コンソールユーザー
     none: メンバーなし
     no_service: チャットサービスのないルームです。
@@ -2336,6 +2337,8 @@ members:
     leave: 退出
     take_out: 退出させる
   error:
+    messenger_room: メッセンジャーから届いたルームのため、メンバーはメッセンジャーで直接追加してください。
+    leave_private: エージェントとの1対1のルームからは退出できません。
     load_failed: メンバーを読み込めませんでした。
     unheld: チャットサービスからこのルームのメンバーを読み取れませんでした。
     accounts_failed: コンソールユーザーかどうか確認できませんでした。

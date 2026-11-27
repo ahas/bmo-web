@@ -2317,6 +2317,7 @@ members:
   title:
     let_in: 添加成员
   label:
+    messenger_room: 成员请直接在即时通讯应用中添加。
     console_user: 控制台用户
     none: 无成员
     no_service: 此房间没有聊天服务。
@@ -2336,6 +2337,8 @@ members:
     leave: 退出
     take_out: 移出
   error:
+    messenger_room: 此聊天室来自即时通讯应用，成员需在该应用中直接添加。
+    leave_private: 无法退出与代理的一对一聊天室。
     load_failed: 无法加载成员。
     unheld: 无法从聊天服务读取此房间的成员。
     accounts_failed: 无法确认是否为控制台用户。

@@ -25,7 +25,7 @@ const origin = process.env.BMO_CONSOLE_TEST_URL;
 const ACCOUNT = { name: "room-info", password: "fixture-password-3755" };
 const RECORD_CHAT = -9_000_000_000_099;
 
-const MEMBERS = { members: [{ person: 9_000_000_000_101, name: "member-a", status: null, account: null, inConsole: false, grants: null }], chatMembers: "listed", entry: { letIn: false, takeOut: false }, mayGrant: false } satisfies RoomMembersView;
+const MEMBERS = { members: [{ person: 9_000_000_000_101, name: "member-a", status: null, account: null, inConsole: false, grants: null }], chatMembers: "listed", entry: { letIn: false, takeOut: false, messenger: false, leaves: true }, mayGrant: false } satisfies RoomMembersView;
 
 // A one-pixel picture, for the media tab's square.
 const PIXEL = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==", "base64");

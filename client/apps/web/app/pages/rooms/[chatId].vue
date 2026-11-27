@@ -1203,7 +1203,7 @@ function openInfo(tab: RoomInfoTab): void {
 }
 
 // What the reader may do to the room's members, read as the screen opens; the members tab reads it again with them.
-const { data: entry } = useFetch<RoomEntry>(`/api/rooms/${chatId}/entry`, { key: `room-entry:${chatId}`, lazy: true, server: false, default: () => ({ letIn: false, takeOut: false }) });
+const { data: entry } = useFetch<RoomEntry>(`/api/rooms/${chatId}/entry`, { key: `room-entry:${chatId}`, lazy: true, server: false, default: () => ({ letIn: false, takeOut: false, messenger: false, leaves: false }) });
 // The dialog that lets people in, standing over the room information's members tab.
 const letInOpen = ref(false);
 

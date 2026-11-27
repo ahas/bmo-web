@@ -6510,7 +6510,8 @@ Four bounds keep it from growing forever.
   the console makes」). The console asks one member's read before the rest, since that read carries the answer for
   every member, and asks nowhere the room's people are not its to change in the console. A reader told it writes
   nothing here sees the list without the controls, never a control that refuses, and a member the console does not
-  know as an account carries none. Every switch is named for the member whose right it stands.
+  know as an account carries none, nor does the reader's own row, nor any row of a room a messenger carries, whose
+  people the messenger keeps. Every switch is named for the member whose right it stands.
 - **A right is given or taken back as it is pressed, and the switch stands as the answer says.** Giving one is a
   change to that member's rights route and taking one back its removal, each naming the right and made as the signed-in
   account; the receiver keeps it beside the membership and answers the member's rights as they now stand, and a
@@ -6540,9 +6541,13 @@ Four bounds keep it from growing forever.
   member. The room stands in the opener's company and belongs to the opener's unit, since a room belongs to its
   leader's unit and its leader is the opener (`docs/accounts.md`, 「A room's callers」). A reader with no BMO of their
   own is told so and nothing is made; the console goes to the room once it stands.
+- **People are let in only in a room the console made.** A room a messenger carries — any chat service on its list
+  beside the record — takes its people from that messenger: its 대화상대 tab and its menu offer no 대화상대 추가, the tab
+  says in its place 대화상대는 메신저에서 직접 추가합니다, and the console's server refuses a letting in there however it is
+  asked. A room whose list of chat services cannot be read offers no letting in either.
 - **대화상대 추가 lets people in, several at once.** Every reader who may write in the room may let people in: each
-  member, the administrator among them, whose rooms section writes, in any room but a private room or a sealed one,
-  as the account service answers it (`POST /checks/entry`, letting in; `docs/accounts.md`, 「A room's callers」).
+  member, the administrator among them, whose rooms section writes, in any room the console made but a private room
+  or a sealed one, as the account service answers it (`POST /checks/entry`, letting in; `docs/accounts.md`, 「A room's callers」).
   The 대화상대 tab carries it for such a reader, and so does the room's menu, so it is found from the room's own
   screen: the menu's entry opens 방 정보 on its 대화상대 tab with the dialog standing over it, the room's people
   behind it. Which of the two the reader may do, letting in and taking out, the console's server reads as the room's
@@ -6582,7 +6587,8 @@ Four bounds keep it from growing forever.
     the room, and no account but the one let in hears it. A person taken out, or leaving, is told the same way and the
     room leaves their list. A sign-in made later reads the room among their rooms as every room is read.
 - **A member leaves by themselves, and one who may take members out takes a member out.** A console member's row
-  carries 나가기 for the reader's own row and 내보내기 for the others where the reader may take members out: the
+  carries 나가기 for the reader's own row — never in a person's own one-to-one room with an agent, a private room, which
+  the console's server refuses leaving too — and 내보내기 for the others where the reader may take members out: the
   room's opener, a head of the opener's unit or the administrator, as the account service answers it (`POST
   /checks/entry`, taking out); another member who lets people in takes nobody out. Taken out
   (`DELETE /rooms/{roomId}/accounts/{account}`), the receiver writes who took whom out, or that a person left,

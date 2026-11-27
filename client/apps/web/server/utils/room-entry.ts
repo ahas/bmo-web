@@ -1,8 +1,10 @@
 import { AccountRefusal, AccountServiceDown, checkEntry } from "./account-service";
+import { roomRoads } from "./receiver";
 import { privacyOf } from "./room-privacy";
 import { fail } from "./fail";
 import { sectionAccessOf } from "./section-access";
 
+import { RECORD_ROAD } from "#shared/roads";
 import { mayWrite } from "#shared/sections";
 import { wording } from "#shared/wording";
 
@@ -16,22 +18,45 @@ import type { RoomEntry } from "#shared/types";
 // opening a room and letting people in). Whether the login writes in the room at all is the console's own word, asked
 // first.
 
-const NEITHER: RoomEntry = { letIn: false, takeOut: false };
+/** Whether a messenger carries the room: a chat service stands on its list beside the record, so its people are the
+ * messenger's to let in. A list that cannot be read is taken as one, so nothing is let in on a guess. */
+export async function messengerRoom(room: number): Promise<boolean> {
+  const roads = await roomRoads(room).catch(() => null);
+
+  return roads === null || roads.some((road) => road !== RECORD_ROAD);
+}
 
 /** What the signed-in login may do to the room's members, for the room's screen and its members tab: nothing in a
  * private or sealed room, whose members the receiver keeps as they stand, nor for a login whose rooms section only
- * reads; a check that cannot be made offers nothing. */
+ * reads; no letting in where a messenger carries the room; a check that cannot be made offers nothing. A member leaves
+ * any room but a private one. */
 export async function roomEntry(signed: SignedIn, room: number): Promise<RoomEntry> {
-  // A private room, a sealed one, or one whose privacy cannot be read, offers nobody.
+  // A private room, a sealed one, or one whose privacy cannot be read, offers nobody and is left by nobody.
+  const [privacy, messenger] = await Promise.all([privacyOf(room).catch(() => null), messengerRoom(room)]);
+  const none: RoomEntry = { letIn: false, takeOut: false, messenger, leaves: false };
+
+  if (privacy === null || privacy.privateOf !== null || privacy.sealed) return none;
+
+  const shared: RoomEntry = { ...none, leaves: true };
+
+  if (signed.administrator) return { ...shared, letIn: !messenger, takeOut: true };
+  if (signed.id === null || !(await writesRooms(signed.id))) return shared;
+
+  const [letIn, takeOut] = await Promise.all([messenger ? false : mayDo(signed.id, room, "let-in"), mayDo(signed.id, room, "take-out")]);
+
+  return { ...shared, letIn, takeOut };
+}
+
+/** A letting in refused where a messenger carries the room, however it is asked. */
+export async function requireConsoleRoom(room: number): Promise<void> {
+  if (await messengerRoom(room)) throw fail(403, wording("members.error.messenger_room"));
+}
+
+/** A leaving refused from a private room, a person's own one-to-one room with an agent. */
+export async function requireLeavable(room: number): Promise<void> {
   const privacy = await privacyOf(room).catch(() => null);
 
-  if (privacy === null || privacy.privateOf !== null || privacy.sealed) return NEITHER;
-  if (signed.administrator) return { letIn: true, takeOut: true };
-  if (signed.id === null || !(await writesRooms(signed.id))) return NEITHER;
-
-  const [letIn, takeOut] = await Promise.all([mayDo(signed.id, room, "let-in"), mayDo(signed.id, room, "take-out")]);
-
-  return { letIn, takeOut };
+  if (privacy === null || privacy.privateOf !== null || privacy.sealed) throw fail(403, wording("members.error.leave_private"));
 }
 
 /** The login may do `act` to `user` in the room, or a refusal in the pack's words. */

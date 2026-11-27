@@ -55,6 +55,8 @@ const receiver = standIn("RECEIVER", (one) => {
   if (path === `/supervisors/u${READER}/rooms`) return answer({ items: [{ id: GROUP, title: null, named: true, alone: true }], more: false });
   if (path === `/accounts/${READER}/rooms`) return answer({ rooms: [GROUP] });
   if (path === `/rooms/${GROUP}`) return answer({ id: GROUP, title: null, privateOf: null });
+  // The group is a room the console made: the record alone carries it.
+  if (path === `/rooms/${GROUP}/providers`) return answer({ providers: ["record"], chosen: false, fileLimit: null });
   if (path === `/rooms/${GROUP}/accounts` && one.method === "POST") {
     return answer({ accounts: [], letIn: letIn((one.body?.accounts as number[]).map(String)) });
   }

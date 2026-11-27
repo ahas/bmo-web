@@ -1,7 +1,7 @@
 import { signedInUser } from "../../../../utils/accounts";
 import { letIntoRoom } from "../../../../utils/console-rooms";
 import { fail } from "../../../../utils/fail";
-import { requireEntry } from "../../../../utils/room-entry";
+import { requireConsoleRoom, requireEntry } from "../../../../utils/room-entry";
 import { requireWritableRoom, roomReachChanged } from "../../../../utils/room-reach";
 
 import { wording } from "#shared/wording";
@@ -18,6 +18,7 @@ export default defineEventHandler(async (event): Promise<void> => {
 
   if (!/^\d+$/.test(user)) throw fail(400, wording("members.error.entry_failed"));
 
+  await requireConsoleRoom(room);
   await requireEntry(signed, room, user, "let-in");
   await letIntoRoom(room, user, String(signed.id));
   roomReachChanged({ account: Number(user), room, left: false });

@@ -3028,12 +3028,16 @@ export interface RoomMember {
 // with no failure, since no chat service carries the room or its chat service lists no members.
 export type RoomChatMembers = "listed" | "no-service" | "unlisted";
 
-// What the reader may do to a room's members: let people in, which every member who writes there may, and take
-// members out, which the room's opener, a head of the opener's unit and the administrator may (docs/web.md, the room
-// screen's section on opening a room and letting people in).
+// What the reader may do to a room's members: let people in, which every member who writes in a room the console made
+// may, and take members out, which the room's opener, a head of the opener's unit and the administrator may; whether a
+// messenger carries the room, which then takes its people from the messenger; and whether a member leaves it, which no
+// one does from a person's own one-to-one room with an agent (docs/web.md, the room screen's section on opening a room
+// and letting people in).
 export interface RoomEntry {
   letIn: boolean;
   takeOut: boolean;
+  messenger: boolean;
+  leaves: boolean;
 }
 
 // A room's members, what its chat service gave of them, what the reader may do to them, and whether the reader may

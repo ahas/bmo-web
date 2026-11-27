@@ -6,7 +6,9 @@ import type { ModelPage, ModelView } from "#shared/agency";
 export default defineEventHandler(async (event): Promise<ModelPage> => {
   await requireUserSession(event);
 
-  const page = await agencyCall(agency(event).GET("/models"));
+  // Where the address names a node, the agency answers the registrations that stand there and reach.
+  const scope = ownerParamsOf(getQuery(event));
+  const page = await agencyCall(scope === undefined ? agency(event).GET("/models") : agency(event).GET("/models", { params: { query: scope } }));
 
   return {
     items: page.items.map((one): ModelView => {

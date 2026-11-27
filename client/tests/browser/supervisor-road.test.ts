@@ -100,7 +100,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
       const cellA = page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent A" }), exact: true });
       const cellC = page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent C" }), exact: true });
 
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
       await cellA.waitFor({ timeout: 15_000 });
       expect((await cellA.innerText()).trim()).toBe(`${CLAUDE} · claude-opus-5-5 · high`);
       expect((await cellC.innerText()).trim()).toBe(`${DEEPSEEK} · deepseek-v4-pro`);
@@ -148,7 +148,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
 
       // Galaxy S25 in portrait.
       await page.setViewportSize({ width: 412, height: 915 });
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
       await cellA.waitFor({ timeout: 15_000 });
       await cellA.click();
 
@@ -239,7 +239,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
         .getByRole("note")
         .filter({ hasText: wording("agents.message.road_outside_owner", { provider: DEEPSEEK }).split("\n")[0]! });
 
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
 
       // Agent C, filed under no account, stands on DeepSeek, which declares its engine not the owner's own.
       const cellC = page.getByRole("button", { name: wording("agents.aria.road_of", { name: "Agent C" }), exact: true });
@@ -286,7 +286,7 @@ describe.skipIf(!origin || !touchReady())("a supervisor's road", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+        await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
         await page.getByRole("button", { name: wording("agents.title.supervisor_add"), exact: true }).click();
 
         const form = page.getByRole("dialog");

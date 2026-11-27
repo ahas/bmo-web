@@ -7,8 +7,7 @@
 - **It holds the decisions, never the policy of a screen or a room.** Who a session is, who a phone key
   belongs to, whether a user may let a person into a room: the service answers. What a screen shows and what
   a unit does with a refusal are the console's and that unit's.
-- **It keeps no permission on what a room's members may have the chat agent do, nor on what a BMO may do.** A
-  group room's delegated permissions are the owner's room rules in the chat agent's brain, and the rest of what an
+- **It keeps no permission on what a room's members may have the chat agent do, nor on what a BMO may do.** What an
   agent may do stands in its prompts and its brain; this service neither holds nor reads either. Its grants are
   people's console permissions: sections, org memory writes, units and the platform.
 - **It stands on its own PostgreSQL database** and on a Valkey for sumida's sessions. Its tables are its own:
@@ -1075,6 +1074,10 @@ section states what each does.
   - **The administrator's agents** (the supervisor of no account, and the workers and runners it orders) are handed
     a name and read it in `env/`, where the chat agent's request names it (agency's chat procedure 「Asking for a
     secret」).
+  - **An agent filed under an organisation unit** — agency's supervisor or seat row carrying the unit and no
+    account — is handed its names from `units/<unit>/` instead: its run opens on this machine as an
+    administrator's does, but the space resolved for it is the unit's, so it reaches its unit's keys and login
+    and no other space's.
   - **A person's own secret is read on this machine, by a unit acting for that person,** which takes the person from
     the account its caller's credential names, never from an argument, and reads `users/<user>/<name>`. A person's
     agents stand on their own PC (agency's `docs/person-nodes.md`, 「Which node is a person's」), where the data
@@ -1119,9 +1122,15 @@ section states what each does.
   file is its bytes unchanged. The console's form writes the file by these rules and hands the store the whole of
   it (`docs/web.md`, 「비밀 보관함」); the store keeps no kind, and its list reads one off a file's shape
   (「The secret store」).
-- **The deployment's, kept by the administrator.** Every person's secret form asks in the same kinds, so any login
-  reads them; the administrator alone adds, changes and removes one, and the routes refuse a kind that breaks the
-  rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not change once added.
+- **The deployment's, kept by the administrator.** The administrator alone adds, changes and removes one, and the
+  routes refuse a kind that breaks the rules above (`docs/boundary.md`, 「Secret kinds」). A kind's key does not
+  change once added.
+- **Which kinds each link may keep stands on the chain,** as the setting kind `secret.kinds` (「The kinds the
+  service's own consumers declare」): `keys`, `narrowing`, so a link may only narrow what the links above offer, and
+  it is re-declared from the registry each time the registry changes, its choices the keys the registry then holds.
+  A person's secret form offers the kinds resolved for them, and a unit's store the kinds resolved for its unit; a
+  value the store writes is refused where the file reads as a kind the link is not offered. Where the kind says
+  nothing for a link, every registered kind stands offered.
 - **The defaults are seeded once each,** with their names and labels from the server's pack (`secret-kinds`), in
   this order: API key; account login, a user name and a password; AWS access key, the access key id, the secret
   access key and the region; OAuth client, the client id and the client secret; database connection, the host, the
@@ -1280,6 +1289,8 @@ Each is declared by the module that uses it, as the service stands, under the un
 | `agent-profile.name` | the name an organisation's default gives its people's BMOs (「A person's BMO profile」) | a text, `nearest` | the platform and units; `manage` |
 | `agent-profile.call-names` | the names that call them | `json`, a list this service judges, `nearest` | the platform and units; `manage` |
 | `agent-profile.picture` | whether the link's own kept picture stands as theirs | a flag, `nearest` | the platform and units; `manage` |
+| `secret.kinds` | which secret kinds the links below may keep (「Secret kinds」) | keys, `narrowing`, every registered kind by default, with rules | the platform and units; `manage` |
+| `mail.system` | a link's system outgoing mail (「The platform's own mail」) | `json`, `nearest`, judged and written by this service | the platform and units; `manage` |
 
 - **The org memory's lock stands in the brain,** as a mark on each memory of an org brain, and the brain resolves a
   topic by the same rule a lock follows here: the farthest unit on the path holding a locked memory of it, else the
@@ -1557,8 +1568,16 @@ under its token; the console is the one caller, and a browser reaches none of th
   bmo-mail, which keeps the mail servers as records many accounts choose from. The administrator sets the system mail
   on the 시스템 및 조직 screen's 메일 tab with the platform chosen (`docs/web.md`, 「메일」): one of the outgoing server records bmo-mail keeps for the platform, the sender's address and name, and
   the name of a secret in the platform's space of the secret store (「The secret store」) of the kind `account-login`,
-  whose `USERNAME` and `PASSWORD` the server is signed in with. It is kept in the service's `settings` under
-  `mail.system`.
+  whose `USERNAME` and `PASSWORD` the server is signed in with.
+- **The system mail stands on the delegation chain,** as the setting kind `mail.system` (「The kinds the service's
+  own consumers declare」): its value at the platform link is the platform's system mail, and the 메일 tab reads and
+  writes that link. An organisation unit may hold a mail of its own as the same kind's value at its unit link, set
+  through the chain's own routes (「A link's entry」) and readable and settable only down the chain, its login a name
+  in that unit's space; a unit that says none follows the platform's.
+- **A send to a person goes on the nearest mail their chain answers:** their unit's own where it holds one, the
+  platform's otherwise. A login named in a value answered at a unit link goes to bmo-mail as its address under
+  `env/` — `units/<unit>/<name>` — so it is read in that unit's space; the platform link's name goes as it
+  stands. The `GET /mail` and `PUT /mail` routes and the administrator's test send are the platform link alone.
 - **No password of the mail server stands here.** The setting names the secret alone, and the send names it to
   bmo-mail, which reads it off the data root's `env/` as every unit reads a secret by its name; the service never
   reads its value, and no route answers it.

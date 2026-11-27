@@ -623,7 +623,7 @@ room:
     no_account: 需要使用账号登录。
     private_room: 无法更改他人的私人房间。
     open_title: 请输入房间名称。
-    open_no_bmo: 你没有自己的 BMO，无法创建房间。
+    open_no_bmo: 你没有自己的主管，无法创建房间。
     open_failed: 无法创建房间。
     session_failed: 无法加载会话信息。
     unpin_failed: 无法取消置顶房间。
@@ -650,7 +650,7 @@ room:
     attach_file: 添加附件
     attach_media: 照片/视频
     brain_read_page: 在 Brain 中查看
-    overlay: 与我的 BMO 单独对话
+    overlay: 与我的主管单独对话
     cancel_recording: 取消录音
     cancel_reply: 取消回复
     choose_messages: 选择消息
@@ -1248,7 +1248,6 @@ monitor_logs:
     read_failed: 无法加载日志。
 screens:
   label:
-    agents: 代理中心
     agents_group: "智能体 · {name}"
     artifact: 制品
     chat_id: 聊天编号
@@ -1266,7 +1265,7 @@ screens:
     live: 实时状态
     mail: 邮件
     monitor: 监控
-    organization: 系统及组织
+    organization: 平台
     remote: 远程
     research: 调研
     search: 搜索
@@ -1374,7 +1373,7 @@ todo:
     bad_agent: 智能体名称无效。
     bad_role: 角色名称无效。
     no_candidate: "没有在 {role} 角色中运行 {model} 模型的智能体。\n{role} 角色的智能体：{agents}"
-    unknown_role: "代理中心中没有 {role} 角色。"
+    unknown_role: "平台中没有 {role} 角色。"
     bad_item_id: 条目编号无效。
     bad_note: 审批意见过长或无效。
     bad_order: 要保存的顺序无效。
@@ -1635,6 +1634,7 @@ todo:
     state_done: 完成
     state_held: 暂缓
     state_merged: 已合并
+    state_dropped: 已丢弃
     state_pending: 待审批
     state_reporting: 正在提交完成报告
     state_running: 进行中
@@ -1653,6 +1653,8 @@ todo:
     stop_failures: "失败 {n} 次"
     stop_reason: 停止原因
     hold_reason: 暂缓原因
+    drop_reason: 丢弃原因
+    dropped_reason: "原因: {reason}"
     notices_reason: 关闭通知的原因
     notices_off: "通知已关闭 · {reason}"
     notices_off_since: "自 {since} 起通知已关闭 · {reason}"
@@ -1686,7 +1688,7 @@ todo:
     awaiting_question: 等待答复
   message:
     discard_confirm: "要丢弃 #{id} 吗？"
-    discard_effect: 条目将被删除且无法恢复。
+    discard_effect: 该条目将移至已丢弃，且无法恢复。
     done_all_found: "已加载找到的全部 {n} 个已完成条目。"
     done_all_loaded: "已加载全部 {n} 个已完成条目。"
     note_delivered: 包含此指示的聊天智能体修改已送达正在运行的 Job，因此会保留在该 Job 中。
@@ -1711,6 +1713,7 @@ todo:
     section_done_empty: 无已完成条目
     section_held_empty: 无暂缓条目
     section_merged_empty: 无已合并条目
+    section_dropped_empty: 无已丢弃条目
     section_pending_empty: 无等待中的请求
     section_queue_empty: 无剩余条目
     time_inside_note: 同时运行的工具时间会重叠，因此合计可能比实际时间长
@@ -1769,6 +1772,7 @@ todo:
     section_done: 完成
     section_held: 暂缓
     section_merged: 已合并
+    section_dropped: 已丢弃
     section_pending: 待审批
     section_queue: 队列
     time_inside: 智能体运行期间各工具用时
@@ -1795,7 +1799,7 @@ account:
     nothing_subscribed: 未接收任何通知
     other_devices: "其他 {n} 台设备"
     own_bmo: "{name}的{agent}"
-    bmo_name: BMO
+    bmo_name: 主管
     own_bmo_room: "{name}"
     palette: 调色板
     palette_description: 房间颜色
@@ -1857,13 +1861,13 @@ settings:
     settings: 设置
   label:
     account: 账号
-    agent: 我的 BMO
+    agent: 我的主管
     briefing: 语音简报
     notifications: 通知
     palette: 房间
     permissions: 权限
     invites: 邀请
-    bmo: BMO
+    bmo: 主管
     providers: 提供商
     machine: 设备
     desktop: 桌面
@@ -1929,7 +1933,7 @@ roster:
     history_enabled: "启用账户"
     left_by: "{time} · 由 {name} 办理"
     choose: 请选择用户。
-    no_bmo: 无 BMO
+    no_bmo: 无主管
     persona_length: "{count} 字"
     runs: 最近活动
     activity: 活动
@@ -1961,7 +1965,7 @@ roster:
     loading: 正在加载用户…
     more_loading: 正在加载更多用户…
     person_loading: 正在加载用户信息…
-    bmo_loading: 正在加载 BMO…
+    bmo_loading: 正在加载主管…
     rooms_loading: 正在加载房间…
     agents_loading: 正在加载智能体…
     sessions_loading: 正在加载会话…
@@ -1978,7 +1982,7 @@ roster:
   error:
     read_failed: 无法加载用户列表。
     person_read_failed: 无法加载用户信息。
-    bmo_read_failed: 无法加载 BMO。
+    bmo_read_failed: 无法加载主管。
     rooms_read_failed: 无法加载房间。
     agents_read_failed: 无法加载智能体。
     sessions_read_failed: 无法加载会话。
@@ -2004,14 +2008,14 @@ permissions:
     write_of: "写入{name}"
 organization:
   aria:
-    tabs: 系统及组织标签页
+    tabs: 平台标签页
   label:
     chart: 组织架构图
     none: 无组织
     list: 组织列表
     list_none: 没有可设置的组织
     list_no_match: 未找到组织
-    platform: 整个平台
+    platform: 全部
     person: 我
     name: 名称
     parent: 上级组织
@@ -2068,8 +2072,8 @@ organization:
     end_acting: 要解除代理职务吗？
     remove_post: 要解除兼职吗？
   message:
-    mark_left: 此人将无法再登录，其 BMO 也不会再被唤醒。此人负责的组织工作会保留，负责人仍可继续查看和修改。个人工作、私聊及 BMO 的记忆仅平台管理员可以查看。此操作无法撤销。
-    unbind: 此账号可在未连接设备的情况下登录，此人的 BMO 和智能体将不再在这台设备上运行。
+    mark_left: 此人将无法再登录，其主管也不会再被唤醒。此人负责的组织工作会保留，负责人仍可继续查看和修改。个人工作、私聊及主管的记忆仅平台管理员可以查看。此操作无法撤销。
+    unbind: 此账号可在未连接设备的情况下登录，此人的主管和智能体将不再在这台设备上运行。
     end_acting: 此人将立即失去负责人权限。
     remove_post: 该组织中的职务及兼任负责人也将一并解除。
     install: '请在要连接的电脑上运行以下任一命令来安装 jake。
@@ -2110,7 +2114,7 @@ organization:
     waiting: 等待连接
     shared: 共享设备
   error:
-    agency_node_taken: '代理中心将这台设备记录为其他账号的节点而非共享设备，因此无法处理。
+    agency_node_taken: '平台将这台设备记录为其他账号的节点而非共享设备，因此无法处理。
 
       设备连接保持不变。'
     bad_request: 名称或组织编号无效。
@@ -2174,7 +2178,7 @@ org_memory:
     locked: 固定
     locked_help: 下级组织不能以相同主题覆盖。
     internal: 仅限公司内部
-    internal_help: 在有公司外部人员的房间中，BMO 不会提及。
+    internal_help: 在有公司外部人员的房间中，主管不会提及。
     instead: "改为适用{unit}的记忆。"
     instead_locked: "改为适用{unit}的固定记忆。"
     source_work_pattern: 此记忆来自工作模式。
@@ -2207,9 +2211,9 @@ org_memory:
     delete_info: "删除信息"
   message:
     delete_info: "要删除此信息吗？"
-    delete_info_effect: "组织的 BMO 将不再收到此信息。"
+    delete_info_effect: "组织的主管将不再收到此信息。"
     delete: 要删除这条记忆吗？
-    delete_effect: 本组织及下级组织的 BMO 将不再收到这条记忆。
+    delete_effect: 本组织及下级组织的主管将不再收到这条记忆。
     decline: 要拒绝这条提议吗？
     keep_effect: "不提升为全局记忆，只保留在 {brain} 中。"
     drop_effect: "不提升，并在 {brain} 中也设为无效，任何地方都不再读取。"
@@ -2296,18 +2300,18 @@ invites:
     share_gone: "此请求已被处理。"
 overlay:
   title:
-    panel: 我的 BMO
+    panel: 我的主管
   label:
-    none: 你没有专属的 BMO，无法单独对话。
+    none: 你没有专属的主管，无法单独对话。
     empty: 还没有对话。
     input: 此房间中的其他人看不到
   action:
     send: 发送
-    log: 查看我的 BMO 的记录
+    log: 查看我的主管的记录
   status:
-    loading: 正在加载我的 BMO…
+    loading: 正在加载我的主管…
   error:
-    load_failed: 无法加载我的 BMO。
+    load_failed: 无法加载我的主管。
     send_failed: 发送失败。
 members:
   title:
@@ -2493,10 +2497,10 @@ guide:
     machine_attached: 设备已连接。
   message:
     no_roads: 没有可选择的提供方。
-    no_room: 你的 BMO 还没有会话。
+    no_room: 你的主管还没有会话。
     first_words: 你好！你能为我做什么？
     desktop_unavailable: "桌面应用安装包暂时无法下载。\n如果此 PC 上已安装该应用，请按以下步骤连接；否则可以之后在设置的设备中连接。"
-    step_welcome: 逐步设置 BMO 为你工作所需的内容。
+    step_welcome: 逐步设置主管为你工作所需的内容。
     step_supply_optional: "你的组织负责智能体的供给。\n你也可以同时添加自己的 Claude 登录或密钥。"
     step_supply_required: "在此组织中，智能体只使用你自己的登录或密钥工作。\n请先连接一个。"
     step_provider: 选择你的智能体使用的提供方。
@@ -2505,10 +2509,10 @@ guide:
     step_connect_key: 输入一次提供方密钥，保存到密钥库。
     step_connect_local: 通过 OpenAI 兼容地址注册本地 AI。
     step_test: 测试所选供给现在是否响应。
-    step_machine: 连接你的电脑，让 BMO 在上面工作。
-    step_model: 选择回答未指定对象的会话的 BMO 的提供方和模型。
+    step_machine: 连接你的电脑，让主管在上面工作。
+    step_model: 选择回答未指定对象的会话的主管的提供方和模型。
     step_company: 设置组织架构最上层的公司名称。
-    step_talk: 给你的 BMO 发送第一条消息。
+    step_talk: 给你的主管发送第一条消息。
     reason_no_source: 没有已开启的供给。
     reason_login_needed: 需要登录。
     reason_not_ready: "尚未就绪。\n请几秒后重新测试。"
@@ -2540,14 +2544,14 @@ org_agents:
   status:
     loading: 正在加载智能体设置…
   label:
-    personalize: "自己的 BMO 设置"
+    personalize: "自己的主管设置"
     choice_default: "遵循默认值"
     road_role_default: "跟随角色智能体"
     composition_agent: "{name} 智能体 {count}"
     person_change_instructions: "我的指示"
     person_change_road: "选择提供商 · 模型"
     person_change_agents: "添加和关闭智能体"
-    tab: 智能体
+    tab: 智能体设置
     instructions_own: 指引
     instructions_none: 无指引
     instructions_above: "上级组织的 {count} 条指引优先适用。"
@@ -2638,6 +2642,7 @@ own_agents:
     from_unit_unnamed: "收到的智能体 · 组织"
     from_platform: "收到的智能体 · 默认"
     role_off: "不可用的角色"
+    provider_off: "不可用的提供商"
     add_decided: "添加和关闭智能体: {decided}"
     road_decided: "选择提供商 · 模型: {decided}"
     instructions_decided: "我的指示: {decided}"
@@ -2841,7 +2846,7 @@ machines:
     unbind_confirm: 断开连接
   message:
     none: 打开桌面应用即可将设备连接到此账号。
-    unbind: 此账号的 BMO 和智能体将不再在这台设备上运行。
+    unbind: 此账号的主管和智能体将不再在这台设备上运行。
     unbind_desktop: 桌面应用的连接也会断开，如需再次使用，需要重新连接应用。
     unbind_installed: 这台设备上的安装版程序将被移除，如需再次使用，需要重新安装。
   status:
@@ -2955,7 +2960,7 @@ secrets:
     note: 你的机密只有你自己能看到。智能体和各服务的设置中只传递名称。值只保留在机密库的文件中，不会出现在对话和日志里。
     unit_note: "这是该组织的机密，只有组织负责人和平台管理员能看到。\n代理和服务只拿到名称，值只保存在保管库的文件里。"
     platform_note: "这是平台的机密，由所有平台管理员共用，各服务按其设置中的文件名读取。\n代理只拿到名称。"
-    administrator_own: "管理员的机密位于整个平台的机密保管库中。"
+    administrator_own: "管理员的机密位于“全部”的机密保管库中。"
     unit_forbidden: "你无权管理该组织的机密。"
     replace: 替换现有值
     replace_note: "之前的值会保留在 {name}.previous 文件中。"
@@ -3045,6 +3050,7 @@ agents:
     road_of: "{name} 提供商 · 模型"
     agent_enabled_of: "使用 {name}"
     agent_tabs: 智能体设置
+    supervisor_tabs: 主管设置
     agent_keeps_cache_of: "保持 {name} 缓存"
     provider_prompt_of: "{provider} 提示词"
     room_last_run: "{room}，运行 {n} 次，上次运行 {time}，打开日志"
@@ -3059,7 +3065,6 @@ agents:
     prefix_document_remove: "移除 {path}"
     provider_of: "{name} 提供商"
     search_depth: 搜索深度
-    settings_sections: 设置分区
     switch_on: "开启 {name}"
     vitals: 智能体指标
     stage_in: "将 {name} 添加到指令阶段"
@@ -3081,14 +3086,14 @@ agents:
     account_fields_needed: 请输入账号名称和凭据文件路径。
     account_order_list: 请以列表形式发送账号顺序。
     account_switch_needed: 需要账号和开/关值。
-    agency_access_unchecked: 无法确认权限，代理中心未处理该请求。请稍后重试。
-    agency_bad_request: 代理中心未接受该请求。
-    agency_conflict: 与当前状态不符，代理中心未接受。
-    agency_failed: 代理中心无法处理该请求。
-    agency_forbidden: 你没有在代理中心执行此操作的权限。
-    agency_not_found: 代理中心中没有该项。
-    agency_unavailable: 代理中心现在无法处理此请求。
-    agency_unprocessable: 代理中心无法接受此值。
+    agency_access_unchecked: 无法确认权限，平台未处理该请求。请稍后重试。
+    agency_bad_request: 平台未接受该请求。
+    agency_conflict: 与当前状态不符，平台未接受。
+    agency_failed: 平台无法处理该请求。
+    agency_forbidden: 你没有在平台执行此操作的权限。
+    agency_not_found: 平台中没有该项。
+    agency_unavailable: 平台现在无法处理此请求。
+    agency_unprocessable: 平台无法接受此值。
     agent_name_taken: 此键已存在。
     bad_agent_name: 智能体名称无效。
     bad_job_id: Job 编号无效。
@@ -3130,7 +3135,7 @@ agents:
     supervisor_unknown: "没有主管 {supervisor}。"
     word_empty: 请输入消息。
     word_owner_only: 只有所有者可以向工作器发送消息。
-    supervisor_own_only: 只能添加你自己的 BMO。其他人的主管由管理员添加。
+    supervisor_own_only: 只能添加你自己的主管。其他人的主管由管理员添加。
     role_delete_refused: 该角色有正在运行或等待中的运行，或由策略指定，无法删除。
     role_agent_refused: 该智能体正在运行，或名称已存在
     agent_save_failed: 无法保存智能体。
@@ -3162,7 +3167,7 @@ agents:
   label:
     sleep_on: "每晚睡眠"
     sleep_hour: "睡眠时间"
-    agency: 代理中心
+    agency: 平台
     account_kind_sign_in: 在此登录
     notice_rest: "休息通知"
     notice_rest_note: "在休息开始时和解除时发送通知。"
@@ -3558,7 +3563,6 @@ agents:
     accounts: Claude 账号
     catalogue_add: 添加模型文件
     catalogue_uses: 模型更改记录
-    chat_documents: 系统提示词
     registry: 注册模型
     registry_add: 添加注册模型
     work_log: 日志
@@ -3968,7 +3972,6 @@ usage:
     window_weekly: 每周
     window_weekly_overage: 每周+超额
     balance: 余额
-    balance_seen: "{wait}前"
     requests_day: 每日请求
     requests_free_models: 免费模型请求
     requests_left: "剩余 {left} / {limit}"
@@ -3984,7 +3987,7 @@ job:
     action_wrong: 此路由不接受该操作。
     add_anchor: 新任务只能放在等待中的构建任务旁边。
     after_not_open: 暂缓后要恢复的条目不是另一个尚未结束的条目。
-    agency: bmo-job 无法调用代理中心。
+    agency: bmo-job 无法调用平台。
     agent_name_taken: 该智能体名称已存在。
     append_empty: 要追加的内容为空。
     back_here_needs_path: 调回本机的工作器需要本机上的路径。
@@ -4129,7 +4132,7 @@ job:
     path_not_absolute: 工作器的路径不是绝对路径。
     path_not_directory: 工作器的路径不是文件夹。
     phase_wrong: 当前阶段不会重新运行此任务。
-    pin_wrong: 代理中心未接受工作器的固定值。
+    pin_wrong: 平台未接受工作器的固定值。
     plan_model_form: 模型须写成提供方和模型。
     plan_no_stages: 计划中没有阶段列表。
     plan_not_object: 计划不是 JSON 对象。
@@ -4355,7 +4358,7 @@ documents:
     translation_unreachable: 无法连接翻译器，无法请求翻译。
   message:
     choose_document: 请选择文档。
-    root_unread_agency: 这是代理中心的文档。代理中心尚未开放提供完整文档的途径，因此无法在此控制台中阅读。
+    root_unread_agency: 这是平台的文档。平台尚未开放提供完整文档的途径，因此无法在此控制台中阅读。
     translation_unavailable: 翻译器尚未向此控制台提供翻译，因此无法阅读译文。
     unanswered_limit: 已达到使用上限，未能回复这条消息。
     unanswered_other: 这条消息未收到回复。
@@ -4431,17 +4434,17 @@ picture:
     saved: 照片已更换。
 bmo_profile:
   label:
-    platform_default: "全局默认 BMO"
+    platform_default: "全局默认主管"
     inherit_platform: "遵循全局设置"
     follows_platform_allowed: "遵循全局设置：允许"
     follows_platform_denied: "遵循全局设置：阻止"
-    company_default: 默认 BMO
+    company_default: 默认主管
     name: 名称
     call_names: 称呼
     call_name_new: 要添加的称呼
     picture: 头像
     persona: 人设
-    permission: BMO 设置权限
+    permission: 主管设置权限
     default_value: "{value}（默认）"
     from_own: 自行设定
     from_company: 公司设定
@@ -4452,34 +4455,34 @@ bmo_profile:
     follows_denied: 遵循上级组织：禁止
     persona_count: "{count}/{max} 字"
     no_call_names: 无称呼
-    company_picture_note: 保存后，此照片将成为公司成员的 BMO 照片。
-    own_picture_note: 保存后，此照片将成为我的 BMO 照片。
-    reset_title: 要重置我的 BMO 吗？
+    company_picture_note: 保存后，此照片将成为公司成员的主管照片。
+    own_picture_note: 保存后，此照片将成为我的主管照片。
+    reset_title: 要重置我的主管吗？
     reset_description: 清除自行设定的名称、称呼、照片和人设，改为遵循公司设置。
   aria:
     call_name_remove: "删除 {name}"
-    tree: BMO 设置权限组织架构图
+    tree: 主管设置权限组织架构图
   action:
     reset: 重置
     picture_remove: 删除照片
     picture_company: 恢复为公司照片
   status:
-    loading: 正在加载 BMO 设置…
+    loading: 正在加载主管设置…
   message:
     saved: 已保存。
     reset: 已重置。
     picture_removed: 照片已删除。
     picture_company: 已恢复为公司照片。
   error:
-    withheld: 你没有自行设置 BMO 的权限。
+    withheld: 你没有自行设置主管的权限。
     bad_profile: 名称、称呼或人设的格式不正确。
     call_name_taken: 该名称已存在。
     call_name_comma: 称呼中不能使用逗号。
     call_names_full: 最多可设置 10 个称呼。
     forbidden: 你没有更改此设置的权限。
     not_found: 找不到公司或组织。
-    read_failed: 无法加载 BMO 设置。
-    failed: 无法保存 BMO 设置。
+    read_failed: 无法加载主管设置。
+    failed: 无法保存主管设置。
 apps:
   label:
     personal_make: "制作个人应用"
@@ -4622,12 +4625,12 @@ app_catalogue:
     install_effect: "你的 PC 会获取源代码并构建。\n数据只保存在你的 PC 上。"
     update_effect: "会获取新版本并构建。"
     update_grown: "新版本需要更多权限。"
-    clone_effect: "它会成为你自己的个人应用，可以让 BMO 帮你修改。\n它与原应用断开联系，因此不再接收作者的新版本。"
+    clone_effect: "它会成为你自己的个人应用，可以让主管帮你修改。\n它与原应用断开联系，因此不再接收作者的新版本。"
     uninstall_effect: "将从你的 PC 删除此应用。\n数据会保留在 PC 上。"
     withdraw_effect: "之后无法再安装。\n已安装的人可以继续使用。"
     promote_effect: "管理员审查后将作为平台应用发布。"
     shared: "已共享 {app}。"
-    install_skill_effect: "它保存在 BMO 中。\n只有你附加的智能体会使用此技能。"
+    install_skill_effect: "它保存在平台中。\n只有你附加的智能体会使用此技能。"
     install_mcp_effect: "将安装到你的电脑上。\n只有你附加的智能体会使用此 MCP 服务器的工具。"
     shared_skill: "已共享 {app} 技能。"
   status:
@@ -4667,7 +4670,7 @@ personal_apps:
     back_confirm: 要恢复到以前的版本吗？
     back_effect: 当前版本将从 PC 中删除。
     delete_confirm: 要删除个人应用吗？
-    delete_effect: 'BMO 将无法再使用此应用。
+    delete_effect: '主管将无法再使用此应用。
 
       源代码和数据会保留在 PC 上。'
   status:
@@ -4757,7 +4760,7 @@ app_permissions:
     network_note: 只连接列出的地址，无法连接其他地方。
     network_withheld: 组织设置不允许使用网络，因此此应用无法运行。
     secrets: 使用密钥
-    secrets_note: 仅在运行时从密钥保管库接收值，BMO 看不到这些值。
+    secrets_note: 仅在运行时从密钥保管库接收值，主管看不到这些值。
     secrets_missing: 密钥保管库中没有
     secrets_withheld: 组织设置不允许使用密钥，因此此应用无法运行。
 
@@ -4811,6 +4814,8 @@ supply:
     monthly_cap: 每月上限
     owner_shared: 共用
     owner_personal: "个人 · {name}"
+    owner_unit: 组织
+    owner_unit_named: "组织 · {name}"
     plan_applied_none: 无已应用套餐
     plan_exposed_none: 无可见套餐
     plan_term: 适用期间
@@ -4958,7 +4963,7 @@ supply:
     plan_applied: 正在应用的套餐无法隐藏。
     plan_not_exposed: 未向此组织显示的套餐无法应用。
     not_in_force: 此部署尚未开启供给功能。
-    no_agency: 此部署未指定代理中心，无法获知个人供给。
+    no_agency: 此部署未指定平台，无法获知个人供给。
     upstream_failed: 其他单元无响应，无法加载供给信息。
     bad_request: 无法处理该供给请求。
     unknown_road: 未知的供给方。
@@ -5158,7 +5163,7 @@ removal:
       history: 履历
       invitations: 邀请
       profiles: 个人资料
-      own_agents: 个人 BMO 资料
+      own_agents: 个人主管资料
       console_settings: 控制台设置
       sign_ins: 登录记录
       supply: 供给记录
@@ -5172,7 +5177,7 @@ removal:
       units: 组织
       unit_attributes: 组织属性
       unit_kinds: 组织类型
-      company_agents: 公司 BMO 头像
+      company_agents: 公司主管头像
       supervisors: 主管
       role_agents: 角色智能体
       repositories: 仓库
@@ -5234,7 +5239,7 @@ removal:
       other: 其他记录
     unit:
       web: 账号服务
-      agency: 代理中心
+      agency: 平台
       receiver: 接收器
       brain: Brain
       artifact: 制品

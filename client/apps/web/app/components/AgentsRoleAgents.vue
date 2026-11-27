@@ -123,6 +123,7 @@ import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useNowSeconds } from "bmo-ui/app/domain/time";
 
+import { useAgentScope } from "~/domain/agent-scope";
 import { useAgentRuns } from "~/domain/agent-runs";
 import { runDoing, runsOfAgent, STATE_CEILING } from "~/domain/agent-state";
 import { defaultThreshold, fractionOf, percentOf, roadText, sessionsText, thresholdText, useProviders } from "~/domain/axes";
@@ -152,8 +153,17 @@ const askFirst = useConfirm();
 // How often which agents carry a run is read again while the tab stands and the browser tab is seen.
 const COUNTS_MS = 5_000;
 
-// The roles tab and the role's dialog read the same answer under the same key.
-const { data: view, error, refresh } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
+// The node chosen on the organisation screen scopes these rows by the agency's owner parameters, and the answer is
+// held per node, so a node's list never shows what another node read (the agency's `docs/api.md`,
+// 「Who a caller acts for」; docs/web.md, 「Agent management screen」, the agent tabs).
+const scope = useAgentScope();
+// The roles tab and the role's dialog read the same answer under the same key, of the node chosen.
+const { data: view, error, refresh } = useFetch<RolesView>("/api/roles", {
+  key: computed(() => `roles:${scope.value?.key ?? "all"}`),
+  query: computed(() => scope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 
 usePolling(() => {
   if (document.visibilityState === "visible" && !editing.value) void refresh();
@@ -301,7 +311,8 @@ async function add(role: string): Promise<void> {
 
   try {
     const last = view.value?.roles.find((one) => one.name === role)?.agents.at(-1);
-    const body = last === undefined || last.provider === null ? { role } : { role, provider: last.provider, model: last.model, effort: last.effort, advisor: last.advisor };
+    const filed = scope.value?.ownerUnit === undefined ? {} : { ownerUnit: scope.value.ownerUnit };
+    const body = last === undefined || last.provider === null ? { role, ...filed } : { role, provider: last.provider, model: last.model, effort: last.effort, advisor: last.advisor, ...filed };
 
     const answered = await $fetch<RoleAgentView>("/api/role-agents", { method: "POST", body });
 

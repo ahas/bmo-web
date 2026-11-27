@@ -14,7 +14,7 @@ use bmo_web_client::{
 use sea_orm::{ConnectionTrait, TransactionTrait};
 use sumida::infra::session::UserEnvironment;
 
-use super::mail::{MailKind, configured, notify, send, span_words};
+use super::mail::{MailKind, configured_for, notify_to, send_to, span_words};
 use super::{
   caller, email_of, end_sessions, hashed, heads_person, holder_or_administrator, language_of, link,
   link_base, login_of, token,
@@ -154,7 +154,7 @@ async fn ask_route(
   .await?;
   run(&service.db, r#"DELETE FROM "reset_asks" WHERE "at" < $1"#, vec![(now - HOUR_MS).into()]).await?;
 
-  if asked >= ADDRESS_ASKS_AN_HOUR || who.is_empty() || configured(&service).await?.is_none() {
+  if asked >= ADDRESS_ASKS_AN_HOUR || who.is_empty() {
     return Ok(StatusCode::ACCEPTED);
   }
 
@@ -181,9 +181,10 @@ async fn ask_route(
   let span = span_words(language, ASKED_RESET_MINUTES);
   let link = link(&base, "reset-password", &token);
 
-  notify(
+  notify_to(
     &service,
     MailKind::PasswordReset,
+    user,
     &email,
     language,
     &[("login", &login), ("link", &link), ("span", &span)],
@@ -255,9 +256,10 @@ pub async fn changed(service: &Service, user: i32) -> Result<(), Refusal> {
     let (login, _) = login_of(&service.db, user).await?.unwrap_or_default();
     let time = super::mail::moment(service, now_ms());
 
-    notify(
+    notify_to(
       service,
       MailKind::PasswordChanged,
+      user,
       &email,
       language,
       &[("login", &login), ("time", &time)],
@@ -288,7 +290,7 @@ async fn made_route(
     .await?
     .ok_or_else(|| Refusal::absent(format!("no user {user}")))?;
   let email = super::verified_email(&service.db, user).await?;
-  let mailing = configured(&service).await?.is_some() && email.is_some();
+  let mailing = configured_for(&service, user).await?.is_some() && email.is_some();
   let txn = service.db.begin().await?;
   let token =
     made(&txn, RESET, user, email.as_deref().unwrap_or_default(), Some(by), MADE_RESET_MINUTES).await?;
@@ -303,9 +305,10 @@ async fn made_route(
     let language = language_of(&service.db, user).await?;
     let span = span_words(language, MADE_RESET_MINUTES);
 
-    match send(
+    match send_to(
       &service,
       MailKind::PasswordReset,
+      user,
       &email,
       language,
       &[("login", &login), ("link", &link), ("span", &span)],
@@ -349,7 +352,7 @@ async fn verification_route(
     return Err(Refusal::bad("the profile keeps no email").coded("no-email"));
   }
 
-  configured(&service).await?.ok_or_else(super::mail::unset)?;
+  configured_for(&service, user).await?.ok_or_else(super::mail::unset)?;
 
   let (login, _) = login_of(&service.db, user).await?.unwrap_or_default();
   let token = made(&service.db, VERIFY, user, &email, None, VERIFY_MINUTES).await?;
@@ -357,9 +360,10 @@ async fn verification_route(
   let span = span_words(language, VERIFY_MINUTES);
   let link = link(&base, "verify-email", &token);
 
-  send(
+  send_to(
     &service,
     MailKind::EmailVerification,
+    user,
     &email,
     language,
     &[("login", &login), ("link", &link), ("span", &span)],

@@ -83,3 +83,14 @@ export function kindOfBody(body: unknown): SecretKind {
 
   return { key: text(kind.key), name: text(kind.name), description: text(kind.description), fields: kind.fields.map(fieldOf) };
 }
+
+/** The registry's kinds a `secret.kinds` resolution leaves offered to one link (docs/accounts.md, 「Secret kinds」):
+ * where it named keys, those and no others, in the order they were added; where it said nothing, `value` holds no
+ * list and every kind stands, exactly as the store's own write check reads it. */
+export function offeredKinds(kinds: readonly SecretKind[], value: unknown): SecretKind[] {
+  if (!Array.isArray(value)) return [...kinds];
+
+  const offered = new Set(value.filter((one): one is string => typeof one === "string"));
+
+  return kinds.filter((kind) => offered.has(kind.key));
+}

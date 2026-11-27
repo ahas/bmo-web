@@ -17,7 +17,7 @@ use bmo_web_client::{SecondFactorAsk, SignInAsk, SignInOutcome, SignedIn, TryOut
 use sea_orm::ConnectionTrait;
 use sumida::infra::session::UserSession;
 
-use super::mail::{MailKind, notify};
+use super::mail::{MailKind, notify_to};
 use super::{hashed, token};
 use crate::ids::shown;
 use crate::routes::Body;
@@ -307,9 +307,10 @@ async fn failed(
     let span = super::mail::span_words(language, WINDOW_MS / 60_000);
     let time = super::mail::moment(service, now);
 
-    notify(
+    notify_to(
       service,
       MailKind::AccountLocked,
+      user,
       &email,
       language,
       &[("login", &login), ("span", &span), ("time", &time), ("address", &trier.address)],
@@ -519,9 +520,10 @@ async fn signed_in(
     let language = super::language_of(&service.db, user).await?;
     let time = super::mail::moment(service, now_ms());
 
-    notify(
+    notify_to(
       service,
       MailKind::NewDevice,
+      user,
       &email,
       language,
       &[("login", login), ("time", &time), ("address", &trier.address), ("agent", &trier.agent)],

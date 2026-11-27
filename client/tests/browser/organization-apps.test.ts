@@ -288,7 +288,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
         const platformRow = (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`).allInnerTexts()).map((one) => one.trim());
 
         expect(platformRow).not.toContain(wording("roster.label.tab"));
-        expect(platformRow).toEqual([wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_mail.label.tab"), wording("settings.label.secrets"), wording("org_memory.label.tab"), wording("supply.label.tab"), wording("security.label.security_tab")]);
+        expect(platformRow).toEqual(["org_agents.label.tab", "agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files", "apps.label.tab", "org_mail.label.tab", "security.label.mail_tab", "settings.label.secrets", "secrets.label.kinds", "org_memory.label.tab", "supply.label.tab", "settings.label.providers", "security.label.security_tab"].map((key) => wording(key)));
         // The tab drawn is the apps view they worked on, its rows standing rather than a line saying there is nothing.
         expect(await page.locator("[data-app-row]").count()).toBeGreaterThan(0);
         expect(await overflow(page)).toBeLessThanOrEqual(0);

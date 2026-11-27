@@ -320,24 +320,46 @@ export function movedSourceOrder(rows: readonly OrderRow[], from: number, to: nu
   return order;
 }
 
-// Whose a piece of supply is (docs/web.md, 「System and organisation」, the providers tab): the platform's, or one person's.
+// Whose a piece of supply is (docs/web.md, 「System and organisation」, the providers tab): the platform's, one person's,
+// or one organisation unit's.
 
-/** The person a gateway road belongs to: the one account every member of the road names, where every one names the
- * same; none where the road is the platform's, mixed, or has no member. */
-export function roadOwner(members: readonly GatewayMember[], road: string): string | null {
-  const accounts = members.filter((one) => one.road === road).map((one) => one.account);
-
-  if (accounts.length === 0 || accounts.some((one) => one === null)) return null;
-
-  return accounts.every((one) => one === accounts[0]) ? accounts[0]! : null;
+/** A gateway road's owner: one account or one unit every member of the road names, with the unit's name as it was read. */
+export interface RoadOwner {
+  kind: "account" | "unit";
+  id: string;
+  name: string | null;
 }
 
-/** The words a row says whose it is: the platform's, or one person's with the name the person's account goes by after a
- * middle dot. An owner is read by its number whichever way a unit wrote it, text or a number. */
+/** The owner a gateway road belongs to: the one account, or the one unit, every member of the road names where every
+ * one names the same; none where the road is the platform's, mixed, or has no member. */
+export function roadOwner(members: readonly GatewayMember[], road: string): RoadOwner | null {
+  const held = members.filter((one) => one.road === road);
+  const first = held[0];
+
+  if (first === undefined) return null;
+
+  if (first.account !== null && held.every((one) => one.account === first.account)) return { kind: "account", id: first.account, name: null };
+  if (first.unit !== null && held.every((one) => one.unit === first.unit)) return { kind: "unit", id: first.unit, name: first.unitLabel };
+
+  return null;
+}
+
+/** The words a row says whose it is: the platform's, one person's with the name the person's account goes by, or one
+ * organisation's with the unit's name, each after a middle dot. An owner is read by its number whichever way a unit
+ * wrote it, text or a number. */
 export function ownerText(t: Translate, owner: string | number | null | undefined, names: ReadonlyMap<string, string>): string {
   const name = accountName(t, names, owner === null || owner === undefined ? null : String(owner));
 
   return name === null ? t("supply.label.owner_shared") : t("supply.label.owner_personal", { name });
+}
+
+/** A gateway road's owner as its row says it: the platform's where none owns it whole, one person's, or the unit's
+ * name where the road is an organisation's; a unit no read named stands by the bare word. */
+export function roadOwnerLine(t: Translate, owner: RoadOwner | null | undefined, names: ReadonlyMap<string, string>): string {
+  if (owner === null || owner === undefined) return t("supply.label.owner_shared");
+  if (owner.kind === "unit") return owner.name === null ? t("supply.label.owner_unit") : t("supply.label.owner_unit_named", { name: owner.name });
+
+  return ownerText(t, owner.id, names);
 }
 
 // An organisation's plans (docs/web.md, 「System and organisation」, the plans tab): the one it runs on and those it is shown.

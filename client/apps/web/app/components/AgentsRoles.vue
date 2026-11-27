@@ -96,6 +96,7 @@ import { failureText } from "bmo-ui/app/domain/errors";
 import { settingsAnchor } from "~/domain/agent-settings";
 import { useAgentRuns } from "~/domain/agent-runs";
 import { reservedOf } from "~/domain/agent-state";
+import { useAgentScope } from "~/domain/agent-scope";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
@@ -114,7 +115,16 @@ const askFirst = useConfirm();
 const COUNTS_MS = 5_000;
 
 // The page's search reads the same answer under the same key.
-const { data: view, error, refresh, status } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
+// The node chosen on the organisation screen scopes these rows by the agency's owner parameters, and the answer is
+// held per node, so a node's list never shows what another node read (the agency's `docs/api.md`,
+// 「Who a caller acts for」; docs/web.md, 「Agent management screen」, the agent tabs).
+const scope = useAgentScope();
+const { data: view, error, refresh, status } = useFetch<RolesView>("/api/roles", {
+  key: computed(() => `roles:${scope.value?.key ?? "all"}`),
+  query: computed(() => scope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 const readFailure = useReadFailure({ failed: () => !!error.value && !view.value, reading: () => status.value === "pending", reread: () => void refresh() });
 
 usePolling(() => {

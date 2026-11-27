@@ -59,6 +59,42 @@
                 @update:model-value="(value: string | number) => setTab(String(value))"
               />
 
+              <!-- The agent sections' own search, over every part the reader reads at once, standing in the row
+                   wherever the row holds one of them: a box beside the tabs where there is room, a button opening the
+                   same search where there is not (docs/web.md, 「System and organisation」, the agent tabs). -->
+              <UPopover v-if="agentInRow && !narrow" v-model:open="resultsOpen" :content="{ align: 'end', onOpenAutoFocus: (event: Event) => event.preventDefault() }">
+                <template #anchor>
+                  <UInput
+                    v-model="query"
+                    class="w-56 shrink-0 lg:w-64"
+                    size="sm"
+                    icon="i-material-symbols-search"
+                    :placeholder="$t('agents.placeholder.find_settings')"
+                    :aria-label="$t('agents.placeholder.find_settings')"
+                    @focus="resultsOpen = query.trim() !== ''"
+                    @update:model-value="resultsOpen = String($event).trim() !== ''"
+                    @keydown.enter.prevent="hits[0] && go(hits[0])"
+                    @keydown.escape="resultsOpen = false"
+                  />
+                </template>
+
+                <template #content>
+                  <SettingsResults class="w-80" :hits="hits" :query="query" @go="go" />
+                </template>
+              </UPopover>
+
+              <UTooltip v-else-if="agentInRow" :text="$t('agents.placeholder.find_settings')">
+                <UButton
+                  class="shrink-0"
+                  size="sm"
+                  color="neutral"
+                  variant="ghost"
+                  icon="i-material-symbols-search"
+                  :aria-label="$t('agents.placeholder.find_settings')"
+                  @click="searchOpen = true"
+                />
+              </UTooltip>
+
               <IconButton
                 v-if="addLabel !== null"
                 size="sm"
@@ -70,26 +106,38 @@
               />
             </div>
 
-            <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" aria-busy="true" data-organization-body data-organization-waiting />
+            <!-- The body stands empty in the server's draw and says it is busy only once the browser has taken the
+                 page over and its reads are asked, as `docs/skeleton-loading.md` holds every screen to. -->
+            <div v-if="tab === null || (chosen === null && link === null)" class="flex min-h-0 min-w-0 flex-1 flex-col" :role="waitingReady ? 'status' : undefined" :aria-busy="waitingReady" data-organization-body data-organization-waiting />
             <!-- A link node chosen, the platform or the reader's own: the tab's own view of that link of its settings,
                  which stands for no company. Only a tab holding such a view stands in the row, so one is always drawn
                  here. -->
+            <!-- A tab laid across the whole region takes it at any node, a link's own among them. A tab of one table
+                 scrolls in the table's own box and the region stands still; the agents tab, holding the supervisors'
+                 table under the roles' agents', is the one region that scrolls, each table's head held at its top
+                 (docs/web.md, 「Agent management screen」, every table settings). -->
+            <div v-else-if="tab.wide" ref="body" class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab.value === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'" data-organization-body>
+              <component :is="tabComponent" :key="chosenNode" ref="section" v-bind="agentProps" :company="chosen" />
+            </div>
             <div v-else-if="link !== null" class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
               <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
-                <component :is="tabComponent" v-if="tabComponent !== null" :key="link" ref="section" />
+                <component :is="tabComponent" v-if="tabComponent !== null" :key="link" ref="section" v-bind="agentProps" />
               </div>
-            </div>
-            <div v-else-if="tab.wide" class="flex min-h-0 min-w-0 flex-1 flex-col" data-organization-body>
-              <component :is="tabComponent" :key="chosen!.id" ref="section" :company="chosen" />
             </div>
             <div v-else class="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden overflow-y-auto p-4" data-organization-body>
               <div class="mx-auto flex w-full min-w-0 max-w-3xl flex-col" data-organization-column>
-                <component :is="tabComponent" :key="chosen!.id" ref="section" :company="chosen" />
+                <component :is="tabComponent" :key="chosen!.id" ref="section" :company="chosen" v-bind="agentProps" />
               </div>
             </div>
           </section>
         </template>
       </ChoiceTree>
+
+      <!-- The same search as a modal where the row has no room for the box. -->
+      <SettingsDialog v-model:open="searchOpen" :title="$t('agents.placeholder.find_settings')">
+        <UInput v-model="query" class="w-full" icon="i-material-symbols-search" :placeholder="$t('agents.placeholder.find_settings')" :aria-label="$t('agents.placeholder.find_settings')" autofocus />
+        <SettingsResults :hits="hits" :query="query" @go="go" />
+      </SettingsDialog>
 
       <!-- A new company: one name, and one save at its foot (docs/web.md, 「System and organisation」). -->
       <SettingsDialog v-model:open="adding" :title="$t('organization.action.add_company')" :dirty="addChanges">
@@ -111,7 +159,12 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
+import { useNarrow } from "bmo-ui/app/domain/screen";
+import { scrollWithin } from "bmo-ui/app/domain/scroll-within";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
+
+import { searchSettings, settingsAnchor } from "~/domain/agent-settings";
+import { useHeldHeads } from "~/domain/held-heads";
 
 import { useAdministrator, useSignedUser } from "~/domain/access";
 import {
@@ -138,11 +191,19 @@ import {
   useOrganizationReader,
   useOrganizations
 } from "~/domain/organization";
+import { useProviders, defaultThreshold, roadText, thresholdText } from "~/domain/axes";
+import { registrationName, usedByText } from "~/domain/registry";
+import { ensureSectionAccess, useSectionAccess, useSectionAccessReady } from "~/domain/section-access";
 import { TAB_ADD_ICON } from "~/domain/tab-create";
 import { revealOpenTab } from "~/domain/tab-row";
+import { AGENT_SECTIONS, mayRead, mayWrite } from "#shared/sections";
 
+import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
 import type { LinkNode, TreeDrop } from "~/domain/organization";
 import type { TabCreate } from "~/domain/tab-create";
+import type { CatalogueView, ModelPage } from "#shared/agency";
+import type { AgentSection } from "#shared/sections";
+import type { RepositoryView, RolesView, SupervisorView } from "#shared/axes";
 import type { RosterDetail } from "#shared/roster";
 import type { Component } from "vue";
 
@@ -169,6 +230,12 @@ const treeUnits = computed(() => (mounted.value ? organizations.units.value : nu
 onMounted(() => {
   mounted.value = true;
 });
+
+// The waiting place says it is busy from the frame after the page has been taken over, when the reads begin:
+// a status standing mid-hydration would be a skeleton painted before asking (docs/skeleton-loading.md).
+const waitingReady = ref(false);
+
+onMounted(() => requestAnimationFrame(() => (waitingReady.value = true)));
 
 // A link naming a person but no organisation — a person's tab from before the list, the console search's person —
 // opens the organisation that person stands in, read off the person; until it is read no organisation is chosen. A
@@ -344,15 +411,22 @@ function choose(node: string | number): void {
   if (company !== null) void router.push(organizationNodeAddress(company, node === company ? null : node, route.query));
 }
 
+// The agents tab's tables scroll in this region and hold their heads at its top, as the box of a screen that
+// stacks one table under another must (docs/web.md, 「Agent management screen」).
+const bodyRef = useTemplateRef<HTMLElement>("body");
+
+useHeldHeads(() => (tab.value?.value === "supervisors" ? bodyRef.value : null));
+
 // The open tab's own create, which it names and opens itself; a tab with none leaves the row without the button.
 const section = useTemplateRef<TabCreate & { treeDrop?: TreeDrop }>("section");
 const addLabel = computed(() => section.value?.addLabel ?? null);
 // What the open tab takes carried onto a unit of the tree, where it takes anything.
 const treeDrop = computed(() => section.value?.treeDrop ?? null);
 
-// On a phone the tree's button shares the tab row with the tabs, and the button is drawn by the tree, so it is told
-// there: it gives way to its own name, which reads whole in its tooltip when cut, and the tabs hold the rest.
-const OPENER_GIVES_WAY = "[&_[data-choice-sidebar-open]]:min-w-0 [&_[data-choice-sidebar-open]]:max-w-[40%]";
+// On a phone the tree's button shares the tab row with the tabs, the agent tabs' search and the open tab's add, and
+// the button is drawn by the tree, so it is told there: it gives way to its own name, which reads whole in its
+// tooltip when cut, and the tabs hold the larger share of what the icons leave.
+const OPENER_GIVES_WAY = "[&_[data-choice-sidebar-open]]:min-w-0 [&_[data-choice-sidebar-open]]:max-w-[32%]";
 
 // The open tab brought into the row's view as it changes, as the row first stands and as it is drawn again, and
 // whenever the row's tabs are laid out at another width — the region turning narrow, the open tab's add coming in at
@@ -391,6 +465,181 @@ const tabComponent = computed(() => {
   return components.get(key)!;
 });
 
+
+// --- The agent tabs: their sections' access, the search over them, and what their rows are handed ---
+
+// The five sections joined the screen as tabs at the nodes they stand under (docs/web.md,
+// 「System and organisation」, the agent tabs). Their parts of the row — the search and the open section's own
+// writability — are the screen's, so the parts read them from here.
+const access = useSectionAccess();
+const accessReady = useSectionAccessReady();
+
+if (!accessReady.value) await ensureSectionAccess().catch(() => null);
+
+const narrow = useNarrow();
+
+const agentSections = AGENT_SECTIONS as readonly string[];
+const currentSection = computed<AgentSection | null>(() => {
+  const value = tab.value?.value;
+
+  return value !== undefined && (AGENT_SECTIONS as readonly string[]).includes(value) ? (value as AgentSection) : null;
+});
+const agentRowSections = computed(() => tabItems.value.map((one) => one.value).filter((one): one is AgentSection => agentSections.includes(one)));
+const agentInRow = computed(() => agentRowSections.value.length > 0);
+
+// What the open agent section is handed: writability its own section says, and the search's phrase for its rows to
+// mark themselves with.
+const agentProps = computed(() => {
+  if (currentSection.value === null) return {};
+
+  return { readonly: !administrator.value && !mayWrite(access.value, currentSection.value), query: query.value };
+});
+
+function readable(section: AgentSection): boolean {
+  return !accessReady.value || mayRead(access.value, section);
+}
+
+// Every part the reader may read, read once under the plain keys the settings share, so the search looks over all of
+// them at once — asked only where this node's row holds the tab, so an organisation opened for its people sends no
+// read of agents the node could not answer.
+const { data: supervisors, refresh: rereadSupervisors } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false, immediate: false });
+const { data: roles, refresh: rereadRoles } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false, immediate: false });
+const { data: repositories, refresh: rereadRepositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: false });
+const { data: models, refresh: rereadModels } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false, immediate: false });
+const { data: catalogue, refresh: rereadCatalogue } = useFetch<CatalogueView>("/api/model-catalogue", { key: "model-catalogue", lazy: true, server: false, immediate: false });
+const { data: providers } = useProviders();
+
+watch(
+  agentRowSections,
+  (sections) => {
+    if (sections.includes("supervisors") && readable("supervisors")) void rereadSupervisors();
+    if (sections.includes("roles") && readable("roles")) void rereadRoles();
+    if (sections.includes("repositories") && readable("repositories")) void rereadRepositories();
+    if (sections.includes("models") && readable("models")) void rereadModels();
+    if (sections.includes("model-files") && readable("model-files")) void rereadCatalogue();
+  },
+  { immediate: true }
+);
+
+const query = ref("");
+const resultsOpen = ref(false);
+const searchOpen = ref(false);
+
+// One entry per row of the parts that stand in this reader's row at all: a part the node holds no tab of says no
+// result, so a search never reaches past the tabs the reader has.
+const entries = computed<SettingsEntry[]>(() => {
+  const inRow = new Set(tabItems.value.map((one) => one.value));
+  const list: SettingsEntry[] = [];
+
+  if (inRow.has("supervisors"))
+    for (const one of supervisors.value ?? []) {
+      list.push({
+        id: `supervisor-${one.name}`,
+        tab: "supervisors",
+        label: one.label,
+        fields: [
+          { label: t("common.label.name"), text: one.label, shown: true },
+          { label: t("agents.label.key"), text: one.name, shown: true },
+          { label: t("agents.label.column_road"), text: one.road === null ? "" : (roadText(providers.value, one.road) ?? ""), shown: true },
+          { label: t("agents.label.column_threshold"), text: thresholdText(t, one.foldRatio, defaultThreshold(providers.value, one.road?.provider ?? null)), shown: true },
+          { label: t("agents.label.alias"), text: one.aliases, shown: false }
+        ]
+      });
+    }
+
+  if (inRow.has("roles"))
+    for (const role of roles.value?.roles ?? []) {
+      list.push({
+        id: `role-${role.name}`,
+        tab: "roles",
+        label: t("agents.label.find_role", { name: role.name }),
+        fields: [
+          { label: t("common.label.name"), text: role.name, shown: true },
+          { label: t("agents.label.column_bundles"), text: role.bundles.map((one) => one.label).join(" "), shown: true },
+          { label: t("agents.label.run_line"), text: role.line, shown: true }
+        ]
+      });
+    }
+
+  if (inRow.has("repositories"))
+    for (const repository of repositories.value ?? []) {
+      list.push({
+        id: `repository-${repository.name}`,
+        tab: "repositories",
+        label: repository.label,
+        fields: [
+          { label: t("common.label.name"), text: repository.label, shown: true },
+          { label: t("agents.label.key"), text: repository.name, shown: true },
+          { label: t("common.label.path"), text: repository.path, shown: true },
+          { label: t("agents.label.preamble"), text: repository.preamble, shown: false }
+        ]
+      });
+    }
+
+  if (inRow.has("models"))
+    for (const one of models.value?.items ?? []) {
+      const name = registrationName(one.key);
+
+      list.push({
+        id: `registry-${name}`,
+        tab: "models",
+        label: t("agents.label.find_registration", { name }),
+        fields: [
+          { label: t("common.label.name"), text: name, shown: true },
+          { label: t("common.label.model"), text: one.model, shown: true },
+          { label: t("agents.label.used_by"), text: (one.usedBy ?? []).map((used) => usedByText(t, used)).join(" "), shown: true }
+        ]
+      });
+    }
+
+  if (inRow.has("model-files"))
+    for (const entry of catalogue.value?.entries ?? []) {
+      list.push({
+        id: `catalogue-${entry.name}`,
+        tab: "model-files",
+        label: entry.label,
+        fields: [
+          { label: t("common.label.name"), text: entry.label, shown: true },
+          { label: t("agents.label.key"), text: entry.name, shown: true },
+          { label: t("agents.label.engine"), text: entry.engine, shown: true }
+        ]
+      });
+    }
+
+  return list;
+});
+
+const hits = computed<SettingsHit[]>(() => searchSettings(t, entries.value, query.value).slice(0, 40));
+
+// A result pressed: its tab comes up at the node it was found at, and its row is brought into view and marked a
+// moment; a row the node does not answer is no result, so the search never lands on an empty screen.
+async function go(hit: SettingsHit): Promise<void> {
+  resultsOpen.value = false;
+  searchOpen.value = false;
+
+  if (hit.entry.tab !== tab.value?.value) {
+    await router.push(organizationAddress(hit.entry.tab as AgentTab, route.query));
+  }
+
+  for (let turn = 0; turn < 20; turn++) {
+    await nextTick();
+
+    const target = document.getElementById(settingsAnchor(hit.entry.id));
+
+    if (target !== null) {
+      scrollWithin(target, "center");
+      target.classList.add("settings-hit");
+      setTimeout(() => target.classList.remove("settings-hit"), SETTINGS_HIT_HOLD_MS);
+
+      return;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  }
+}
+
+// How long a found row holds its mark before letting it go: a stay, not a movement, so it is no motion length.
+const SETTINGS_HIT_HOLD_MS = 1_200;
 
 // --- A new company, the administrator's from the list's head ---
 

@@ -306,7 +306,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       );
 
       try {
-        await visit(page, `/agents?tab=supervisors`);
+        await visit(page, `/organization?company=platform&tab=supervisors`);
 
         await open();
         await saveIs(page, "disabled");
@@ -408,7 +408,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       };
 
       try {
-        await visit(page, `/agents?tab=roles`);
+        await visit(page, `/organization?company=platform&tab=roles`);
 
         // A new role's empty form, left as it opened.
         await page.locator("[data-tab-add]").click({ timeout: 30_000 });
@@ -460,7 +460,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       };
 
       try {
-        await visit(page, `/agents?tab=roles`);
+        await visit(page, `/organization?company=platform&tab=roles`);
         await page.locator("#setting-role-worker").waitFor({ timeout: 20_000 });
 
         // Written before the role lands: what was written stays, read against the empty description it opened with.
@@ -515,7 +515,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       };
 
       try {
-        await visit(page, `/agents?tab=roles`);
+        await visit(page, `/organization?company=platform&tab=roles`);
         await page.locator("#setting-role-worker").waitFor({ timeout: 20_000 });
         await addClosedBeforeItsReadLands(page, /\/api\/roles$/, changed, name, skill);
 
@@ -540,7 +540,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       };
 
       try {
-        await visit(page, `/agents?tab=repositories`);
+        await visit(page, `/organization?company=platform&tab=repositories`);
 
         // A new repository's empty form, left as it opened.
         await page.locator("[data-tab-add]").click({ timeout: 30_000 });
@@ -609,7 +609,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       const changed = (body: unknown): unknown => (body as { name: string }[]).map((one) => (one.name === "repo-a" ? { ...one, label: LANDED } : one));
 
       try {
-        await visit(page, `/agents?tab=repositories`);
+        await visit(page, `/organization?company=platform&tab=repositories`);
         await page.locator("#setting-repository-repo-a").waitFor({ timeout: 20_000 });
         await addClosedBeforeItsReadLands(page, /\/api\/repositories$/, changed, preamble, LANDED);
 
@@ -634,7 +634,7 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       const changed = (body: unknown): unknown => (body as { name: string }[]).map((one) => (one.name === "repo-a" ? { ...one, preamble: LANDED } : one));
 
       try {
-        await visit(page, `/agents?tab=repositories`);
+        await visit(page, `/organization?company=platform&tab=repositories`);
         await page.locator("#setting-repository-repo-a").waitFor({ timeout: 20_000 });
 
         // Written before the repository lands: what was written stays, read against the empty preamble it opened with.

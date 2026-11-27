@@ -245,11 +245,16 @@ export function standInAccountService(seed: StandInSeed = {}): StandIn {
       if (resolved !== null && request.method === "GET") {
         const key = decodeURIComponent(resolved[1]!);
         const values = chain.get(key);
-        const person = new URL(request.url).searchParams.get("person") ?? "";
+        const asked = new URL(request.url).searchParams;
+        const person = asked.get("person");
+        const unit = asked.get("unit");
+        // The map holds a person's value under their id alone, as tests seed it, and a unit's under its wire word,
+        // so one test's person 5 never stands in for unit 5.
+        const held = person !== null ? person : unit === null ? "" : `unit:${unit}`;
 
         if (values === undefined) return refused(404, "no-such-kind", `no kind ${key}`);
 
-        return json({ kind: key, subject: `person:${person}`, layers: [], ...(values.has(person) ? { value: values.get(person) } : {}) });
+        return json({ kind: key, subject: person === null && unit !== null ? `unit:${unit}` : `person:${person ?? ""}`, layers: [], ...(values.has(held) ? { value: values.get(held) } : {}) });
       }
       if (request.headers.get("authorization") !== `Bearer ${TOKEN}`) return refused(401, "unauthorized", "the token is missing or wrong");
       if (path === "/accounts/model") {

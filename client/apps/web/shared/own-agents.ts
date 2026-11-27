@@ -46,11 +46,16 @@ export interface OwnRoleView {
   agents: OwnAgentView[];
 }
 
-/** A provider a road may name. */
+/** A provider a road may name: every provider the build carries, one stood off for the reader by the owner's
+ * switch or their chain carrying `off`, the decider under `offBy`. */
 export interface OwnProvider {
   name: string;
   label: string;
   lines: string[];
+  // "owner" where the owner's switch stands it off, "chain" where the reader's chain closes it, null while open.
+  off: "owner" | "chain" | null;
+  // Who closed it: the unit that said so, or the platform for its own switch; null where it stands open.
+  offBy: DecidedBy;
 }
 
 /** The reader's agents (`GET /api/account/own-agents`). */

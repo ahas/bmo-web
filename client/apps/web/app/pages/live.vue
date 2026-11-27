@@ -5,5 +5,5 @@
 </template>
 
 <script setup lang="ts">
-definePageMeta({ redirect: { path: "/agents", query: { tab: "supervisors" } } });
+definePageMeta({ redirect: { path: "/organization", query: { company: "platform", tab: "supervisors" } } });
 </script>

@@ -5,8 +5,9 @@ import type { ExactMessageId } from "./types";
 // apart by their digits, never as JavaScript numbers, which round past 2^53.
 
 // The bounds of the signed 64-bit integer the receiver numbers a message with.
-const INT64_MIN = -(2n ** 63n);
-const INT64_MAX = 2n ** 63n - 1n;
+// Avoid BigInt literals for es2019 target: compute from Number constants.
+const INT64_MIN = BigInt("-9223372036854775808");
+const INT64_MAX = BigInt("9223372036854775807");
 
 /** The message id a value names, or null where it names none: the digits of a signed 64-bit integer as BigInt
  * writes them, given as text, or a whole number a JavaScript number holds without rounding. */

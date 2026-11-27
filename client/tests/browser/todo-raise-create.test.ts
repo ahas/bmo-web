@@ -64,6 +64,7 @@ function item(id: number, unfinished: string | null): TodoItem {
     unfinishedResolution: null,
     heldAt: null,
     heldReason: null,
+    dropReason: null,
     heldKind: null,
     noticesOff: null,
     mergedInto: null,

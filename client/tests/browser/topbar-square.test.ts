@@ -9,10 +9,13 @@ import type { Browser, BrowserContext, Page } from "playwright-core";
 import type { DeployView } from "../../apps/web/shared/types";
 import KO from "../fixtures/browser/topbar-square.test.ko.json";
 
-// Every button in a title bar that shows only a mark is the bar's own icon button: a square, and
-// the same square as every other one (docs/web.md, 「Tab bar and toolbar」). A mark whose words fold
-// away on a short bar is held to it from the moment it stands alone, and the deployment's
-// mark for a newer release is held to it at every width. Each is measured as the browser lays it out, in both
+// Every icon button in a title bar is the bar's own square, the same square as every other one
+// (docs/web.md, 「The title bar」). A mark whose words fold away on a short bar is held to it from the
+// moment it stands alone, and the deployment's
+// mark for a newer release is held to it at every width. A room's picture and the presence dot on its
+// corner are no icon buttons but the room's mark, standing where every other screen's mark stands and
+// at that mark's size: the screen marks that cluster with `data-room-mark`, and the measurement holds
+// it apart. Each button is measured as the browser lays it out, in both
 // themes, since a size read off the source says nothing about what the library's styles made of it.
 //
 // It drives the console given in BMO_CONSOLE_TEST_URL, the one tests/support/browser-console.ts stands up:
@@ -98,11 +101,14 @@ async function visit(page: Page, path: string): Promise<void> {
 }
 
 // Every visible button of the title bar with no words on it, as the browser laid it out. The title
-// bar is the one row holding the sidebar's toggle, which a toolbar under it never does.
+// bar is the one row holding the sidebar's toggle, which a toolbar under it never does. The room's
+// mark cluster stands inside `data-room-mark` and is held apart: its picture and dot are the room's
+// mark at the mark's size, not the bar's icon buttons.
 async function marks(page: Page): Promise<Mark[]> {
   return await page.evaluate(() => {
     return [...document.querySelectorAll<HTMLElement>("[data-slot=root]:has(> [data-slot=left] > [data-slot=toggle])")]
       .flatMap((bar) => [...bar.querySelectorAll<HTMLElement>("button, a")])
+      .filter((button) => button.closest("[data-room-mark]") === null)
       .filter((button) => button.getClientRects().length > 0 && button.innerText.trim() === "")
       .map((button) => {
         const box = button.getBoundingClientRect();

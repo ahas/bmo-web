@@ -499,6 +499,8 @@ async fn a_kind_is_declared_by_its_unit_and_held_to_its_shape() {
       "agent-profile.name",
       "agent-profile.personalize",
       "agent-profile.picture",
+      "mail.system",
+      "secret.kinds",
       "supply.credit-allowance",
       "supply.organisation",
       "supply.own",

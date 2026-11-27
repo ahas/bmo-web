@@ -53,6 +53,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     unfinishedResolution: null,
     heldAt: null,
     heldReason: null,
+    dropReason: null,
     heldKind: null,
     noticesOff: null,
     mergedInto: null,

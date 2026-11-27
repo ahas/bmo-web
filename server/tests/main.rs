@@ -17,9 +17,8 @@ mod pairings;
 mod people;
 mod profiles;
 mod removal;
-// The checks that span the repository, which stand in the root's tests/ (docs/checks.md); the root is a
-// workspace and holds no package, so this crate runs them.
-#[path = "../../tests/repository.rs"]
+// The checks that stand beside the console's code: what a console file may import and how it may assert,
+// and where a test file may stand.
 mod repository;
 mod roster;
 mod routes;

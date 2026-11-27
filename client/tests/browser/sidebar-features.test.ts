@@ -24,7 +24,7 @@ const PHONE = { width: 360, height: 740 };
 
 // The administrator keeps the merged screen whatever the feature says; the member's hold of it is the store's fellow.
 const LEFT_OUT = ["research", "siren", "monitor"].map((key) => wording(`screens.label.${key}`));
-const STAYING = ["db", "documents", "agents", "organization"].map((key) => wording(`screens.label.${key}`));
+const STAYING = ["db", "documents", "organization"].map((key) => wording(`screens.label.${key}`));
 
 let browser: Browser | null = null;
 let cookie = "";
@@ -79,8 +79,8 @@ describe.skipIf(!origin || !featuresFile || !touchReady())("a personal install's
       for (const name of STAYING) expect(shown).toContain(name);
 
       // The last screen of the administrator services is reached by scrolling the drawer, nothing of that section
-      // stands over it, and a tap opens it.
-      const last = drawer.locator("[data-slot='link']", { hasText: wording("screens.label.agents") }).first();
+      // stands over it, and a tap opens it. The agent sections joined the organisation screen, so its own entry is last.
+      const last = drawer.locator("[data-slot='link']", { hasText: wording("screens.label.organization") }).first();
 
       await last.scrollIntoViewIfNeeded();
 
@@ -89,16 +89,16 @@ describe.skipIf(!origin || !featuresFile || !touchReady())("a personal install's
       expect(box.y + box.height).toBeLessThanOrEqual(PHONE.height);
       expect(
         await page.evaluate(([x, y]) => document.elementFromPoint(x!, y!)?.closest("[data-slot='link']")?.textContent?.trim() ?? "", [box.x + box.width / 2, box.y + box.height / 2])
-      ).toContain(wording("screens.label.agents"));
+      ).toContain(wording("screens.label.organization"));
 
       await last.tap();
-      await page.waitForURL((url) => url.pathname.endsWith("/agents"), { timeout: 20_000 });
+      await page.waitForURL((url) => url.pathname.endsWith("/organization"), { timeout: 20_000 });
     } finally {
       await page.context().close();
     }
   }, 120_000);
 
-  test("the administrator keeps the merged screen, and the old administrator address lands on its platform node", async () => {
+  test("the administrator keeps the merged screen, and the old administrator and agent addresses land on its platform node", async () => {
     const page = await phonePage();
 
     try {
@@ -113,6 +113,24 @@ describe.skipIf(!origin || !featuresFile || !touchReady())("a personal install's
       expect(url.pathname).toMatch(/\/organization$/);
       expect(url.searchParams.get("company")).toBe("platform");
       expect(url.searchParams.get("tab")).toBe("secret-kinds");
+
+      // The agent screen's own address is no page: its tab is chosen at the platform node, and a key naming none
+      // opens the screen's own first tab.
+      await drawn(page, "/agents?tab=roles");
+
+      const agents = new URL(page.url());
+
+      expect(agents.pathname).toMatch(/\/organization$/);
+      expect(agents.searchParams.get("company")).toBe("platform");
+      expect(agents.searchParams.get("tab")).toBe("roles");
+
+      await drawn(page, "/agents");
+
+      const bare = new URL(page.url());
+
+      expect(bare.pathname).toMatch(/\/organization$/);
+      expect(bare.searchParams.get("company")).toBe("platform");
+      expect(bare.searchParams.get("tab")).toBeNull();
     } finally {
       await page.context().close();
     }

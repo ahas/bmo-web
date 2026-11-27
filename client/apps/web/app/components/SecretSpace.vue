@@ -67,7 +67,7 @@ const { t } = useI18n();
 const confirm = useConfirm();
 
 // The reader's own list is the one the whole console shares, so a request's card and the composer see a save made
-// here; a unit's is this view's alone.
+// here; a unit's is this view's alone, its kinds narrowed to what the chain leaves the unit offered.
 const own = useSecretLists();
 const unitList = ref<KeptSecret[] | null>(null);
 const unitKinds = ref<SecretKind[] | null>(null);
@@ -103,7 +103,10 @@ async function load(): Promise<void> {
     if (props.unit === null) {
       await own.read();
     } else {
-      const [kindList, secretList] = await Promise.all([$fetch<SecretKindList>("/api/secret-kinds"), $fetch<SecretList>(base.value)]);
+      const [kindList, secretList] = await Promise.all([
+        $fetch<SecretKindList>(`/api/organization/units/${props.unit}/secret-kinds`),
+        $fetch<SecretList>(base.value)
+      ]);
 
       unitKinds.value = kindList.kinds;
       unitList.value = secretList.secrets;

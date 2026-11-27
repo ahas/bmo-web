@@ -286,12 +286,15 @@ export interface SupplyOrgPlansWire {
 }
 
 /** One member of the agency's model gateway (its `docs/api.md`, 「providers, models and model files」): its name, the
- * road it belongs to, what a screen shows for it, its provider, and the account it belongs to — a user id, or none
- * for the platform's. */
+ * road it belongs to, what a screen shows for it, its provider, and its owner — the account it belongs to as a user
+ * id, or the organisation unit it is filed under as its id, one at most, neither for the platform's. */
 export interface GatewayMember {
   name: string;
   road: string | null;
   label: string;
   provider: string;
   account: string | null;
+  // The unit's id when the member is filed under an organisation unit, and its name as the account service reads it.
+  unit: string | null;
+  unitLabel: string | null;
 }

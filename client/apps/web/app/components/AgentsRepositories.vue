@@ -95,6 +95,7 @@ import { useIsland } from "bmo-ui/app/domain/island";
 
 import { settingsAnchor } from "~/domain/agent-settings";
 import { DEFAULT_SUPPORT_COUNT, markedDefault, providerWord, refusalOf, shortOnProvider, useProviders } from "~/domain/axes";
+import { useAgentScope } from "~/domain/agent-scope";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { countText } from "~/domain/numbers";
@@ -106,7 +107,9 @@ import type { MonitorNode } from "#shared/types";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
+// `company` is the node the organisation screen passes to a tab of a company or a unit; the address is what
+// decides the scope, so the prop stands only to take it out of the way.
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean; company?: unknown }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
@@ -116,7 +119,16 @@ const REPOSITORY_ICON = "i-material-symbols-folder-outline";
 const UMBRELLA_ICON = "i-material-symbols-beach-access-outline";
 
 // The page's search reads the same answer under the same key.
-const { data: repositories, error, refresh, status } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
+// The node chosen on the organisation screen scopes these rows by the agency's owner parameters, and the answer is
+// held per node, so a node's list never shows what another node read (the agency's `docs/api.md`,
+// 「Who a caller acts for」; docs/web.md, 「Agent management screen」, the agent tabs).
+const scope = useAgentScope();
+const { data: repositories, error, refresh, status } = useFetch<RepositoryView[]>("/api/repositories", {
+  key: computed(() => `repositories:${scope.value?.key ?? "all"}`),
+  query: computed(() => scope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 const { data: nodes } = useFetch<MonitorNode[]>("/api/nodes", { key: "nodes", lazy: true, server: false });
 const { data: providers } = useProviders();
 const readFailure = useReadFailure({ failed: () => !!error.value && repositories.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });

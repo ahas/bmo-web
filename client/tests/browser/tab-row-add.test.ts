@@ -19,7 +19,7 @@ const ACCOUNT = { name: "row-add", password: "fixture-password-2885" };
 // Each screen with a tab row that adds, and what its add is named. The platform's providers tab holds none: its
 // Claude login is added from the accounts heading.
 const SCREENS = [
-  { path: "/agents", label: "agents.title.role_add" },
+  { path: "/organization?company=platform&tab=roles", label: "agents.title.role_add" },
   { path: "/research", label: "research.title.ask" },
   { path: "/organization", label: "organization.action.add" },
   { path: "/organization?tab=invites", label: "invites.label.make" },

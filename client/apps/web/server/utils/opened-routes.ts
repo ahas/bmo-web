@@ -118,10 +118,10 @@ export const openedRoutes: readonly OpenedRoute[] = [
   // whether they head the unit (docs/web.md, 「System and organisation」, the agents tab).
   { method: "GET", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+(?:\/models\/[^/]+)?$/, scope: "user" },
   { method: "PATCH", path: /^\/api\/organization\/units\/\d+\/repositories\/[^/]+$/, scope: "user" },
-  // A unit's secret space, its people's console sections and the brain layers read for its people: every signed-in
-  // login asks, and the account service decides who heads the unit (docs/web.md, 「System and organisation」, the secrets, org
-  // memory and permissions tabs).
-  { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:secrets|people|brain-layers)$/, scope: "user" },
+  // A unit's secret space, the kinds its secret form is offered, its people's console sections and the brain layers
+  // read for its people: every signed-in login asks, and the account service decides who heads the unit (docs/web.md,
+  // 「System and organisation」, the secrets, org memory and permissions tabs).
+  { method: "GET", path: /^\/api\/organization\/units\/\d+\/(?:secret-kinds|secrets|people|brain-layers)$/, scope: "user" },
   { method: "POST", path: /^\/api\/organization\/units\/\d+\/secrets$/, scope: "user" },
   { method: "DELETE", path: /^\/api\/organization\/units\/\d+\/secrets\/[^/]+$/, scope: "user" },
   { method: "PUT", path: /^\/api\/organization\/units\/\d+\/brain-layers$/, scope: "user" },

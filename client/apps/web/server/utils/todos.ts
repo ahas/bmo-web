@@ -332,9 +332,12 @@ function waitsOnCarrier(item: Item, items: Items): boolean {
 export const isFinished = (item: Item, items: Items): boolean =>
   item.state === "done" || item.state === "dropped" || (isMerged(item) && !waitsOnCarrier(item, items));
 
-type List = "queue" | "pending" | "held" | "merged" | "done";
+type List = "queue" | "pending" | "held" | "merged" | "dropped" | "done";
 
 function listOf(item: Item, items: Items): List {
+  // Dropped work is finished but was never done, so it stands apart from what was (docs/web.md, the TODO panel's
+  // section).
+  if (item.state === "dropped") return "dropped";
   if (isFinished(item, items)) return "done";
   if (isMerged(item)) return "merged";
   if (item.state === "held" && !heldForDeploy(item)) return "held";
@@ -405,6 +408,8 @@ function itemOf(
     // Only finished work leaves a note behind (docs/web.md, the TODO panel's section).
     ...(finished ? unfinishedOf(item, reports, raised.get(item.id)) : NO_UNFINISHED),
     // A hold's time and reason, read only while the item is held, so a released item says nothing of an earlier hold.
+    // Why it was dropped, read only for the rows of the dropped list (`readTodoBoard`).
+    dropReason: null,
     heldAt: item.state === "held" ? held.heldAt : null,
     heldReason: item.state === "held" ? held.heldReason : null,
     // Held by the owner's stop, or a plain hold: bmo-job keeps no wind-down of its own, so none reads as one (docs/web.md,
@@ -593,6 +598,43 @@ export async function readTodoReports(todoId: number): Promise<TodoReport[]> {
 // The reports the board read of each item, with the item's `changedAt` at the reading and when it was read. bmo-job's
 // rows carry no count of their reports, so the board reads them item by item, and a reading stands for a minute
 // while the item is unchanged (docs/boundary.md, 「Gaps the console meets」).
+// Why each dropped item was dropped: the last note written on it by the time it was dropped, the one a drop is made
+// with. A drop is final, so what is read is kept for as long as the item stands unchanged.
+const keptDropReasons = new Map<number, { changedAt: number | null; reason: string | null }>();
+
+async function dropReasons(items: readonly Item[]): Promise<Map<number, string | null>> {
+  const found = new Map<number, string | null>();
+  const stale = items.filter((item) => {
+    const kept = keptDropReasons.get(item.id);
+
+    if (kept !== undefined && kept.changedAt === item.changedAt) {
+      found.set(item.id, kept.reason);
+      return false;
+    }
+
+    return true;
+  });
+
+  for (let at = 0; at < stale.length; at += REPORT_READS_AT_ONCE) {
+    await Promise.all(
+      stale.slice(at, at + REPORT_READS_AT_ONCE).map(async (item) => {
+        try {
+          const ended = item.endedAt ?? Number.POSITIVE_INFINITY;
+          const notes = (await notesOf(item.id)).filter((note) => note.createdAt <= ended);
+          const reason = notes.length === 0 ? null : notes[notes.length - 1]!.text;
+
+          keptDropReasons.set(item.id, { changedAt: item.changedAt, reason });
+          found.set(item.id, reason);
+        } catch {
+          found.set(item.id, null);
+        }
+      })
+    );
+  }
+
+  return found;
+}
+
 const keptReports = new Map<number, { changedAt: number | null; readAt: number; reports: Report[] }>();
 
 // How many items' reports the board reads at once.
@@ -785,8 +827,18 @@ export async function readTodoBoard(
     ? finished
     : filterRecords(finished, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
   const page = finishedFound.slice(0, limit);
+  const dropped = matching.filter((item) => listOf(item, all) === "dropped").sort((one, other) => other.id - one.id);
+  const droppedFound = query === null
+    ? dropped
+    : filterRecords(dropped, (item) => [{ label: "", text: `#${item.id} ${item.title} ${item.state}`, shown: true }], query);
+  const droppedPage = droppedFound.slice(0, limit);
   const held = matching.filter((item) => listOf(item, all) === "held");
-  const rows = await boardRows(matching, [...page, ...held], live, all, raised);
+  const [rows, reasons] = await Promise.all([boardRows(matching, [...page, ...droppedPage, ...held], live, all, raised), dropReasons(droppedPage)]);
+  for (const [id, reason] of reasons) {
+    const row = rows.get(id);
+
+    if (row !== undefined) row.dropReason = reason;
+  }
   const found = (row: TodoItem) => query === null || filterRecords([row], (one) => todoSearchFields(wording, one, []), query).length > 0;
   const listed = (name: List, from: readonly Item[]) =>
     from.filter((item) => rowList(item, rows.get(item.id), all) === name).flatMap((item) => rows.get(item.id) ?? []).filter(found);
@@ -804,6 +856,8 @@ export async function readTodoBoard(
     merged: listed("merged", matching),
     done: page.flatMap((item) => rows.get(item.id) ?? []),
     doneTotal: finishedFound.length,
+    dropped: droppedPage.flatMap((item) => rows.get(item.id) ?? []),
+    droppedTotal: droppedFound.length,
     choices,
     standing: standingOf(matching, live, rows, all),
     paused: queues.length > 0 && queues.every((queue) => queue.state === "paused"),

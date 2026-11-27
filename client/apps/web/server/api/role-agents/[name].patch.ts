@@ -12,5 +12,5 @@ export default defineEventHandler(async (event): Promise<RoleAgentView> => {
 
   if (change === null) throw fail(400, wording("common.error.bad_action"));
 
-  return await changeRoleAgent(name, change);
+  return await changeRoleAgent(name, change, event);
 });

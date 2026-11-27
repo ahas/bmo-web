@@ -630,7 +630,7 @@ room:
     no_account: 계정으로 로그인해야 합니다.
     private_room: 다른 사람의 개인 대화방은 바꿀 수 없습니다.
     open_title: 방 이름을 입력해 주세요.
-    open_no_bmo: 나만의 BMO가 없어 방을 만들 수 없습니다.
+    open_no_bmo: 나만의 감독관이 없어 방을 만들 수 없습니다.
     open_failed: 방을 만들지 못했습니다.
     session_failed: 세션 정보를 불러오지 못했습니다.
     unpin_failed: 방의 고정을 해제하지 못했습니다.
@@ -657,7 +657,7 @@ room:
     attach_file: 파일 첨부
     attach_media: 사진·동영상
     brain_read_page: 브레인에서 보기
-    overlay: 내 BMO와 따로 말하기
+    overlay: 내 감독관과 따로 말하기
     cancel_recording: 녹음 취소
     cancel_reply: 답장 취소
     choose_messages: 메시지 선택
@@ -1257,7 +1257,6 @@ monitor_logs:
     read_failed: 로그를 불러오지 못했습니다.
 screens:
   label:
-    agents: 에이전시
     agents_group: "에이전트 · {name}"
     artifact: 아티팩트
     chat_id: 채팅 번호
@@ -1275,7 +1274,7 @@ screens:
     live: 실시간 상태
     mail: 메일
     monitor: 모니터
-    organization: 시스템 및 조직
+    organization: 플랫폼
     remote: 원격
     research: 리서치
     search: 검색
@@ -1385,7 +1384,7 @@ todo:
     bad_agent: 에이전트 이름이 올바르지 않습니다.
     bad_role: 역할 이름이 올바르지 않습니다.
     no_candidate: "{role} 역할에 {model} 모델을 실행하는 에이전트가 없습니다.\n{role} 역할의 에이전트: {agents}"
-    unknown_role: "{role} 역할이 에이전시에 없습니다."
+    unknown_role: "{role} 역할이 플랫폼에 없습니다."
     bad_item_id: 항목 번호가 올바르지 않습니다.
     bad_note: 결재 의견이 너무 길거나 올바르지 않습니다.
     bad_order: 저장할 순서가 올바르지 않습니다.
@@ -1644,6 +1643,7 @@ todo:
     state_done: 완료
     state_held: 보류
     state_merged: 병합됨
+    state_dropped: 버림
     state_pending: 결재 대기
     state_reporting: 완료 보고 중
     state_running: 진행 중
@@ -1662,6 +1662,8 @@ todo:
     stop_failures: "실패 {n}번"
     stop_reason: 중지 사유
     hold_reason: 보류 사유
+    drop_reason: 버린 사유
+    dropped_reason: "사유: {reason}"
     notices_reason: 알림 끄기 사유
     notices_off: "알림 꺼짐 · {reason}"
     notices_off_since: "{since}부터 알림 꺼짐 · {reason}"
@@ -1695,7 +1697,7 @@ todo:
     awaiting_question: 답변 대기
   message:
     discard_confirm: "#{id}번을 버릴까요?"
-    discard_effect: 항목이 삭제되고 되돌릴 수 없습니다.
+    discard_effect: 항목이 버림으로 옮겨지고 되돌릴 수 없습니다.
     done_all_found: "검색된 완료 항목 {n}건을 모두 불러왔습니다."
     done_all_loaded: "완료 항목 {n}건을 모두 불러왔습니다."
     note_delivered: 이 지시를 담은 채팅 에이전트의 수정 내용이 이미 실행 중인 Job에 전달되어 그 Job에는 그대로 남습니다.
@@ -1724,6 +1726,7 @@ todo:
     section_done_empty: 완료된 항목 없음
     section_held_empty: 보류한 항목 없음
     section_merged_empty: 병합된 항목 없음
+    section_dropped_empty: 버린 항목 없음
     section_pending_empty: 대기 중인 요청 없음
     section_queue_empty: 남은 항목 없음
     time_inside_note: 동시에 실행된 도구는 시간이 겹쳐서 합계가 실제 시간보다 길 수 있습니다
@@ -1782,6 +1785,7 @@ todo:
     section_done: 완료
     section_held: 보류
     section_merged: 병합됨
+    section_dropped: 버림
     section_pending: 결재 대기
     section_queue: 대기열
     time_inside: 에이전트 실행 중 도구별 시간
@@ -1809,7 +1813,7 @@ account:
     nothing_subscribed: 받는 알림 없음
     other_devices: "다른 기기 {n}개"
     own_bmo: "{name}의 {agent}"
-    bmo_name: BMO
+    bmo_name: 감독관
     own_bmo_room: "{name}"
     palette: 팔레트
     palette_description: 대화방 색
@@ -1876,13 +1880,13 @@ settings:
     settings: 설정
   label:
     account: 계정
-    agent: 내 BMO
+    agent: 내 감독관
     briefing: 보이스브리핑
     notifications: 알림
     palette: 대화방
     permissions: 권한
     invites: 초대
-    bmo: BMO
+    bmo: 감독관
     providers: 공급자
     machine: 기기
     desktop: 데스크톱
@@ -1948,7 +1952,7 @@ roster:
     history_enabled: "계정 활성화"
     left_by: "{time} · {name} 처리"
     choose: 사용자를 선택해 주세요.
-    no_bmo: BMO 없음
+    no_bmo: 감독관 없음
     persona_length: "{count}자"
     runs: 최근 활동
     activity: 활동
@@ -1980,7 +1984,7 @@ roster:
     loading: 사용자 불러오는 중…
     more_loading: 사용자 더 불러오는 중…
     person_loading: 사용자 정보 불러오는 중…
-    bmo_loading: BMO 불러오는 중…
+    bmo_loading: 감독관 불러오는 중…
     rooms_loading: 방 불러오는 중…
     agents_loading: 에이전트 불러오는 중…
     sessions_loading: 세션 불러오는 중…
@@ -1997,7 +2001,7 @@ roster:
   error:
     read_failed: 사용자 목록을 불러오지 못했습니다.
     person_read_failed: 사용자 정보를 불러오지 못했습니다.
-    bmo_read_failed: BMO를 불러오지 못했습니다.
+    bmo_read_failed: 감독관을 불러오지 못했습니다.
     rooms_read_failed: 방을 불러오지 못했습니다.
     agents_read_failed: 에이전트를 불러오지 못했습니다.
     sessions_read_failed: 세션을 불러오지 못했습니다.
@@ -2023,14 +2027,14 @@ permissions:
     write_of: "{name} 쓰기"
 organization:
   aria:
-    tabs: 시스템 및 조직 탭
+    tabs: 플랫폼 탭
   label:
     chart: 조직도
     none: 조직 없음
     list: 조직 목록
     list_none: 설정할 조직 없음
     list_no_match: 찾은 조직 없음
-    platform: 플랫폼 전체
+    platform: 전체
     person: 나
     name: 이름
     parent: 상위 조직
@@ -2087,11 +2091,11 @@ organization:
     end_acting: 직무대행을 해제할까요?
     remove_post: 겸직을 해제할까요?
   message:
-    mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 BMO도 다시 깨어나지 않습니다. 이 사람이 담당자인 조직의 업무는 그대로 남아 조직장이 계속 읽고 바꿀 수 있습니다. 개인 업무와 개인 대화, BMO의 기억은 플랫폼 관리자만 읽을 수 있습니다. 되돌릴 수 없습니다.
-    unbind: 이 계정은 연결된 기기 없이 로그인할 수 있고, 이 사람의 BMO와 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
+    mark_left: 이 사람은 더 이상 로그인할 수 없고, 이 사람의 감독관도 다시 깨어나지 않습니다. 이 사람이 담당자인 조직의 업무는 그대로 남아 조직장이 계속 읽고 바꿀 수 있습니다. 개인 업무와 개인 대화, 감독관의 기억은 플랫폼 관리자만 읽을 수 있습니다. 되돌릴 수 없습니다.
+    unbind: 이 계정은 연결된 기기 없이 로그인할 수 있고, 이 사람의 감독관과 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
     end_acting: 이 사람은 바로 조직장 권한을 잃습니다.
     remove_post: 이 조직의 직책과 조직장 겸임도 함께 해제됩니다.
-    install: "연결할 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n연결되면 이 사람의 BMO와 에이전트가 이 기기에서 실행됩니다."
+    install: "연결할 PC에서 아래 명령 중 하나를 실행해 jake를 설치하세요.\n연결되면 이 사람의 감독관과 에이전트가 이 기기에서 실행됩니다."
   action:
     add: 조직 추가
     add_company: 회사 추가
@@ -2127,7 +2131,7 @@ organization:
     waiting: 연결 대기 중
     shared: 공유 기기
   error:
-    agency_node_taken: "에이전시가 이 기기를 공유 기기가 아닌 다른 계정의 노드로 기록하고 있어 처리하지 못했습니다.\n기기 연결은 그대로입니다."
+    agency_node_taken: "플랫폼가 이 기기를 공유 기기가 아닌 다른 계정의 노드로 기록하고 있어 처리하지 못했습니다.\n기기 연결은 그대로입니다."
     bad_request: 이름이나 조직 번호가 올바르지 않습니다.
     cycle: "조직을 자기 하위 조직 밑으로 옮기거나, 결재선이 같은 조직을 두 번 지나게 할 수 없습니다."
     short_name_taken: 이 회사의 다른 조직이 이미 쓰는 약칭입니다.
@@ -2183,7 +2187,7 @@ org_memory:
     locked: 고정
     locked_help: 하위 조직이 같은 주제로 덮어쓸 수 없습니다.
     internal: 사내 한정
-    internal_help: 회사 밖 사람이 있는 방에서는 BMO가 말하지 않습니다.
+    internal_help: 회사 밖 사람이 있는 방에서는 감독관이 말하지 않습니다.
     instead: "{unit}의 기억이 대신 적용됩니다."
     instead_locked: "{unit}의 고정 기억이 대신 적용됩니다."
     source_work_pattern: 근무 패턴에서 가져온 기억입니다.
@@ -2216,9 +2220,9 @@ org_memory:
     delete_info: 정보 삭제
   message:
     delete_info: 이 정보를 삭제할까요?
-    delete_info_effect: 조직의 BMO가 더 이상 이 정보를 받지 않습니다.
+    delete_info_effect: 조직의 감독관이 더 이상 이 정보를 받지 않습니다.
     delete: 이 기억을 삭제할까요?
-    delete_effect: 이 조직과 하위 조직의 BMO가 더 이상 이 기억을 받지 않습니다.
+    delete_effect: 이 조직과 하위 조직의 감독관이 더 이상 이 기억을 받지 않습니다.
     decline: 이 제안을 거절할까요?
     keep_effect: "전역 베이스에 올리지 않고 {brain}에만 남깁니다."
     drop_effect: "전역 베이스에 올리지 않고 {brain}에서도 무효로 해, 어디에서도 읽지 않습니다."
@@ -2301,18 +2305,18 @@ invites:
     share_gone: "이미 처리된 요청입니다."
 overlay:
   title:
-    panel: 내 BMO
+    panel: 내 감독관
   label:
-    none: 나만의 BMO가 없어 따로 말할 수 없습니다.
+    none: 나만의 감독관이 없어 따로 말할 수 없습니다.
     empty: 아직 나눈 말이 없습니다.
     input: 이 방 사람들에게는 보이지 않습니다
   action:
     send: 보내기
-    log: 내 BMO의 기록 보기
+    log: 내 감독관의 기록 보기
   status:
-    loading: 내 BMO 불러오는 중…
+    loading: 내 감독관 불러오는 중…
   error:
-    load_failed: 내 BMO를 불러오지 못했습니다.
+    load_failed: 내 감독관을 불러오지 못했습니다.
     send_failed: 보내지 못했습니다.
 members:
   title:
@@ -2494,10 +2498,10 @@ guide:
     machine_attached: 기기가 연결되었습니다.
   message:
     no_roads: 고를 수 있는 공급자가 없습니다.
-    no_room: 내 BMO의 대화방이 아직 없습니다.
+    no_room: 내 감독관의 대화방이 아직 없습니다.
     first_words: 안녕! 넌 나를 위해 뭘 할 수 있어?
     desktop_unavailable: "데스크톱 앱 설치 파일은 아직 받을 수 없습니다.\n이 PC에 앱이 이미 설치되어 있으면 아래 단계로 연결하고, 아니면 나중에 설정의 기기에서 연결할 수 있습니다."
-    step_welcome: BMO가 나를 위해 일하도록 필요한 것을 차례로 설정합니다.
+    step_welcome: 감독관이 나를 위해 일하도록 필요한 것을 차례로 설정합니다.
     step_supply_optional: "조직이 에이전트 공급을 맡고 있습니다.\n내 Claude 로그인이나 키를 함께 둘 수 있습니다."
     step_supply_required: "이 조직에서는 내 로그인이나 키로만 에이전트가 일합니다.\n먼저 하나를 연결해야 합니다."
     step_provider: 에이전트가 쓸 공급자를 고릅니다.
@@ -2506,10 +2510,10 @@ guide:
     step_connect_key: 공급자 키를 한 번 입력해 비밀 보관함에 둡니다.
     step_connect_local: OpenAI 호환 주소로 로컬 AI를 등록합니다.
     step_test: 고른 공급이 지금 응답하는지 시험합니다.
-    step_machine: 내 PC를 연결해 BMO가 그 PC에서 일하게 합니다.
-    step_model: 대화방에 정해지지 않은 BMO의 공급자와 모델을 고릅니다.
+    step_machine: 내 PC를 연결해 감독관이 그 PC에서 일하게 합니다.
+    step_model: 대화방에 정해지지 않은 감독관의 공급자와 모델을 고릅니다.
     step_company: 조직도 맨 위에 설 회사 이름을 정합니다.
-    step_talk: 내 BMO에게 첫 메시지를 보냅니다.
+    step_talk: 내 감독관에게 첫 메시지를 보냅니다.
     reason_no_source: 켜진 공급이 없습니다.
     reason_login_needed: 로그인이 필요합니다.
     reason_not_ready: "아직 준비 중입니다.\n몇 초 뒤 다시 시험하세요."
@@ -2541,14 +2545,14 @@ org_agents:
   status:
     loading: 에이전트 설정 불러오는 중…
   label:
-    personalize: "자기 BMO 설정"
+    personalize: "자기 감독관 설정"
     choice_default: "기본값을 따름"
     road_role_default: "역할 에이전트를 따름"
     composition_agent: "{name} 에이전트 {count}"
     person_change_instructions: "내 지침"
     person_change_road: "공급자 · 모델 선택"
     person_change_agents: "에이전트 추가·끄기"
-    tab: 에이전트
+    tab: 에이전트 설정
     instructions_own: 지침
     instructions_none: 지침 없음
     instructions_above: "상위 조직 지침 {count}개가 먼저 적용됩니다."
@@ -2639,6 +2643,7 @@ own_agents:
     from_unit_unnamed: "받은 에이전트 · 조직"
     from_platform: "받은 에이전트 · 기본"
     role_off: "쓸 수 없는 역할"
+    provider_off: "쓸 수 없는 공급자"
     add_decided: "에이전트 추가·끄기: {decided}"
     road_decided: "공급자 · 모델 선택: {decided}"
     instructions_decided: "내 지침: {decided}"
@@ -2836,7 +2841,7 @@ machines:
     unbind_confirm: 연결 해제
   message:
     none: 데스크톱 앱을 열면 이 계정에 기기를 연결할 수 있습니다.
-    unbind: 이 계정의 BMO와 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
+    unbind: 이 계정의 감독관과 에이전트는 더 이상 이 기기에서 실행되지 않습니다.
     unbind_desktop: 데스크톱 앱의 연결도 끊기므로, 다시 쓰려면 앱을 다시 연결해야 합니다.
     unbind_installed: 이 기기의 설치형 프로그램은 제거되므로, 다시 쓰려면 다시 설치해야 합니다.
   status:
@@ -2948,7 +2953,7 @@ secrets:
     note: 내 비밀은 나만 봅니다. 에이전트와 각 서비스의 설정에는 이름만 전합니다. 값은 보관함의 파일에만 남고 대화와 로그에는 남지 않습니다.
     unit_note: "이 조직의 비밀이며, 조직장과 플랫폼 관리자만 봅니다.\n에이전트와 서비스에는 이름만 전하고, 값은 보관함의 파일에만 남습니다."
     platform_note: "플랫폼의 비밀이며, 플랫폼 관리자가 함께 보고 각 서비스는 설정에 적힌 파일 이름으로 이 값을 읽습니다.\n에이전트에는 이름만 전합니다."
-    administrator_own: "관리자의 비밀은 플랫폼 전체의 비밀 보관함에 있습니다."
+    administrator_own: "관리자의 비밀은 '전체'의 비밀 보관함에 있습니다."
     unit_forbidden: "이 조직의 비밀을 관리할 권한이 없습니다."
     replace: 기존 값 교체
     replace_note: "이전 값은 {name}.previous 파일로 남습니다."
@@ -3038,6 +3043,7 @@ agents:
     road_of: "{name} 공급자 · 모델"
     agent_enabled_of: "{name} 사용"
     agent_tabs: 에이전트 설정
+    supervisor_tabs: 감독관 설정
     agent_keeps_cache_of: "{name} 캐시 유지"
     provider_prompt_of: "{provider} 프롬프트"
     room_last_run: "{room}, 실행 {n}회, 마지막 실행 {time}, 로그 열기"
@@ -3052,7 +3058,6 @@ agents:
     prefix_document_remove: "{path} 빼기"
     provider_of: "{name} 공급자"
     search_depth: 검색 깊이
-    settings_sections: 설정 섹션
     switch_on: "{name} 켜기"
     vitals: 에이전트 지표
     stage_in: "{name} 지시 단계에 추가"
@@ -3074,14 +3079,14 @@ agents:
     account_fields_needed: 계정 이름과 자격 증명 파일 경로를 입력해 주세요.
     account_order_list: 계정 순서를 목록으로 보내 주세요.
     account_switch_needed: 계정과 켬·끔 값이 필요합니다.
-    agency_access_unchecked: 권한을 확인하지 못해 에이전시가 요청을 처리하지 않았습니다. 잠시 후 다시 시도해 주세요.
-    agency_bad_request: 에이전시가 요청을 받아들이지 않았습니다.
-    agency_conflict: 지금 상태와 맞지 않아 에이전시가 받아들이지 않았습니다.
-    agency_failed: 에이전시가 요청을 처리하지 못했습니다.
-    agency_forbidden: 에이전시에서 이 일을 할 권한이 없습니다.
-    agency_not_found: 에이전시에 해당 항목이 없습니다.
-    agency_unavailable: 에이전시가 지금 이 요청을 처리할 수 없습니다.
-    agency_unprocessable: 에이전시가 받아들일 수 없는 값입니다.
+    agency_access_unchecked: 권한을 확인하지 못해 플랫폼가 요청을 처리하지 않았습니다. 잠시 후 다시 시도해 주세요.
+    agency_bad_request: 플랫폼가 요청을 받아들이지 않았습니다.
+    agency_conflict: 지금 상태와 맞지 않아 플랫폼가 받아들이지 않았습니다.
+    agency_failed: 플랫폼가 요청을 처리하지 못했습니다.
+    agency_forbidden: 플랫폼에서 이 일을 할 권한이 없습니다.
+    agency_not_found: 플랫폼에 해당 항목이 없습니다.
+    agency_unavailable: 플랫폼가 지금 이 요청을 처리할 수 없습니다.
+    agency_unprocessable: 플랫폼가 받아들일 수 없는 값입니다.
     agent_name_taken: 이미 있는 키입니다.
     bad_agent_name: 에이전트 이름이 올바르지 않습니다.
     bad_job_id: Job 번호가 올바르지 않습니다.
@@ -3123,7 +3128,7 @@ agents:
     supervisor_unknown: "감독관 {supervisor}이(가) 없습니다."
     word_empty: 메시지를 입력해 주세요.
     word_owner_only: 워커에게 하는 말은 소유자만 보낼 수 있습니다.
-    supervisor_own_only: 내 BMO만 추가할 수 있습니다. 다른 사람의 감독관은 플랫폼 관리자가 추가합니다.
+    supervisor_own_only: 내 감독관만 추가할 수 있습니다. 다른 사람의 감독관은 플랫폼 관리자가 추가합니다.
     role_delete_refused: 실행 중이거나 대기 중인 실행이 있거나 정책이 정한 역할이라 삭제하지 못했습니다.
     role_agent_refused: 실행 중인 에이전트이거나 이미 있는 이름입니다
     agent_save_failed: 에이전트를 저장하지 못했습니다.
@@ -3155,7 +3160,7 @@ agents:
   label:
     sleep_on: "매일 밤 수면"
     sleep_hour: "수면 시각"
-    agency: 에이전시
+    agency: 플랫폼
     account_kind_sign_in: 여기서 로그인
     notice_rest: "휴식 알림"
     notice_rest_note: "휴식이 시작될 때와 풀렸을 때 알립니다."
@@ -3549,7 +3554,6 @@ agents:
     accounts: Claude 계정
     catalogue_add: 모델 파일 추가
     catalogue_uses: 모델 변경 기록
-    chat_documents: 시스템 프롬프트
     registry: 등록 모델
     registry_add: 등록 모델 추가
     work_log: 로그
@@ -3959,7 +3963,6 @@ usage:
     window_weekly: 주간
     window_weekly_overage: 주간+초과
     balance: 잔액
-    balance_seen: "{wait} 전"
     requests_day: 하루 요청
     requests_free_models: 무료 모델 요청
     requests_left: "{left} / {limit} 남음"
@@ -3975,7 +3978,7 @@ job:
     action_wrong: 이 경로가 받지 않는 동작입니다.
     add_anchor: 새 태스크는 기다리는 빌드 태스크 옆에만 둘 수 있습니다.
     after_not_open: 보류 뒤에 재개할 항목이 아직 끝나지 않은 다른 항목이 아닙니다.
-    agency: bmo-job이 에이전시를 부르지 못했습니다.
+    agency: bmo-job이 플랫폼를 부르지 못했습니다.
     agent_name_taken: 이미 있는 에이전트 이름입니다.
     append_empty: 덧붙일 말이 비어 있습니다.
     back_here_needs_path: 이 머신으로 데려오는 워커에는 이 머신의 경로가 필요합니다.
@@ -4118,7 +4121,7 @@ job:
     path_not_absolute: 워커의 경로가 절대 경로가 아닙니다.
     path_not_directory: 워커의 경로가 폴더가 아닙니다.
     phase_wrong: 지금 단계에서는 이 태스크를 다시 돌리지 않습니다.
-    pin_wrong: 에이전시가 워커의 고정 값을 받아들이지 않았습니다.
+    pin_wrong: 플랫폼가 워커의 고정 값을 받아들이지 않았습니다.
     plan_model_form: 모델은 제공자와 모델로 적어야 합니다.
     plan_no_stages: 계획에 단계 목록이 없습니다.
     plan_not_object: 계획이 JSON 객체가 아닙니다.
@@ -4344,7 +4347,7 @@ documents:
     translation_unreachable: 번역기에 연결되지 않아 번역을 요청할 수 없습니다.
   message:
     choose_document: 문서를 선택하세요.
-    root_unread_agency: 에이전시의 문서입니다. 에이전시가 문서를 통째로 내주는 길을 아직 열지 않아 이 콘솔에서는 읽을 수 없습니다.
+    root_unread_agency: 플랫폼의 문서입니다. 플랫폼가 문서를 통째로 내주는 길을 아직 열지 않아 이 콘솔에서는 읽을 수 없습니다.
     translation_unavailable: 번역기가 아직 이 콘솔에 번역을 주지 않아 번역해서 읽을 수 없습니다.
     unanswered_limit: 사용 한도에 닿아 이번 말에는 답하지 못했습니다.
     unanswered_other: 이번 말에는 답을 받지 못했습니다.
@@ -4420,17 +4423,17 @@ picture:
     saved: 사진을 바꿨습니다.
 bmo_profile:
   label:
-    platform_default: "전역 기본 BMO"
+    platform_default: "전역 기본 감독관"
     inherit_platform: "전역 설정 따름"
     follows_platform_allowed: "전역 설정을 따라 허용"
     follows_platform_denied: "전역 설정을 따라 막음"
-    company_default: 기본 BMO
+    company_default: 기본 감독관
     name: 이름
     call_names: 부르는 이름
     call_name_new: 추가할 이름
     picture: 프로필 사진
     persona: 페르소나
-    permission: BMO 설정 권한
+    permission: 감독관 설정 권한
     default_value: "{value} (기본값)"
     from_own: 직접 정함
     from_company: 회사에서 정함
@@ -4441,34 +4444,34 @@ bmo_profile:
     follows_denied: 상위 조직을 따라 막음
     persona_count: "{count}/{max}자"
     no_call_names: 부르는 이름 없음
-    company_picture_note: 저장하면 이 사진이 회사 사람들의 BMO 사진이 됩니다.
-    own_picture_note: 저장하면 이 사진이 내 BMO 사진이 됩니다.
-    reset_title: 내 BMO를 초기화할까요?
+    company_picture_note: 저장하면 이 사진이 회사 사람들의 감독관 사진이 됩니다.
+    own_picture_note: 저장하면 이 사진이 내 감독관 사진이 됩니다.
+    reset_title: 내 감독관을 초기화할까요?
     reset_description: 직접 정한 이름, 부르는 이름, 사진, 페르소나를 지우고 회사 설정을 따릅니다.
   aria:
     call_name_remove: "{name} 지우기"
-    tree: BMO 설정 권한 조직도
+    tree: 감독관 설정 권한 조직도
   action:
     reset: 초기화
     picture_remove: 사진 지우기
     picture_company: 회사 사진으로 되돌리기
   status:
-    loading: BMO 설정 불러오는 중…
+    loading: 감독관 설정 불러오는 중…
   message:
     saved: 저장했습니다.
     reset: 초기화했습니다.
     picture_removed: 사진을 지웠습니다.
     picture_company: 회사 사진으로 되돌렸습니다.
   error:
-    withheld: BMO를 직접 설정할 권한이 없습니다.
+    withheld: 감독관을 직접 설정할 권한이 없습니다.
     bad_profile: 이름, 부르는 이름이나 페르소나의 형식이 맞지 않습니다.
     call_name_taken: 이미 있는 이름입니다.
     call_name_comma: 부르는 이름에는 쉼표를 쓸 수 없습니다.
     call_names_full: 부르는 이름은 10개까지 둘 수 있습니다.
     forbidden: 이 설정을 바꿀 권한이 없습니다.
     not_found: 회사나 조직을 찾을 수 없습니다.
-    read_failed: BMO 설정을 불러오지 못했습니다.
-    failed: BMO 설정을 저장하지 못했습니다.
+    read_failed: 감독관 설정을 불러오지 못했습니다.
+    failed: 감독관 설정을 저장하지 못했습니다.
 
 # The apps a person turns on and off (docs/web.md, 「Screens a unit brings」, the 앱·도구 tab of 조직 and the 내 앱·도구
 # section of 설정): an app's state, where it comes from, the lock and the offer, and the refusals.
@@ -4613,12 +4616,12 @@ app_catalogue:
     install_effect: "내 PC가 원본을 받아 빌드합니다.\n데이터는 내 PC에만 쌓입니다."
     update_effect: "새 버전을 받아 빌드합니다."
     update_grown: "새 버전이 더 많은 권한을 요구합니다."
-    clone_effect: "내 개인 앱이 되어 BMO에게 고쳐 달라고 할 수 있습니다.\n원본과 연결이 끊겨, 만든 사람의 새 버전은 더 이상 받지 않습니다."
+    clone_effect: "내 개인 앱이 되어 감독관에게 고쳐 달라고 할 수 있습니다.\n원본과 연결이 끊겨, 만든 사람의 새 버전은 더 이상 받지 않습니다."
     uninstall_effect: "내 PC에서 앱을 삭제합니다.\n데이터는 PC에 남습니다."
     withdraw_effect: "새로 설치할 수 없습니다.\n이미 설치한 사람은 계속 씁니다."
     promote_effect: "플랫폼 관리자가 검토한 뒤 플랫폼 앱으로 배포합니다."
     shared: "{app} 앱을 공유했습니다."
-    install_skill_effect: "BMO에 보관됩니다.\n내가 붙인 에이전트만 이 스킬을 씁니다."
+    install_skill_effect: "플랫폼에 보관됩니다.\n내가 붙인 에이전트만 이 스킬을 씁니다."
     install_mcp_effect: "내 PC에 설치합니다.\n내가 붙인 에이전트만 이 MCP 서버의 도구를 씁니다."
     shared_skill: "{app} 스킬을 공유했습니다."
   status:
@@ -4660,7 +4663,7 @@ personal_apps:
     back_confirm: 이전 버전으로 되돌릴까요?
     back_effect: "지금 버전은 PC에서 삭제됩니다."
     delete_confirm: 개인 앱을 삭제할까요?
-    delete_effect: "BMO가 더 이상 이 앱을 쓰지 못합니다.\n원본과 데이터는 PC에 남습니다."
+    delete_effect: "감독관이 더 이상 이 앱을 쓰지 못합니다.\n원본과 데이터는 PC에 남습니다."
   status:
     loading: 개인 앱 불러오는 중…
   error:
@@ -4746,7 +4749,7 @@ app_permissions:
     network_note: 적어 둔 주소에만 접속하고, 다른 곳에는 접속할 수 없습니다.
     network_withheld: 조직 설정으로 네트워크를 쓸 수 없어 이 앱은 실행되지 않습니다.
     secrets: 비밀 사용
-    secrets_note: 실행할 때만 내 비밀 보관함에서 값을 받고, 값은 BMO에게 보이지 않습니다.
+    secrets_note: 실행할 때만 내 비밀 보관함에서 값을 받고, 값은 감독관에게 보이지 않습니다.
     secrets_missing: 비밀 보관함에 없음
     secrets_withheld: 조직 설정으로 비밀을 쓸 수 없어 이 앱은 실행되지 않습니다.
 
@@ -4803,6 +4806,8 @@ supply:
     monthly_cap: 월 상한
     owner_shared: 공용
     owner_personal: "개인 · {name}"
+    owner_unit: 조직
+    owner_unit_named: "조직 · {name}"
     plan_applied_none: 적용 플랜 없음
     plan_exposed_none: 노출 플랜 없음
     plan_term: 적용 기간
@@ -4950,7 +4955,7 @@ supply:
     plan_applied: 적용 중인 플랜은 노출을 끌 수 없습니다.
     plan_not_exposed: 이 조직에 노출되지 않은 플랜은 적용할 수 없습니다.
     not_in_force: 공급 기능이 아직 이 배포에 켜지지 않았습니다.
-    no_agency: 이 배포에는 에이전시가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
+    no_agency: 이 배포에는 플랫폼가 지정되어 있지 않아 개인 공급을 알 수 없습니다.
     upstream_failed: 다른 단위가 답하지 않아 공급 정보를 불러오지 못했습니다.
     bad_request: 공급 요청을 처리할 수 없습니다.
     unknown_road: 알 수 없는 공급처입니다.
@@ -5150,7 +5155,7 @@ removal:
       history: 이력
       invitations: 초대
       profiles: 프로필
-      own_agents: 개인 BMO 프로필
+      own_agents: 개인 감독관 프로필
       console_settings: 콘솔 설정
       sign_ins: 로그인 기록
       supply: 공급 기록
@@ -5164,7 +5169,7 @@ removal:
       units: 조직
       unit_attributes: 조직 속성
       unit_kinds: 조직 종류
-      company_agents: 회사 BMO 사진
+      company_agents: 회사 감독관 사진
       supervisors: 감독관
       role_agents: 역할 에이전트
       repositories: 저장소
@@ -5226,7 +5231,7 @@ removal:
       other: 기타 기록
     unit:
       web: 계정 서비스
-      agency: 에이전시
+      agency: 플랫폼
       receiver: 리시버
       brain: 브레인
       artifact: 아티팩트

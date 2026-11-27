@@ -42,11 +42,13 @@
           >
             <!-- The room's picture opens whole when pressed, as a face beside a bubble does; a room
                  standing as its letter has nothing to open. It stands where every other page's mark
-                 stands, at that mark's size. The dot on its corner is the room's people's presence, a button of its
+                 stands, at that mark's size: picture and dot together are the room's mark, not the bar's icon
+                 buttons, and the marker on the cluster is what the bar's square measurement holds apart
+                 (docs/web.md, 「The title bar」). The dot is the room's people's presence, a button of its
                  own on every room: its tooltip says it in words, and it opens the room's people, each with their own
                  (docs/web.md, 「Presence and typing」). Its press reaches a little past the dot, so a finger finds it. -->
             <template #leading>
-              <span class="relative me-2 flex shrink-0">
+              <span class="relative me-2 flex shrink-0" data-room-mark>
                 <button
                   v-if="roomAvatar.src"
                   type="button"

@@ -6,7 +6,7 @@ import { isOwnRoad } from "../../../apps/web/shared/own-agents";
 // A road as one line a person reads, and a road as the screen sends one (docs/web.md, 「Settings」, the own-agents
 // section).
 describe("an agent's road", () => {
-  const providers = [{ name: "claude-code", label: "Claude Code", lines: ["worker"] }];
+  const providers = [{ name: "claude-code", label: "Claude Code", lines: ["worker"], off: null, offBy: null }];
 
   test("reads as its provider's label, its model and its effort, or as the words for none", () => {
     expect(roadLine({ provider: "claude-code", model: "model-a", effort: "high" }, providers, "none")).toBe("Claude Code · model-a · high");

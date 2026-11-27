@@ -50,7 +50,7 @@ const REVIEWS: TodoReview[] = [
 ];
 
 function item(): TodoItem {
-  return {
+  return { dropReason: null,
     id: ITEM, title: "item-title", instruction: BRIEF, requester: "Owner", requesterId: null, chatId: null, approved: true, awaitingApproval: false, recommended: false, done: true,
     running: false, worker: "worker-b", priority: 1, status: "done", model: null, agent: null, ranOn: null, note: null, reports: REPORTS, unfinished: null,
     rejections: 0,
@@ -95,7 +95,7 @@ async function open(viewport: (typeof WIDTHS)[number], auto = false): Promise<Br
 
     const board = (await (await route.fetch()).json()) as TodoBoard;
 
-    await route.fulfill({ json: { ...board, done: [item()], doneTotal: 1 } });
+    await route.fulfill({ json: { ...board, done: [item()], doneTotal: 1 , dropped: [], droppedTotal: 0} });
   });
   await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: item() }));
   await context.route(new RegExp(`/api/todos/${ITEM}/reports$`), (route) => route.fulfill({ json: REPORTS }));
@@ -231,7 +231,7 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
 
           const board = (await (await route.fetch()).json()) as TodoBoard;
 
-          await route.fulfill({ json: { ...board, done: [carried()], doneTotal: 1 } });
+          await route.fulfill({ json: { ...board, done: [carried()], doneTotal: 1 , dropped: [], droppedTotal: 0} });
         });
         await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: carried() }));
         await context.route(new RegExp(`/api/todos/${ITEM}/reviews$`), (route) => route.fulfill({ json: REVIEWS }));
@@ -312,7 +312,7 @@ describe.skipIf(!origin || !touchReady())("an item's reports and translations", 
         const board = (await (await route.fetch()).json()) as TodoBoard;
         const waiting = { ...item(), id: 2252, title: "recommended-title", done: false, status: "open", approved: false, awaitingApproval: true, recommended: true, reports: [] };
 
-        await route.fulfill({ json: { ...board, pending: [waiting], done: [item()], doneTotal: 1 } });
+        await route.fulfill({ json: { ...board, pending: [waiting], done: [item()], doneTotal: 1 , dropped: [], droppedTotal: 0} });
       });
 
       const page = await context.newPage();

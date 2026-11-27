@@ -148,6 +148,10 @@ const ACCOUNTS: readonly [string, string][] = [
   ["person-tabs", "fixture-password-3363"],
   ["date-escape", "fixture-password-3374"],
   ["opened-with", "fixture-password-3376"],
+  // The administrator who reads what lies over what with a sheet open (tests/browser/layers.test.ts).
+  ["layers", "fixture-password-3377"],
+  // The administrator who reads a supervisor's settings in their tabs (tests/browser/supervisor-settings-tabs.test.ts).
+  ["supervisor-tabs", "fixture-password-3378"],
   ["choice-select", "fixture-password-3413"],
   ["input-menu-name", "fixture-password-3562"],
   ["qa-admin", "fixture-password-3765"],
@@ -395,6 +399,30 @@ const MEMBERS: readonly { name: string; password: string; sections: readonly { s
       { section: "account", read: true, write: true }
     ]
   },
+  // The head of a unit and a person under it, for the agent tabs' reach at the nodes of one organisation
+  // (tests/browser/organization-agent-reaches.test.ts): the head reads the supervisors, the repositories and the
+  // models of its unit and the units under it; the person reads supervisors alone, of their own; no head grant and
+  // no part of a company stands for either until a test gives one.
+  {
+    name: "reach-head",
+    password: "fixture-password-4620",
+    sections: [
+      { section: "rooms", read: true, write: true },
+      { section: "account", read: true, write: true },
+      { section: "supervisors", read: true, write: false },
+      { section: "repositories", read: true, write: false },
+      { section: "models", read: true, write: false }
+    ]
+  },
+  {
+    name: "reach-person",
+    password: "fixture-password-4621",
+    sections: [
+      { section: "rooms", read: true, write: false },
+      { section: "account", read: true, write: true },
+      { section: "supervisors", read: true, write: false }
+    ]
+  },
   // The person an app is offered to, recalled from and switched for themselves on the organisation screen's apps tab.
   {
     name: "apps-reader",
@@ -507,6 +535,13 @@ const OWN_BMO_CHAT = -9_006_000_000_001;
 const OWN_BMO = "agent-room-bmo";
 const OWN_BMO_PERSON = "agent-room-person";
 let ownBmoAccount: number | null = null;
+
+// The account service's address and the platform administrator, kept once the harness stands, so the agency's
+// stand-in can read a unit's subtree as the agency does when a scoped list is asked below a unit; and the person
+// whose own BMO one of the agent lists' scoped reads answers at their node.
+let accountService = "";
+let adminUser: number | null = null;
+let reachPerson: number | null = null;
 const PRESENCE_PEOPLE = ["presence-here", "presence-hidden", "presence-other"] as const;
 const presence = { frames: "" };
 // Every fixture room stands under a number of its own: the receiver's stand-in answers a room's reads by its number, so
@@ -833,6 +868,28 @@ function silentStream(present = ""): Response {
 
 // One supervisor as the agency's supervisor resource serves it: the default answerer, whose turns its window makes, and
 // a supervisor of the room scope, whose turns its settings' pieces make.
+// The owner parameters of a scoped list read by the agency's stand-in (its `docs/api.md`, 「Who a caller acts for」,
+// as the agency really reads them): one account, or one unit and — where the read asks for the subtree — every unit
+// under it, taken from the account service in the platform administrator's name.
+function ownerAsked(request: Request): { account: number | null; unit: number | null; subtree: boolean } {
+  const said = new URL(request.url).searchParams;
+  const whole = (value: string | null): number | null => (value !== null && /^[1-9][0-9]*$/.test(value) ? Number(value) : null);
+
+  return { account: whole(said.get("ownerAccount")), unit: whole(said.get("unit")), subtree: said.get("unitSubtree") === "true" };
+}
+
+async function unitSpan(unit: number, subtree: boolean): Promise<Set<number>> {
+  if (!subtree || accountService === "" || adminUser === null) return new Set([unit]);
+
+  const listed = await fetch(`${accountService}/units/${unit}/subtree`, { headers: { authorization: `Bearer ${TOKEN}`, "owner-key": String(adminUser), "owner-role": "administrator" } }).catch(() => null);
+
+  if (listed === null || !listed.ok) return new Set([unit]);
+
+  const { units } = (await listed.json()) as { units: { id: number }[] };
+
+  return new Set(units.map((one) => one.id));
+}
+
 function supervisor(name: string, label: string, extra: Record<string, unknown> = {}): Record<string, unknown> {
   return {
     name, label, ownerAccount: null, aliases: null, icon: null, sessionScope: "room", turnShape: "pieces",
@@ -1236,7 +1293,7 @@ async function ownAgentsAnswer(path: string, request: Request): Promise<Response
       add: { allowed: true, from: null },
       road: { allowed: true, from: null },
       roles,
-      providers: [{ name: "claude-code", label: "Claude Code", lines: ["chat", "worker", "search"] }, { name: "deepseek", label: "DeepSeek", lines: ["chat", "worker"] }]
+      providers: [{ name: "claude-code", label: "Claude Code", lines: ["chat", "worker", "search"] }, { name: "deepseek", label: "DeepSeek", lines: ["chat", "worker"] }, { name: "openrouter", label: "OpenRouter", lines: ["chat", "worker"], off: "owner" }]
     });
   }
 
@@ -1595,6 +1652,24 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     // receiver's stand-in names stands under the BMO of the account it is whose: the room-overlay fixture's own, and
     // the other private room's account's, whose room the reader only reads (tests/browser/room-overlay.test.ts).
     if (path === "/supervisors") {
+      const said = ownerAsked(request);
+
+      // A scoped read answers only what stands there: an account's own rows at an account, and nothing under a unit,
+      // since no supervisor the stand-in holds is filed under one.
+      if (said.account !== null || said.unit !== null) {
+        const rows = [
+          ...(ownedBmo === null ? [] : [supervisor("agent-own", "Agent Own", { ownerAccount: ownedBmo })]),
+          ...(overlayAccount === null ? [] : [supervisor("overlay-bmo", "Overlay BMO", { ownerAccount: overlayAccount })]),
+          supervisor("private-bmo", "Private BMO", { ownerAccount: PRIVATE_ACCOUNT }),
+          ...(ownBmoAccount === null ? [] : [supervisor(OWN_BMO, `${OWN_BMO_PERSON} Dear`, { ownerAccount: ownBmoAccount })]),
+          ...(reachPerson === null ? [] : [supervisor("reach-bmo", "Reach BMO", { ownerAccount: reachPerson })])
+        ];
+
+        if (said.account !== null) return Response.json({ items: rows.filter((one) => one.ownerAccount === said.account), more: false });
+
+        return Response.json({ items: [], more: false });
+      }
+
       const owned =
         request.headers.get("owner-key") === null
           ? [
@@ -1607,6 +1682,9 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json({ items: [heldSupervisor("agent-a"), heldSupervisor("agent-c"), ...owned, ...ownRoom], more: false });
     }
+    // The node's own agents of the roles, read apart from the roles: the seats the stand-in holds belong to no unit
+    // and no account, so a scoped read answers none, as the agency answers no agent reached there.
+    if (path === "/role-agents" && request.method === "GET") return Response.json({ items: [], more: false });
     if (path === "/roles") return Response.json({ roles: ROLES, bundles: [{ name: "web.read", code: "web-read", label: "Web reading" }, { name: "web.sites", code: "web-sites", label: "Site tools" }], lines: ["worker", "search", "browse", "translate"] });
     if (/^\/roles\/[^/]+\/sessions$/.test(path)) {
       return Response.json({
@@ -1648,7 +1726,20 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       return Response.json(changed);
     }
-    if (path === "/repositories") return Response.json({ items: [...heldRepositories(), ...unitRepositories.values()], more: false });
+    if (path === "/repositories") {
+      const said = ownerAsked(request);
+      const rows = [...heldRepositories(), ...unitRepositories.values()];
+
+      if (said.account !== null) return Response.json({ items: rows.filter((one) => one.ownerAccount === said.account), more: false });
+
+      if (said.unit !== null) {
+        const below = await unitSpan(said.unit, said.subtree);
+
+        return Response.json({ items: rows.filter((one) => below.has(one.ownerUnit as number)), more: false });
+      }
+
+      return Response.json({ items: rows, more: false });
+    }
     if (path === "/slots") {
       // The worker's runs, each on the agent of the role it was let in on: a job's, which opens by the job's run, and
       // one its asker named the work of. The seeker's run is one no job carries, named by what it was asked to do. The
@@ -1775,10 +1866,23 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
     }
     if (path === "/settings") return Response.json(agencySettings);
 
-    if (path === "/models" && request.method === "GET") return Response.json({ items: [...models.values()], more: false });
+    if (path === "/models" && request.method === "GET") {
+      const said = ownerAsked(request);
+      const rows = [...models.values()];
+
+      if (said.account !== null) return Response.json({ items: rows.filter((one) => one.ownerAccount === said.account), more: false });
+
+      if (said.unit !== null) {
+        const below = await unitSpan(said.unit, said.subtree);
+
+        return Response.json({ items: rows.filter((one) => below.has(one.unit as number)), more: false });
+      }
+
+      return Response.json({ items: rows, more: false });
+    }
 
     if (path === "/models" && request.method === "POST") {
-      const body = (await request.json()) as { name?: string; model?: string };
+      const body = (await request.json()) as { name?: string; model?: string; unit?: number | null; ownerAccount?: number | null };
       const asked = body.name ?? "";
       const split = asked.indexOf("::");
       const name = split === -1 ? asked : asked.slice(split + 2);
@@ -1786,7 +1890,7 @@ const UNITS: Record<string, (path: string, request: Request) => Response | null 
 
       if (models.has(name)) return Response.json({ code: "conflict", error: "a model is already registered" }, { status: 409 });
 
-      const made = { key, name, provider: "registered", model: body.model ?? "", cardService: null, roleFiles: false, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [] };
+      const made = { key, name, provider: "registered", model: body.model ?? "", cardService: null, roleFiles: false, tier: null, healthy: false, lastAnsweredAt: null, usedBy: [], unit: body.unit ?? null, ownerAccount: body.ownerAccount ?? null };
 
       models.set(name, made);
 
@@ -2650,6 +2754,8 @@ try {
     BMO_WEB_SERVER_DIR: SERVER_DIR
   };
 
+  accountService = `http://127.0.0.1:${serverPort}`;
+
   // The user script's account command runs the service binary, which reads the settings the service was started
   // on, so it is given them too.
   const userEnv = { ...consoleEnv, ...serverEnv };
@@ -2919,6 +3025,16 @@ try {
 
   if (bmoOwner === undefined) throw new Error("org-group-person stands in no users list");
   ownedBmo = Number(bmoOwner.user);
+
+  const adminRow = users.find((user) => user.name === ACCOUNTS[0]![0]);
+
+  if (adminRow === undefined) throw new Error("the first fixture account stands in no users list");
+  adminUser = Number(adminRow.user);
+
+  const reach = users.find((user) => user.name === "reach-person");
+
+  if (reach === undefined) throw new Error("reach-person stands in no users list");
+  reachPerson = Number(reach.user);
   const ownOnly = users.find((user) => user.name === "agent-login");
 
   if (ownOnly === undefined) throw new Error("agent-login stands in no users list");

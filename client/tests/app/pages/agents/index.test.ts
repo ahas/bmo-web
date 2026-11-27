@@ -1,15 +1,17 @@
 import { describe, expect, test } from "bun:test";
 
-// The agent management screen as it ships (docs/web.md, 「Agent management screen」): the supervisors, the roles, the
-// repositories, the registered models and the model files, a tab each, a search over all of them, and every setting
-// as a shared table whose cells edit their own value in place. These source checks hold the browser boundary to what
-// the document promises; the behaviour behind it is the agency's and its tests'.
+import { ORGANIZATION_TABS } from "../../../../apps/web/app/domain/organization";
+
+// The agent sections as they ship on the organisation screen's tab row (docs/web.md, 「System and organisation」,
+// the agent tabs): the supervisors, the roles, the repositories, the registered models and the model files, a tab
+// each at the node it stands under, and every setting as a shared table whose cells edit their own value in place.
+// These source checks hold the browser boundary to what the document promises; the behaviour behind it is the
+// agency's and its tests'.
 
 const read = async (name: string) => await Bun.file(new URL(name, new URL("../../../../apps/web/app/pages/agents/", import.meta.url))).text();
 const templateOf = (source: string) => source.slice(0, source.indexOf("<script"));
 const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
 
-const page = await read("./index.vue");
 const supervisors = await read("../../components/AgentsSupervisors.vue");
 const roles = await read("../../components/AgentsRoles.vue");
 const roleDialog = await read("../../components/RoleSettingsDialog.vue");
@@ -28,6 +30,7 @@ const platformCredentials = await read("../../components/OrganizationPlatformAcc
 const accounts = await read("../../components/AgentsAccounts.vue");
 const axes = await Bun.file(new URL("../../../../apps/web/app/domain/axes.ts", import.meta.url)).text();
 const organization = await Bun.file(new URL("../../../../apps/web/app/domain/organization.ts", import.meta.url)).text();
+const organizationPage = await Bun.file(new URL("../../../../apps/web/app/pages/organization.vue", import.meta.url)).text();
 const css = await Bun.file(new URL("../../../../apps/web/app/assets/css/main.css", import.meta.url)).text();
 const dialog = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/SettingsDialog.vue"))).text();
 const table = await Bun.file(new URL(import.meta.resolve("bmo-ui/app/components/DataTable.vue"))).text();
@@ -43,30 +46,52 @@ const settingsTable = await read("../../components/SettingsTable.vue");
 const sections = [supervisors, roles, repositories, registry, catalogue];
 
 describe("the screen's sections", () => {
-  test("stand as five tabs kept in the address, with no introduction above them", () => {
-    expect(templateOf(page)).toContain("<UTabs");
-    expect(scriptOf(page)).toContain("route.query.tab");
-    expect(scriptOf(page)).toContain("router.push({ query: { ...route.query, tab:");
-    for (const part of ["<AgentsSupervisors", "<AgentsRoles", "<AgentsRepositories", "<AgentsRegistry", "<AgentsCatalogue"]) {
-      expect(templateOf(page)).toContain(part);
+  test("stand as five tabs of the organisation screen's row, each loading its own section at the nodes it opens at", () => {
+    const rows = ORGANIZATION_TABS.filter((tab) => ["supervisors", "roles", "repositories", "models", "model-files"].includes(tab.value));
+
+    expect(rows.map((tab) => tab.value)).toEqual(["supervisors", "roles", "repositories", "models", "model-files"]);
+
+    for (const [value, component] of [["supervisors", "AgentsSupervisors"], ["roles", "AgentsRoles"], ["repositories", "AgentsRepositories"], ["models", "AgentsRegistry"], ["model-files", "AgentsCatalogue"]] as const) {
+      const tab = rows.find((one) => one.value === value)!;
+
+      expect(tab.load.toString()).toContain(component);
+      expect(Object.keys(tab.links ?? {}).sort()).toEqual(value === "roles" || value === "model-files" ? ["platform"] : ["me", "platform"]);
+      expect(tab.wide).toBe(true);
     }
-    for (const gone of ["<AgentsGeneral", "<AgentsWorkers", "<AgentsTierTable", "<AgentsFoldRatios", "<AgentsCoworkerLimits", "<AgentsRouteTable", "<ResearchSettings"]) {
-      expect(templateOf(page)).not.toContain(gone);
-    }
+
+    // The roles and the model files are the platform's presets and files: they stand at the platform node alone,
+    // and open for no reader at a company however their sections read.
+    const head = { administrator: false, roster: true, supply: true, plans: true, memory: true, heads: true, known: true };
+
+    for (const value of ["roles", "model-files"]) expect(rows.find((one) => one.value === value)!.opens({ ...head, agents: ["roles", "model-files"] })).toBe(false);
+
+    // The three row resources open for a head holding their section and for no one else at a company; the section
+    // alone, without a unit to head, opens none of them there.
+    for (const value of ["supervisors", "repositories", "models"] as const) expect(rows.find((one) => one.value === value)!.opens({ ...head, agents: [value] })).toBe(true);
+    for (const value of ["supervisors", "repositories", "models"] as const) expect(rows.find((one) => one.value === value)!.opens({ ...head, agents: [] })).toBe(false);
+    expect(rows.find((one) => one.value === "supervisors")!.opens({ ...head, agents: ["repositories"] })).toBe(false);
   });
 
-  test("keep the top bar to what every page carries and put the search, the reread and the add on the tab row", () => {
-    expect(templateOf(page)).toContain(':loading="rereading"');
-    expect(templateOf(page)).toContain('<IconButton v-if="mayWriteCurrent && addLabel !== null" size="sm" :icon="TAB_ADD_ICON" :label="addLabel" data-tab-add @click="section?.openAdd?.()" />');
+  test("name the open section's own add so the row's button can carry it, as the organisation screen's row does", () => {
     for (const source of sections) expect(scriptOf(source)).toMatch(/defineExpose\(\{ addLabel: computed\(\(\) => t\("agents\.title\.[a-z_]+_add"\)\), openAdd, refresh \}\)/);
   });
 
-  test("offer a settings search: a box beside the tabs where there is room, a button and a dialog where there is not", () => {
-    expect(templateOf(page)).toContain('<UPopover v-if="!narrow"');
-    expect(templateOf(page)).toContain('@click="searchOpen = true"');
-    expect(templateOf(page)).toContain('<SettingsDialog v-model:open="searchOpen"');
-    expect(scriptOf(page)).toContain("searchSettings(t, entries.value, query.value)");
-    expect(scriptOf(page)).toContain('scrollWithin(target, "center")');
+  test("read and write the node the address chooses, each list kept apart by node and adds filed under it", async () => {
+    const scope = await Bun.file(new URL("../../../../apps/web/app/domain/agent-scope.ts", import.meta.url)).text();
+
+    expect(scope).toContain("unitSubtree");
+    expect(scope).toContain("ownerAccount");
+
+    for (const source of [supervisors, roleAgents, roles, repositories, registry]) expect(scriptOf(source)).toContain("useAgentScope");
+    for (const source of [supervisors, repositories, registry, roleAgents]) expect(scriptOf(source)).toMatch(/key: computed\(\(\) => `[a-z-]+:\$\{scope\.value\?\.key/);
+    expect(scriptOf(roleAgents)).toContain("ownerUnit");
+    expect(scriptOf(repositories)).toContain("scope.value?.params");
+
+    // The repository dialog files its add under the node's unit, and the registry under its `unit` field, as the
+    // agency reads it; the supervisor's add still goes through the receiver, which files under the account until
+    // that row lands.
+    expect(scriptOf(repositoryDialog)).toContain("sent.ownerUnit");
+    expect(scriptOf(registry)).toContain("{ unit: scope.value.ownerUnit }");
   });
 
   test("open what is not one cell in one dialog, a modal at every width since it is no part of the page", () => {
@@ -112,9 +137,13 @@ describe("every table of the screen", () => {
     expect(templateOf(supervisors)).not.toContain('layout="fill"');
   });
 
-  test("scrolls each tab up and down in one box: a table's own in a tab of one table, the body around the supervisors' tables", () => {
-    expect(templateOf(page)).toContain(`class="flex min-h-0 min-w-0 flex-1 flex-col" :class="tab === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'"`);
-    expect(scriptOf(page)).toContain('useHeldHeads(() => (tab.value === "supervisors" ? bodyRef.value : null));');
+  test("scrolls each tab up and down in one box: a table's own in a tab of one table, the region's in the supervisors' tab", () => {
+    // The organisation screen hands a wide tab the whole region: a tab of one table stands still around its own
+    // scrolling box, and the supervisors' tab, the agents' table under the supervisors', scrolls in the region,
+    // which holds each table's head at its top.
+    expect(organizationPage).toContain("tab.value === 'supervisors' ? 'overflow-x-hidden overflow-y-auto' : 'overflow-hidden'");
+    expect(organizationPage).toContain("useHeldHeads");
+    expect(templateOf(supervisors)).not.toContain("overflow-y-auto");
     // Each of the supervisors' tab's tables keeps its own sideways box.
     for (const source of [supervisors, roleAgents]) expect(templateOf(source)).not.toContain("overflow-visible");
   });
@@ -337,7 +366,7 @@ describe("the providers and the Claude accounts", () => {
 
   // The one rule the Claude accounts are held to: a path is all it ever shows or sends of a login.
   test("never render, accept or echo a credential — only the path to it", () => {
-    for (const source of [accounts, providersSection, platformCredentials, page]) {
+    for (const source of [accounts, providersSection, platformCredentials]) {
       for (const word of ["accessToken", "refreshToken", ".credentials.json", "CLAUDE_CODE_OAUTH_TOKEN", "credentialText"]) {
         expect(source).not.toContain(word);
       }

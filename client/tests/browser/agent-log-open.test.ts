@@ -40,7 +40,7 @@ const RUN: LiveRun = {
 };
 
 function item(): TodoItem {
-  return {
+  return { dropReason: null,
     id: JOB_LOG.item, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: 1, chatId: 1, approved: true, awaitingApproval: false,
     recommended: false, done: false, running: true, liveState: "running", worker: null, priority: 1, status: "running", model: null, agent: null, ranOn: null,
     note: null, reports: [], unfinished: null, rejections: 0, unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null,

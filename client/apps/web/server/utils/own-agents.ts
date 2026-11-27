@@ -76,7 +76,7 @@ interface AgencyOwnAgents {
   add?: AgencyPermission;
   road?: AgencyPermission;
   roles?: AgencyRole[];
-  providers?: { name?: unknown; label?: unknown; lines?: unknown }[];
+  providers?: { name?: unknown; label?: unknown; lines?: unknown; off?: unknown; from?: unknown }[];
 }
 
 function textOf(value: unknown): string | null {
@@ -143,11 +143,20 @@ export async function ownAgents(signed: SignedIn): Promise<OwnAgentsView> {
       })
     )
   );
-  const providers: OwnProvider[] = (read.providers ?? []).map((one) => ({
-    name: String(one.name ?? ""),
-    label: textOf(one.label) ?? String(one.name ?? ""),
-    lines: Array.isArray(one.lines) ? one.lines.filter((line): line is string => typeof line === "string") : []
-  }));
+  const providers: OwnProvider[] = await Promise.all(
+    (read.providers ?? []).map(async (one): Promise<OwnProvider> => {
+      const off = one.off === "owner" || one.off === "chain" ? one.off : null;
+
+      return {
+        name: String(one.name ?? ""),
+        label: textOf(one.label) ?? String(one.name ?? ""),
+        lines: Array.isArray(one.lines) ? one.lines.filter((line): line is string => typeof line === "string") : [],
+        // The owner's switch is the platform's own doing; a chain closure names the link that said so.
+        off,
+        offBy: off === null ? null : off === "owner" ? { by: "platform" } : ((await name(one.from)) ?? { by: "platform" })
+      };
+    })
+  );
 
   return { add: await permissionOf(read.add, name), road: await permissionOf(read.road, name), roles, providers };
 }

@@ -65,6 +65,7 @@ function item(
     worker: null,
     priority: id,
     status: held ? "held" : "open",
+    dropReason: null,
     model: null,
     agent: null,
     ranOn: null,

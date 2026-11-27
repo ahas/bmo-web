@@ -690,6 +690,19 @@
   }
 }
 
+/* The layers, in the one order every floating part follows (docs/web.md, 「Layers」): the page and its sidebar
+   under everything at their own order; a sheet's shade and the sheet (a dialog, a drawer, a slideover) over them,
+   whatever an element of the page is given, and a later sheet over an earlier one by standing after it; the
+   briefing playing over the sheets; what drops from a control (a menu, a list, a popover, a tooltip) over those,
+   since it is opened from them; and a notice over everything. Every page element's own order stays under the
+   sheet's. */
+:root {
+  --bmo-layer-sheet: 100;
+  --bmo-layer-pip: 150;
+  --bmo-layer-popper: 200;
+  --bmo-layer-notice: 300;
+}
+
 /* The whole window where nothing covers it: the dynamic viewport, and the window's own height in a browser that
    knows no dvh (docs/web.md, 「Layout fundamentals」). */
 :root {

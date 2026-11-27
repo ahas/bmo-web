@@ -65,9 +65,14 @@ pub async fn stand(
     crate::supply::allowance_kind(),
     crate::supply::organisation_kind(),
     crate::security::second_factor_kind(),
+    crate::security::mail::system_kind(),
   ] {
     crate::chain::declare(&db, &kind).await?;
   }
+  // `secret.kinds` takes its choices from the registry, so it stands after the rules have seeded it; the
+  // system mail moves once off the settings row it stood in before the chain.
+  crate::secret_kinds::sync_chain(&db).await?;
+  crate::security::mail::seed_once(&db).await?;
 
   Ok(Service {
     db,

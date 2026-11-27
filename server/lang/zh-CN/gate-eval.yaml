@@ -7,7 +7,7 @@ usage: |-
     start     以用户单元 bmo-gate-eval 启动生成 (由运行此命令的二进制执行)。
     generate  在前台运行同样的生成。单元运行的就是它。
     status    按关卡显示已生成数、已提问数、被拒数、丢弃数、剩余量和状态。
-    score     用 --road claude|kakia 询问关卡并评分。--limit <数> 每个关卡在整套题中均匀地只取这么多。
+    score     用 --road claude|kiki 询问关卡并评分。--limit <数> 每个关卡在整套题中均匀地只取这么多。
     report    按路线并排显示每个关卡最近一次的评分。
 
     --set <名称>      题集名称 (默认 v1)。数据在数据根目录的 gate-eval/<名称>/ 下。

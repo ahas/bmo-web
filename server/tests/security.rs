@@ -12,10 +12,12 @@ use axum::body::Body;
 use axum::http::{HeaderMap, Method, Request, StatusCode, header};
 use bmo_web_client::MailServer;
 use bmo_web_server::Refusal;
+use bmo_web_server::chain::{Link, put_value, value_at};
 use bmo_web_server::data_move::{MoveAsk, run_move};
 use bmo_web_server::routes::in_force;
-use bmo_web_server::security::mail::{MailService, Outgoing};
+use bmo_web_server::security::mail::{MailService, Outgoing, seed_once, system_kind};
 use bmo_web_server::users::set_sign_in;
+use bmo_web_server::{all, one, run};
 use http_body_util::BodyExt;
 use serde_json::{Value, json};
 use support::{Scratch, console_hash, ready};
@@ -337,6 +339,122 @@ async fn the_system_mail_is_the_administrators_and_names_its_secret_alone() {
   assert_eq!(tested.status, StatusCode::NO_CONTENT, "{}", tested.body);
   assert_eq!(world.mailbox.kinds(), vec!["test"]);
   assert!(world.mailbox.0.lock().unwrap()[0].html.contains("a@example.com"));
+}
+
+// The system mail stands as the platform link's value of the `mail.system` chain kind; a settings row of the
+// same key that stood before the chain is moved onto the link once and let go (docs/accounts.md, 「The platform's
+// own mail」).
+#[tokio::test]
+async fn the_system_mail_stands_on_the_chain_platform_link_and_seeds_once_off_the_settings_row() {
+  let world = world().await;
+  let db = world.scratch.db();
+
+  mail_set(&world).await;
+
+  let standing = value_at(db, "mail.system", Link::Platform).await.unwrap();
+
+  assert_eq!(
+    standing,
+    Some(json!({"server":"server-a","from":"system@example.com","fromName":"BMO","secret":null})),
+    "the value stands at the platform link"
+  );
+
+  // A row of the old key, written after the link already stood, is let go and moves nothing.
+  run(
+    db,
+    r#"INSERT INTO "settings" ("key", "value") VALUES ('mail.system', $1)
+       ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value""#,
+    vec![
+      json!({"server":"server-a","from":"old@example.com","fromName":"Old","secret":null})
+        .to_string()
+        .into(),
+    ],
+  )
+  .await
+  .unwrap();
+  seed_once(db).await.unwrap();
+
+  let kept = value_at(db, "mail.system", Link::Platform).await.unwrap().unwrap();
+
+  assert_eq!(kept["from"], json!("system@example.com"), "the link keeps its own value, not the row's");
+
+  let rows = all(db, r#"SELECT "key" FROM "settings" WHERE "key" = 'mail.system'"#, vec![])
+    .await
+    .unwrap();
+
+  assert!(rows.is_empty(), "the old settings row is let go");
+
+  // A fresh link with only the old row gets the row's value moved onto it once.
+  let plain = Scratch::new().await;
+
+  run(
+    plain.db(),
+    r#"INSERT INTO "settings" ("key", "value") VALUES ('mail.system', $1)"#,
+    vec![
+      json!({"server":"server-a","from":"old@example.com","fromName":"Old","secret":null})
+        .to_string()
+        .into(),
+    ],
+  )
+  .await
+  .unwrap();
+  seed_once(plain.db()).await.unwrap();
+
+  let moved = value_at(plain.db(), "mail.system", Link::Platform).await.unwrap();
+
+  assert_eq!(
+    moved,
+    Some(json!({"server":"server-a","from":"old@example.com","fromName":"Old","secret":null}))
+  );
+}
+
+// `secret.kinds` is declared with the registry's keys as its choices; the registry is re-declared onto it as it
+// changes, and a kind let go leaves every stored value of the kind (docs/accounts.md, 「Secret kinds」).
+#[tokio::test]
+async fn the_secret_kinds_chain_kind_follows_the_registry_and_prunes_a_key_it_lets_go() {
+  let world = world().await;
+  let db = world.scratch.db();
+
+  let declared = bmo_web_server::chain::kind(db, "secret.kinds").await.unwrap();
+
+  assert!(
+    declared.choices.contains(&"card".to_owned())
+      && declared.choices.contains(&"aws-access-key".to_owned()),
+    "the baseline kinds are the choices: {:?}",
+    declared.choices
+  );
+
+  // A stored value at the platform link names a kind; removing that kind prunes it and narrows the choices.
+  let kind = bmo_web_server::chain::kind(db, "secret.kinds").await.unwrap();
+
+  bmo_web_server::chain::put_value(
+    db,
+    &kind,
+    Link::Platform,
+    Some(&json!(["card", "aws-access-key"])),
+    Some(world.boss),
+  )
+  .await
+  .unwrap();
+
+  let gone = ask(
+    &world.app,
+    Method::DELETE,
+    "/secret-kinds/card",
+    None,
+    &[("owner-key", world.boss.to_string()), ("owner-role", "administrator".into())],
+  )
+  .await;
+
+  assert!(gone.status.is_success(), "{}", gone.body);
+
+  let pruned = bmo_web_server::chain::value_at(db, "secret.kinds", Link::Platform).await.unwrap();
+
+  assert_eq!(pruned, Some(json!(["aws-access-key"])), "the let-go kind leaves the stored value");
+
+  let after = bmo_web_server::chain::kind(db, "secret.kinds").await.unwrap();
+
+  assert!(!after.choices.contains(&"card".to_owned()), "the choice leaves the declaration");
 }
 
 #[tokio::test]
@@ -829,5 +947,68 @@ async fn an_account_is_disabled_and_enabled_by_the_administrator_alone_and_never
       )
       .await,
     2
+  );
+}
+
+#[tokio::test]
+async fn a_unit_s_own_mail_tells_its_people() {
+  let world = world().await;
+
+  mail_set(&world).await;
+  verified(&world, world.member, "member@example.com").await;
+
+  // The member stands in a unit, and that unit keeps its own system mail with a login secret of its space.
+  let company: i32 = one(
+    world.scratch.db(),
+    r#"INSERT INTO "organizations" ("name", "parent_id") VALUES ('company-a', NULL) RETURNING "id""#,
+    vec![],
+  )
+  .await
+  .unwrap()
+  .unwrap()
+  .try_get("", "id")
+  .unwrap();
+
+  world
+    .scratch
+    .run(
+      r#"UPDATE "users" SET "organization_id" = $1 WHERE "id" = $2"#,
+      vec![company.into(), world.member.into()],
+    )
+    .await;
+  put_value(
+    world.scratch.db(),
+    &system_kind(),
+    Link::Unit(company),
+    Some(&json!({
+      "server": "server-a",
+      "from": "company@example.com",
+      "fromName": "Company A",
+      "secret": "smtp-login",
+    })),
+    Some(world.boss),
+  )
+  .await
+  .unwrap();
+
+  let asked = ask(
+    &world.app,
+    Method::POST,
+    "/password-resets",
+    Some(json!({ "who": "member@example.com", "linkBase": BASE })),
+    &[],
+  )
+  .await;
+
+  assert_eq!(asked.status, StatusCode::ACCEPTED, "{}", asked.body);
+
+  let mails = world.mailbox.0.lock().unwrap();
+  let reset = mails.iter().rev().find(|mail| mail.kind == "password-reset").expect("the notice went");
+
+  assert_eq!(reset.from, "company@example.com", "the unit's mail tells its own people");
+  assert_eq!(
+    reset.secret.as_deref(),
+    Some(format!("units/{company}/smtp-login").as_str()),
+    "the login goes as its address under the data root's env, read from the unit's space"
   );
 }

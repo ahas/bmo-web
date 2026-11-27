@@ -27,7 +27,7 @@ const provider = (name: string, label: string, lines: string[], enabled = true):
 const PROVIDERS = [provider("provider-a", "Provider A", ["chat", "worker"]), provider("provider-b", "Provider B", ["worker"], false), provider("provider-c", "Provider C", ["search"])];
 
 function item(): TodoItem {
-  return {
+  return { dropReason: null,
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: null, chatId: null, approved: false, awaitingApproval: true, recommended: false, done: false,
     running: false, worker: null, priority: 1, status: "waiting", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null,
     rejections: 0,

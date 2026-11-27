@@ -55,6 +55,7 @@ function item(id: number, unfinished: string | null, resolution: string | null):
     unfinishedResolution: resolution,
     heldAt: null,
     heldReason: null,
+    dropReason: null,
     heldKind: null,
     noticesOff: null,
     mergedInto: null,
@@ -149,7 +150,7 @@ async function open(viewport: (typeof WIDTHS)[number], job: Job): Promise<Browse
     const done = rowsOf(job).filter((row) => condition === null || stateOf(row) === condition);
 
     job.asked.push(condition);
-    await route.fulfill({ json: { ...board, queue: [], pending: [], held: [], merged: [], done, doneTotal: done.length } });
+    await route.fulfill({ json: { ...board, queue: [], pending: [], held: [], merged: [], done, doneTotal: done.length , dropped: [], droppedTotal: 0} });
   });
   await context.route(/\/api\/todos\/\d+$/, (route) => {
     const id = Number(new URL(route.request().url()).pathname.split("/").at(-1));

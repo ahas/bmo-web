@@ -124,7 +124,7 @@ const { NO_CONDITIONS } = await import("../../../apps/web/app/domain/todos");
 const ids = (rows: { id: number }[]) => rows.map((row) => row.id);
 
 describe("the lists each item stands in", () => {
-  test("the queue, what waits on approval, what is set aside, what is merged and what is finished", async () => {
+  test("the queue, what waits on approval, what is set aside, what is merged, what was discarded and what is finished", async () => {
     stand([
       item(1),
       item(2, { state: "draft", approvals: [] }),
@@ -138,9 +138,15 @@ describe("the lists each item stands in", () => {
       // An item that opened by itself under an unattended label carries no approval and is past approval all the same.
       item(7, { state: "open", approvals: [], labels: { lane: "pr-review" } })
     ]);
+    // The note a drop was made with, and one written after it, which is no reason for it.
+    held.notes.set(5, [
+      { id: 4, itemId: 5, actorName: "owner", text: "carried elsewhere", createdAt: 1_790_000_060_000, labels: {} },
+      { id: 5, itemId: 5, actorName: "owner", text: "a later word", createdAt: 1_790_000_090_000, labels: {} }
+    ]);
 
     const board = await readTodoBoard();
 
+    held.notes.delete(5);
     expect(ids(board.queue)).toEqual([1, 7]);
     expect(ids(board.pending)).toEqual([2]);
     expect(ids(board.held)).toEqual([6]);
@@ -150,9 +156,13 @@ describe("the lists each item stands in", () => {
     expect(board.merged.map((row) => row.done)).toEqual([false, false]);
     expect(board.merged[0]).toMatchObject({ mergedInto: 1, mergedIntoTitle: "Item 1", mergedAt: 1_790_000_030 });
     expect(board.queue[0]!.mergedFrom).toEqual([{ id: 4, title: "Item 4", done: false }]);
-    expect(ids(board.done)).toEqual([8, 5, 3]);
+    // What was discarded is finished without being done, so it stands apart from what was, with its reason.
+    expect(ids(board.done)).toEqual([8, 3]);
     expect(board.done[0]).toMatchObject({ done: true, mergedInto: 3 });
-    expect(board.doneTotal).toBe(3);
+    expect(board.doneTotal).toBe(2);
+    expect(ids(board.dropped)).toEqual([5]);
+    expect(board.dropped[0]).toMatchObject({ done: true, status: "dropped", dropReason: "carried elsewhere" });
+    expect(board.droppedTotal).toBe(1);
     expect(board.standing).toEqual({ queue: 2, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 2 });
     expect(board.queue.find((one) => one.id === 7)).toMatchObject({ approved: false, awaitingApproval: false });
   });

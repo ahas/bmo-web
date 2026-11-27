@@ -1,5 +1,5 @@
 import { MEMBER_HOME, MEMBER_LAYOUT, isAdministrator } from "~/domain/access";
-import { adminLanding } from "~/domain/organization";
+import { adminLanding, agentsLanding } from "~/domain/organization";
 import { SCREENS } from "~/domain/screens";
 import { GUIDE_PATH, guideOpens, guideOpensState } from "~/domain/guide";
 import { openScreen, screenAt, screenOpened, sharePath, useConsoleScreens, useScreensReader } from "~/domain/console-screens";
@@ -18,6 +18,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
   // The old administrator screen is the merged screen's platform node now: every address under it lands there with
   // the tab its key held, before any page draws (docs/web.md, 「System and organisation」).
   if (to.path === "/admin") return navigateTo(adminLanding(to.query), { replace: true });
+
+  // The agent sections stand on the organisation screen as tabs of the nodes they reach; the `/agents` address
+  // lands on its tab at the platform's node, and an agent's own page stands where it stands
+  // (docs/web.md, 「System and organisation」, 「Agent screen」).
+  if (to.path === "/agents") return navigateTo(agentsLanding(to.query), { replace: true });
 
   const screens = useConsoleScreens().value;
   // The screen a unit brings that the address stands under, among those the reader may open; its bundle is loaded

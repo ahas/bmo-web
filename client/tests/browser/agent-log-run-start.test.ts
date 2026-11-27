@@ -100,7 +100,7 @@ describe.skipIf(!origin || !touchReady())("a working agent's state cell", () => 
           if (log.test(request.url())) reads.push(new URL(request.url()).search);
         });
 
-        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+        await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
 
         const cell = page.locator("[data-role-agents-table] tbody tr").filter({ hasText: ROLE_LOG.seat }).locator('[data-agent-state="working"]');
 

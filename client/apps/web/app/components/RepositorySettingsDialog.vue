@@ -171,6 +171,7 @@
 </template>
 
 <script setup lang="ts">
+import { useAgentScope } from "~/domain/agent-scope";
 import { failureText } from "bmo-ui/app/domain/errors";
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
@@ -188,10 +189,11 @@ interface Props {
   // The repository to edit; none opens the dialog for a new one.
   name?: string | null;
   // The organisation unit whose repository it is, read and saved through the unit's own routes so a head needs no part
-  // of agent management (docs/web.md, 「System and organisation」, the agents tab); none on agent management's repository tab.
+  // of agent management (docs/web.md, 「Agent management screen」, the agents tab); none on agent management's repository tab.
   unit?: number | null;
 }
 
+const agentScope = useAgentScope();
 const props = withDefaults(defineProps<Props>(), { name: null, unit: null });
 const open = defineModel<boolean>("open", { required: true });
 const emit = defineEmits<{ saved: [repository: RepositoryView] }>();
@@ -211,8 +213,14 @@ const HERE = "@here";
 const forUnit = props.unit !== null;
 const unitAddress = computed(() => `/api/organization/units/${props.unit}/repositories/${encodeURIComponent(props.name ?? "")}`);
 const unitDetail = useFetch<UnitRepositoryDetail>(() => unitAddress.value, { lazy: true, server: false, immediate: false, watch: false });
-// The repositories tab reads the same answer under the same key.
-const listed = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false, immediate: !forUnit });
+// The repositories tab reads the same answer under the same key, of the node the address chooses.
+const listed = useFetch<RepositoryView[]>("/api/repositories", {
+  key: computed(() => `repositories:${agentScope.value?.key ?? "all"}`),
+  query: computed(() => agentScope.value?.params ?? {}),
+  lazy: true,
+  server: false,
+  immediate: !forUnit
+});
 // The nodes the agency places jobs on; one the repository names that takes none now still stands as its own choice.
 const nodesRead = useFetch<WorkNodeView[]>("/api/work-nodes", { key: "work-nodes", lazy: true, server: false, immediate: !forUnit });
 const providersRead = forUnit ? null : useProviders();
@@ -469,6 +477,8 @@ function body(): Record<string, unknown> {
   const sent: Record<string, unknown> = {};
 
   if (adding.value) sent.name = now.name.trim();
+  // Added at a node of the organisation screen, the row is filed under its unit; the agency judges the heading.
+  if (adding.value && agentScope.value?.ownerUnit !== undefined) sent.ownerUnit = agentScope.value.ownerUnit;
   if (changed("label") && (!adding.value || now.label.trim() !== "")) sent.label = textOrNone(now.label.trim());
   if (changed("path") && now.path.trim() !== "") sent.path = now.path.trim();
   if (changed("node")) sent.nodeName = now.node === HERE ? null : now.node;

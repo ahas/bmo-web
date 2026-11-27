@@ -12,12 +12,12 @@ const scriptOf = (source: string) => source.slice(source.indexOf("<script"));
 const settings = await read("./ResearchSettings.vue");
 const supervisor = await read("./ResearchSupervisor.vue");
 const page = await read("../pages/research.vue");
-const agents = await read("../pages/agents/index.vue");
+const organization = await read("../pages/organization.vue");
 
 describe("the research settings tab", () => {
-  test("stands as the research screen's settings tab, and no longer on the agent page", () => {
+  test("stands as the research screen's settings tab, and nowhere on the merged system and organisation screen", () => {
     expect(page).toContain("<ResearchSettings v-if=\"tab === 'settings'\"");
-    expect(agents).not.toContain("<ResearchSettings");
+    expect(organization).not.toContain("<ResearchSettings");
   });
 
   test("names no source of a value and no default word, and offers the roles the agency lists with an agent switched on", () => {

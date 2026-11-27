@@ -65,7 +65,7 @@ const PROGRESS: RunProgress = {
 
 // An approved line waiting its turn in the queue.
 function item(id: number): TodoItem {
-  return {
+  return { dropReason: null,
     id, title: `item-title-${id}`, instruction: "item-instruction ".repeat(20), requester: "Owner", requesterId: 42, chatId: null,
     approved: true, awaitingApproval: false, recommended: false, done: false, running: false, liveState: null, worker: null,
     priority: id, status: "waiting", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null, rejections: 0,

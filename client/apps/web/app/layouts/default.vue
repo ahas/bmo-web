@@ -103,10 +103,11 @@
         <div class="flex w-full flex-col gap-1">
           <!-- Whether the receiver's stream is carrying anything. Nothing is said while it is, or
                before it has first spoken; a break the receiver announced reads as a restart. It leads
-               to agent management's agents tab, where what each agent is doing now is read. -->
+               to the supervisors tab of the system and organisation screen, where what each agent is
+               doing now is read. -->
           <UTooltip v-if="streamNotice !== null" :text="streamNotice.label" :disabled="!collapsed" :content="{ side: 'right' }">
             <NuxtLink
-              to="/agents?tab=supervisors"
+              :to="streamNoticeTarget"
               role="status"
               class="flex min-h-8 items-center gap-2 rounded-md px-2.5 text-sm transition-colors hover:bg-elevated active:bg-accented"
               :class="[streamNotice.tone, collapsed ? 'justify-center' : '']"
@@ -200,7 +201,7 @@ import { useBotEvents, useLiveRefresh, useSupervisorsAnswering } from "~/domain/
 import { COUNT_BADGE, countText } from "~/domain/numbers";
 import { POLL_INTERVAL_MS } from "#shared/config";
 import { jumpGroups, screenGroup } from "~/domain/jump";
-import { organizationTabNamed, useOrganizationReader } from "~/domain/organization";
+import { PLATFORM_NODE, organizationLinkAddress, organizationTabNamed, useOrganizationReader } from "~/domain/organization";
 import { peopleGroup, rosterGroup } from "~/domain/people";
 import { ROSTER_TAB } from "~/domain/roster";
 import { useModelNames } from "~/domain/model-names";
@@ -595,4 +596,7 @@ const streamNotice = computed<StreamNotice | null>(() => {
 
   return null;
 });
+
+// Where it leads: the supervisors tab of the system and organisation screen, at the platform's own link.
+const streamNoticeTarget = organizationLinkAddress(PLATFORM_NODE, {}, "supervisors");
 </script>

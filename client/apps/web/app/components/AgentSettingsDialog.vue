@@ -111,6 +111,7 @@
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 import { TAB_ROW_LINE, TAB_ROW_UI } from "bmo-ui/app/domain/tabs";
 
+import { useAgentScope } from "~/domain/agent-scope";
 import { defaultThreshold, fractionOf, markedDefault, percentOf, providerWord, refusalOf, sessionsText, useProviders } from "~/domain/axes";
 import { sameValue } from "~/domain/form-values";
 
@@ -128,8 +129,14 @@ const open = defineModel<boolean>("open", { required: true });
 const { t } = useI18n();
 const formId = useId();
 
-// The agents tab reads the same answer under the same key.
-const { data: view, refresh } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
+// The agents tab reads the same answer under the same key, of the node the address chooses.
+const agentScope = useAgentScope();
+const { data: view, refresh } = useFetch<RolesView>("/api/roles", {
+  key: computed(() => `roles:${agentScope.value?.key ?? "all"}`),
+  query: computed(() => agentScope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 const { data: providers } = useProviders();
 
 const role = computed<RoleView | null>(() => view.value?.roles.find((one) => one.agents.some((agent) => agent.name === props.name)) ?? null);

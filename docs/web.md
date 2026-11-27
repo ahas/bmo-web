@@ -1285,14 +1285,13 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   holding that account's own session and weekly windows as the share remaining, each with a bar of that share and
   how long is left until it resets. A group's rows stand on shared columns, so the names read down one column, the
   bars start on one line and the figures end on one line, each row ending on its figure with what it is read against —
-  how long until the window resets, how long ago a balance was read — just before it; a balance, which has no whole, keeps the bar's place
+  how long until the window resets — just before it; a balance, which has no whole, keeps the bar's place
   empty, and where the group is narrower than about 28rem, as the panel is, each bar takes a line of its own under
   its row. No group is marked as the one in use, since the chat agent and each of a role's agents run on
   roads of their own and one mark cannot say whose run it means. Where the chat runs on a provider
   that holds no login, that slot stands first as a group of its own, with whatever
   windows it reports. A slot or an account the agency reads a balance for — a provider paid by the request, an
-  endpoint account — carries it as a row of its own: 「잔액」, the amount in its currency, and how long ago it was
-  read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
+  endpoint account — carries it as a row of its own: 「잔액」 and the amount in its currency, with no word of when it was read. A balance that carries a request allowance (the agency's `docs/usage-windows.md`, 「Balances」) stands
   one more row under it: what the allowance covers in the pack's words for it, 「무료 모델 요청」 for
   `free-models` and 「하루 요청」 for one the pack has no word for or that covers every request, and how many
   are left of the day's ceiling, 「988 / 1,000 남음」, with a bar of that share. A provider that is switched on and keeps a balance on
@@ -1514,7 +1513,8 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   profile stands with (`docs/accounts.md`, 「A person's BMO profile」), the pack's word for a BMO where the profile
   names none, and for an agent of no account its label; never a label made with the person's name. In a person's own
   BMO's room that agent's own rows stand under the same name. The owner's private chat is answered by the supervisor
-  it names, else the default answerer, and keeps the name the console calls its chat agent by. Its face is the one
+  it names, else the default answerer, and keeps the name the console calls its chat agent by: that supervisor's own
+  label, the chat agent's label the settings name only where it has none, so the room and the agent's row read alike. Its face is the one
   that agent wears everywhere (above), its name's letter on the agent's own colour where it has no picture. The person
   stands only in 방 정보's 대화상대. The receiver's own title for the room stays the person's name, which the agent's
   turns read (「The join page」).
@@ -1640,7 +1640,7 @@ Four groups.
   the deployment running, what the heads of the organisations set for the people under them, and the company's
   스토어 every person opens; **애플리케이션**,
   every other screen a unit brings; and **내 앱**, the reader's own screens.
-  - **시스템 서비스** holds the console's own cache siren, DB, document viewer, agent management (에이전시),
+  - **시스템 서비스** holds the console's own cache siren, DB, document viewer,
     리서치, monitor, 시스템 및 조직 and 스토어 (「App catalogue」), and every screen a unit brings whose manifest names it: the brain's (브레인),
     code review's, BMO's face (비모 얼굴), the tool host's (도구) and the remote
     machines' (원격) among them.
@@ -1816,7 +1816,8 @@ Four groups.
     each stand the rooms it answers, one entry per room, as the receiver names them (its `docs/api.md`,
     「Supervisors」, `GET /supervisors/{name}/rooms`): every room whose `supervisors` names it, and for the default
     answerer every room that names none as well, each only while it stands in the room list above, so a room never
-    added stands under no supervisor either. The three branches therefore wait for the room list's first answer as
+    added stands under no supervisor either. The room that stands as the supervisor itself — its own private room,
+    which the room list shows under the supervisor's own name — is not listed under it again. The three branches therefore wait for the room list's first answer as
     well as the agency's, so a supervisor first stands with its rooms already under it rather than growing them a
     moment later. Which rooms a supervisor answers is the receiver's word,
     read there
@@ -1865,7 +1866,7 @@ Four groups.
     search finds.
   - **A room's name and picture in the list follow what kind of room it is.** A group room stands under the title it
     was set with, in the list as everywhere else, and wears the picture set for it; no agent's label replaces either, so
-    a group titled AHAS Lab lists as AHAS Lab. A one-to-one room stands under the other party's name and wears the other
+    a group titled Design Lab lists as Design Lab. A one-to-one room stands under the other party's name and wears the other
     party's picture, taken from the messenger the room is connected through — the chat provider's own name and photo for
     that person, not a name guessed from the archive — with the initials avatar the console already draws standing where
     the provider hands over no photo. A room the provider says nothing about keeps the title the record holds. An agent
@@ -2425,13 +2426,17 @@ inline code, code blocks, lists, headings, quotes, tables, links. The places suc
   4px; the screen's mark stands 12px from its name, as a room's picture does, and a room's menu 8px from the name's
   end.
 - **A title bar's icon button is a square**, the component library's own icon button: its mark at the
-  library's icon size with the same padding on every side, so every button in the bar that shows only a mark
-  is one size. Every button of the set at its right end is the library's own button at its default size — a
+  library's icon size with the same padding on every side, so every icon button of the bar is one size.
+  Every button of the set at its right end is the library's own button at its default size — a
   ghost one, its hover and press filling its own rounded shape and nothing round it — never a bare element
   dressed as one. A mark whose words fold away on a short bar — the deployment's, the usage figures — is the
   library's square button from the moment it stands alone, so it is that same square.
-  `client/tests/browser/topbar-square.test.ts` measures every
-  button in the title bar that shows only a mark, at a desktop width and a phone's, in light and dark.
+  **A room's picture and the presence dot on its corner are no icon buttons but the room's mark:** they
+  stand where every other screen's mark stands and at that mark's size, the picture opening whole as a
+  face in the conversation does and the dot opening the room's people, and the screen marks the cluster
+  as its mark for the bar to hold apart from its squares. `client/tests/browser/topbar-square.test.ts`
+  measures every icon button in the title bar, the room's mark apart, at a desktop width and a phone's,
+  in light and dark.
 
 ### Tab bar and toolbar
 
@@ -2957,8 +2962,9 @@ archive and this week's tokens remain. That is all that can actually be known th
   here. Only the open tab reads anything. The console search finds each tab as it finds a screen. On a phone
   the tabs stand by their names alone, their marks giving way, so they fit the row.
 - `/cards` sends a reader on to `/monitor?tab=services`, so a link made to that address lands on the master's
-  board, and `/live` sends a reader on to `/agents?tab=supervisors`, so a link made to that address lands on the
-  agents and what each is doing.
+  board, and `/live` sends a reader on to the 에이전트 tab at the platform's own link of the system and organisation
+  screen (`/organization?company=platform&tab=supervisors`), so a link made to that address lands on the agents and
+  what each is doing.
 - **기기 shows every machine at a glance** (bmo-node's `docs/hardware.md`, 「Which machines」): this machine first,
   then the monitored nodes in the node list's order, one tile each; a node that is this machine is shown as this
   machine's tile alone. A node is monitored where the node list says so: every shared node, and a personal node of
@@ -3375,31 +3381,45 @@ archive and this week's tokens remain. That is all that can actually be known th
 
 ### Agent management screen
 
-- **Its name on the screen is 에이전시.** The sidebar, the title bar and every sentence that names the screen
-  call it so.
+- **Its parts are the 에이전트 tabs of 「System and organisation」.** The five sections stand in that screen's tab
+  row at the node the reader chose, and their address is its address: `?company=<node>&tab=<section>`, a unit named
+  by `&unit=<unit>` beside its company. The address `/agents` stands for no page: it lands the reader on the platform's
+  own link with the tab its key names, and a key naming none opens that screen's first tab. The old administrator
+  address `/admin` lands the same way (「System and organisation」).
 - **What it is for.** The two axes the agency runs work on and the places it runs it (the agency's
   `docs/agents.md`, 「Two axes」): the roles, the agents — the supervisors and the agents of the roles — and the
   repositories, and the two things a road
   may name of the deployment's own, the registered models and the model files. Everything this screen edits is
   written through the agency's routes; the console keeps none of it.
-- **A section to a tab.** A tab stands only where the reader may read its part, and its 추가 and its row
-  changes stand only where they may write it (「Access」). The tabs are 역할, 에이전트, 저장소, 등록 모델 and 모델 파일, keyed in the address as
-  `?tab=roles`, `supervisors`, `repositories`, `models` and `model-files`, so a shared link opens the same section and
-  moving between tabs is a step of the history; a key that names no tab opens 역할. The 에이전트 tab keeps the key and
-  the access section it stood under as the supervisors' tab; it holds every agent, the supervisors' table first and
-  the table of the roles' agents under it (「에이전트」 below). The tab row stands under the
-  title bar and carries, at its right end, the settings search, the one button that reads every section again,
-  which spins while it reads, and last the open section's 추가, the row's grey icon on a phone too (「The title bar」)
-  named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. The title bar keeps only what every page carries, and no
+- **A node's reach, a section's tabs.** Where the row holds one of these tabs it follows the node chosen (the
+  agency's `docs/api.md`, 「Who a caller acts for」): the lists are the rows that node reaches — the whole at the
+  platform's own link for the administrator, the reader's own rows at their own link, the unit and the units under it
+  at a company or a unit — and a row added at a node is filed under it: the supervisors and the roles' agents by the
+  unit's `ownerUnit`, the repositories by theirs, a registered model by its `unit`. A supervisor the tab's 감독관 추가
+  makes is filed under the reader's own account whoever the node is, since the receiver files it there; no node files
+  one under a unit yet. A tab stands only where the reader may read its part, and its 추가 and its row
+  changes stand only where they may write it (「Access」). 역할 and 모델 파일 are the platform's own presets and files:
+  they stand at the platform's link alone, for no reader at a company or a unit however their sections read.
+  The tabs are 역할, 에이전트, 저장소, 등록 모델 and 모델 파일, keyed as `tab=roles`, `supervisors`, `repositories`,
+  `models` and `model-files` beside the node's own keys, so a shared link opens the same section of the same node and
+  moving between tabs is a step of the history; an address naming a tab the reader may not open at the node is taken
+  to the first one they may. The 에이전트 tab keeps the key and
+  the access section it stands under as the supervisors' tab; it holds every agent, the supervisors' table first and
+  the table of the roles' agents under it (「에이전트」 below). Where the row holds a tab of agent management it carries,
+  at its right end, the settings search and last the open section's 추가, the row's grey icon on a phone too
+  (「The title bar」) named by what the section adds: 역할 추가, 감독관 추가, 저장소 추가, 등록 모델 추가 or 모델 파일 추가. Each part reads again
+  when the node or the tab changes; the screen holds no button that reads every part again, and no
   section repeats its tab's name as a title of its own.
-- **The settings search** looks over every section at once: section names, supervisors by their names, labels and
+- **The settings search** stands wherever the row holds a tab of agent management, and looks over every one of
+  those sections at once: section names, supervisors by their names, labels and
   the names they are called by, roles by their names, labels and bundles, repositories by their names, labels and
   paths, registered models by their names and the models behind them, and model files by their labels, names and
-  engines. It uses the console's shared list search, so a hit on what a row shows is marked there and a hit only in
+  engines. The parts not standing in this node's row say no result; what is listed is the rows the reader reaches,
+  read on the plain keys the settings share, and a pressed result lands on its tab and moves its row to the middle of
+  the view only where the node answers it. It uses the console's shared list search, so a hit on what a row shows is marked there and a hit only in
   what the row holds stands as one line under the result. Where the tab row has room the search is a box beside the
   tabs with its results under it; where it does not (a phone) it is a button opening the same search in a centred
-  modal. Pressing a result opens its tab, brings its row to the middle of the view and marks it a moment; the open
-  tab's rows mark the phrase too.
+  modal; the open tab's rows mark the phrase too.
 - **Every table on the screen is the one shared settings table.** Its box fills the section edge to edge; the table
   stands one row to a line, has no pages, and scrolls sideways inside that box once it is wider; the box is never wider
   than the panel, and neither the page nor the tab's body ever scrolls sideways. A tab's body has exactly one box
@@ -3519,8 +3539,9 @@ archive and this week's tokens remain. That is all that can actually be known th
 #### 에이전트
 
 The tab holds every agent of the screen: the supervisors, which answer rooms, and the agents of the roles, each
-a seat of its role. Both tables, and the agent an agent's dialog opens, hold the reader's own and the deployment's
-alone (「Access」); another account's agents are reached from 시스템 및 조직's 사용자 tab.
+a seat of its role. Both tables, and the agent an agent's dialog opens, hold what the node chosen reaches (above):
+the whole at the platform's own link, the unit and the units under it at a company or a unit, the reader's own rows
+at their own link; agents the node answers none of stand nowhere on it.
 
 - **One table of every supervisor** (the agency's `docs/supervisors.md`), one row each in the order the agency lists
   them: 감독관, its mark, its label and its name, the title column; 상태, what it is doing now (「What each agent is
@@ -3919,7 +3940,7 @@ hidden, and the dialog says so in so many words (대화 기록은 그대로 남�
     where it keeps one in each room.
   - **설정's 내 에이전트** (「Settings」) carries a row for each supervisor filed under the reader's account, their BMO
     first, its more-menu holding both; its session is the one session, or every room session it holds.
-  - **에이전시's 에이전트 tab** (「Agent management screen」) carries both in each supervisor row's more-menu, after
+  - **The 에이전트 tab** (「Agent management screen」) carries both in each supervisor row's more-menu, after
     설정, for the administrator, every supervisor of the deployment.
   - **The dialog is one component** a screen renders from its own rows, so a screen listing a unit's agents for its
     heads offers the same two actions by rendering it.
@@ -7282,6 +7303,11 @@ Four bounds keep it from growing forever.
     one further back than the finished page in hand is read on its own, so the link never lands on nothing. Nothing acts on
     a merged item: the 관리 tab says only which item carries it, and no words are added to it. Once the carrying item is
     finished, the merged ones are finished with it and stand among the 완료 with a **#N에 병합** line.
+  - **버림** — items the owner or a supervisor discarded: finished without being done, so they never stand among the
+    완료. Like the hold group it is unseen when viewing all, and stands under its own chip and in a search, newest first
+    and paged with the finished list. A line wears **버림** with a blocked mark and, under it, the note the drop was made
+    with as **사유: …**, read from the last note written on the item by the time it was dropped; a drop that carried none
+    says nothing more.
   - **완료** — items whose report is done. Completion is marking not deleting, so what has been done stays here.
     - **The most recently filed stands first,** by item number, highest first: bmo-job's lines carry no moment an item
       was closed, and the number is the order items were filed in.
@@ -7318,7 +7344,7 @@ Four bounds keep it from growing forever.
   colour — the only line asking the owner something. And **a completed line reads at the same brightness as others** — a record of
   what was done, not to be dimmed.
 - **The state tabs and the filter narrow the groups together.** The tabs under the search pick a state — 전체, 대기,
-  진행 중, 결재 대기, 보류, 병합됨, 완료. Beside them a filter button opens a popover at every width, the panel being a
+  진행 중, 결재 대기, 보류, 병합됨, 버림, 완료. Beside them a filter button opens a popover at every width, the panel being a
   narrow column wherever it stands, and it sets conditions on the table's own columns:
   - **저장소** — the repository whose worker does the line. A line with no assignment is the Built-in worker's, so
     picking that worker finds those lines too. The names come from the agents table, with any other name a line
@@ -8124,11 +8150,14 @@ person sees their own space and nobody else's, the administrator included.
   for it, and the sidebar's 시스템 및 조직 entry leads there. The secret form (below) is the one that list, the composer's
   clip and an agent's request open.
 - The kinds the form asks in are the deployment's, kept on the 시스템 및 조직 비밀 종류 tab with 플랫폼 전체 chosen
-  (「System and organisation」, 「비밀 종류」).
+  (「System and organisation」, 「비밀 종류」); a unit's space is offered only the kinds its chain leaves it
+  (「System and organisation」, 「비밀 보관함」).
 - **The secret form** is one dialog (「Forms」), whichever way it opens: 종류, 이름, the kind's fields and 저장 at its
   foot.
-  - 종류 lists every kind by its name, and 직접 구성 last; the chosen kind's description stands under the list.
-    Choosing one stands its fields under 이름, each under its label, a required one marked so.
+  - 종류 lists the kinds the space being saved into is offered, by their names, and 직접 구성 last: every kind at
+    the reader's own space and the platform's, and at a unit's only those the chain leaves it. The chosen kind's
+    description stands under the list. Choosing one stands its fields under 이름, each under its label, a required
+    one marked so.
   - A 한 줄 field is one box, a password box with the browser's filling turned off where its value is hidden, shown
     as dots alone. A 여러 줄 field is a box that grows with its text, its letters drawn as dots where its value is
     hidden, with 파일에서 불러오기 under it, which reads a chosen file into the box as text. A 파일 field chooses a file
@@ -8330,12 +8359,14 @@ their own skills alone; whether they may make one is the delegation chain's `per
 시스템 및 조직 is the screen of what is set for the platform itself and of the organisations and the people in
 them. An organisation, a company at the top of the tree of units, is chosen first; everything else is set inside the
 one chosen: its units and who stands in them, every person looked up one at a time, the invitations into its units,
-its people's BMOs and their agents, its apps, its secrets, its org memory, its people's console sections, and its
-supply with its plans. What is set for the platform as a whole — the providers every run goes out on, switched on and
+its people's BMOs and their agents, its apps, its secrets, its org memory, its people's console sections, its supply
+with its plans, and the agent parts — 역할, 에이전트, 저장소 and 등록 모델 — at the reach of the node chosen
+(「Agent management screen」). What is set for the platform as a whole — the providers every run goes out on, switched on and
 off with what they have left, the secrets the agency's provider tools read, how often the agency puts every waiting
-commit live, which operating notices the owner's private chat is told, and the kinds every person's secret form asks
-in — stands on this same screen at the 플랫폼 전체 node, on tabs of its own the administrator opens and no member
-does (「공급자」, 「비밀 종류」, 「메일」).
+commit live, which operating notices the owner's private chat is told, the kinds every person's secret form asks
+in, and the platform's own 역할 presets and 모델 파일 — stands
+on this same screen at the 플랫폼 전체 node, on tabs of its own the administrator opens and no member
+does (「공급자」, 「비밀 종류」, 「메일」, 「Agent management screen」).
 
 **One setting stands on one screen, drawn by the reader's reach.** A setting kept on the delegation chain is read and
 written here, at one link of the chain at a time: the tree at the screen's left holds exactly the links the reader
@@ -9081,7 +9112,7 @@ it, are the account service's word.
     under its name 위를 따라 허용 or 위를 따라 막음, and its 하위 조직 row under it.
   - **One row per repository the unit owns,** by its 표시 이름, its name where it has none, with its path in the
     monospace face under it, its 설정 and its 삭제, asked first, which takes the registration away and leaves the
-    checkout on disk; 조직 저장소 없음 where it owns none. 설정 opens the repository dialog of 에이전시's 저장소 tab (「Agent
+    checkout on disk; 조직 저장소 없음 where it owns none. 설정 opens the repository dialog of the 저장소 tab (「Agent
     management screen」, 저장소) on it, every field of the repository — its path, its node, its checkouts, its prefix
     documents, its preamble, its rules, its dev command and its pinned model among them — read and saved through the
     unit's own routes, `GET` and `PATCH /api/organization/units/{unit}/repositories/{name}`, with the nodes and the
@@ -9092,7 +9123,7 @@ it, are the account service's word.
   - **조직 저장소 추가** at the heading's end, open while 저장소 관리 stands allowed for the unit, opens a form of 이름 —
     lowercase letters, digits and hyphens —, 표시 이름 and 경로, the base checkout's directory, whose 추가 asks the
     agency in the reader's name to add it under the unit; the agency judges whether they head it and may, its
-    refusal said in the form. A repository's other fields are set by its row's 설정, as on 에이전시's 저장소 tab (「Agent management
+    refusal said in the form. A repository's other fields are set by its row's 설정, as on the 저장소 tab (「Agent management
     screen」).
 - **A group the reader writes none of stands not at all,** so a credit manager heading nothing in the unit, or a head
   of a unit below opening the company, finds only what they set; a reader who writes none of them is told 이 조직의
@@ -9167,8 +9198,11 @@ by the agency for them; the console decides none of it.
   and 직접 추가 for an agent of their own. Its controls stand at the row's end:
   - **되돌리기**, an icon button on a seat the reader changed or that no longer stands, which puts it back as supplied;
   - **공급자 · 모델**, which opens the agent's road in a form of its own: 공급자, its first choice 요청한 감독관을 따름
-    and then every provider whose program carries the role's line; 모델, the provider's models less any another person
-    owns, a model the reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
+    and then every provider whose program carries the role's line — one the owner switched off or the reader's
+    chain closed standing disabled too, with its 쓸 수 없는 공급자 mark naming who closed it, whose words follow
+    「A closed provider is read as closed, not as absent」 (the agency's `docs/supply.md`); 모델, the provider's
+    models less any another person owns and any filed under a unit the reader does not stand on, a model the
+    reader's supply does not carry standing disabled with 공급 없음; and 강도 where the model takes
     levels, 기본 first. 저장 sends the road whole, a refusal said in the form;
   - **its switch**, which turns the agent on and off; a supplied agent switched off is the reader's own change, so its
     switch stands disabled while on where the organisation withholds 에이전트 추가·끄기;
@@ -9411,7 +9445,10 @@ alone: no route of the console or of the account service answers a value.
   `GET` and `POST /api/organization/units/{unit}/secrets`, the name travelling in the body with the value, and `DELETE
   /api/organization/units/{unit}/secrets/{name}`, each handing the account service the reader in `Owner-Key`, so the
   service judges who holds the space; a reader it refuses is told in one line that they may not set this unit's
-  secrets, and nothing else.
+  secrets, and nothing else. Its 비밀 추가 form offers the kinds the chain leaves the unit, read through `GET
+  /api/organization/units/{unit}/secret-kinds`, which answers the registry's kinds the unit's link of the
+  `secret.kinds` setting leaves; where the chain says nothing, every kind stands offered, and the store takes a
+  value only under an offered one (`docs/accounts.md`, 「Secret kinds」).
 - **At 나** the space is the reader's own, `env/users/<user>/`, through the same `/api/secrets` routes; the sidebar's
   조직 entry is how a reader reaches it. The administrator's own space is the platform's, so for them 나 holds one line
   saying so with 열기, which chooses 플랫폼 전체.
@@ -9842,8 +9879,9 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 - **공급자** — every provider the agency carries (its `docs/api.md`, 「providers, models and model files」), one row
   each in the order it lists them: the pack's word for its code with a status mark after it, under it a gateway
-  road's 소유 where every member of the road is owned by one person — 개인 with that person's name after a middle
-  dot, read off the agency's `GET /gateway-members` — and nothing where the road is the platform's, what the provider
+  road's 소유 where every member of the road is owned by one account or one unit — 개인 with that person's name, or
+  조직 with the unit's name, after a middle dot, read off the agency's `GET /gateway-members` — and nothing where
+  the road is the platform's or its members' owners differ, what the provider
   itself has left, the pack's sentence for the reason it cannot answer now where it cannot, with the agency's own
   English as its tooltip, and the owner's switch. What it has left is the title bar panel's own figures, read under
   the same key so both stand the same numbers (「Usage in the title bar」), drawn as that panel draws a group: the
@@ -10331,6 +10369,14 @@ so a reader sees and does what their own account may alone, and the agency's wor
 
 ### Floating things
 
+- **Layers: one order every floating part follows,** said once as the console's layer values (`main.css`) and
+  given to each kind through the theme, never by a number a screen picks for itself. From the bottom: the page and
+  its sidebar, at their own order among themselves; a sheet's shade and the sheet — a dialog, a drawer, a slideover,
+  the sidebar's search palette — over them whatever an element of the page is given, a later sheet over an earlier
+  one by standing after it; the briefing's player while it plays, over the sheets, so a briefing tried from a
+  settings dialog is seen and pressed over that dialog; what drops from a control — a menu, a select's list, a
+  popover, a tooltip — over those, since it is opened from them; and a notice over everything. With a dialog open
+  the sidebar lies under its shade and nothing of it is pressed.
 - **A dialog's close stands in its head's row,** at the row's trailing end and on the head's one centre line with
   the title, or with the title and its description taken as one block, never held at a fixed distance from the
   dialog's top; the title takes the rest of the row, so a long one stops short of the close, 8px clear of it.

@@ -713,6 +713,9 @@ export interface TodoItem {
   reporting?: boolean;
   priority: number;
   status: string;
+  // Why a dropped item was dropped, the note its drop was made with; null for every other row, and for a drop that
+  // carried none.
+  dropReason: string | null;
   // The model the item names its work for, its `model` label: the launch seats its job on whichever agent of its role
   // running that model is free, unless `agent` names one (the agency's docs/repositories.md, 「An agent an item
   // names」). Null where it names none or `auto`.
@@ -836,6 +839,10 @@ export interface TodoBoard {
   // is being searched for, and the ones that match where something is. It is what tells the
   // panel there is more to fetch, and what lets it say how far through it has got.
   doneTotal: number;
+  // What was dropped: finished without being done, kept apart from what was done, newest first, as far as the page in
+  // hand reaches, and how many there are behind it.
+  dropped: TodoItem[];
+  droppedTotal: number;
   // What the table's own columns hold, for the panel's conditions to be picked from: every worker
   // that does a row (an unassigned row being the built-in worker's), every room a request came from (null for one filed outside every room) and
   // every name a request was filed under. Read from the whole table and never narrowed, so a
@@ -855,7 +862,7 @@ export interface TodoBoard {
 // One line of the board as the board reads it, with the list it stands in: what a word naming one item reads in place of
 // the whole board.
 export interface TodoBoardRow {
-  list: "queue" | "pending" | "held" | "merged" | "done";
+  list: "queue" | "pending" | "held" | "merged" | "dropped" | "done";
   item: TodoItem;
 }
 

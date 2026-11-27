@@ -52,9 +52,9 @@ const SECTION_POOL = [
 ];
 const PERSONAL = ["settings.label.account", "settings.label.machine", "settings.label.personal_apps", "settings.label.skills", "settings.label.theme", "settings.label.palette"];
 const ADMINISTRATOR_PERSONAL = [...PERSONAL, "settings.label.notifications", "settings.label.briefing"];
-const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"];
+const TABS = ["organization.label.chart", "roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "agents.label.tab_supervisors", "agents.label.tab_repositories", "agents.label.tab_models", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"];
 // The row the platform node holds: exactly the tabs declaring a view of it, the platform's three beside their kin.
-const PLATFORM_TABS = ["org_agents.label.tab", "apps.label.tab", "org_mail.label.tab", "security.label.mail_tab", "settings.label.secrets", "secrets.label.kinds", "org_memory.label.tab", "supply.label.tab", "settings.label.providers", "security.label.security_tab"];
+const PLATFORM_TABS = ["org_agents.label.tab", "agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files", "apps.label.tab", "org_mail.label.tab", "security.label.mail_tab", "settings.label.secrets", "secrets.label.kinds", "org_memory.label.tab", "supply.label.tab", "settings.label.providers", "security.label.security_tab"];
 
 let browser: Browser | null = null;
 const cookies = new Map<string, string>();

@@ -175,14 +175,16 @@ describe("a console route as another user meets it", () => {
     }
   });
 
-  // A unit's secrets, its people's sections, the layers its people read and its repositories' dialog are every member's to
-  // ask, the account service and the agency deciding who heads the unit (docs/web.md, 「System and organisation」).
-  test("a member asks for a unit's secrets, people, sections, read layers and repository, the units deciding", async () => {
+  // A unit's secrets and the kinds its form is offered, its people's sections, the layers its people read and its
+  // repositories' dialog are every member's to ask, the account service and the agency deciding who heads the unit
+  // (docs/web.md, 「System and organisation」).
+  test("a member asks for a unit's secrets, kinds, people, sections, read layers and repository, the units deciding", async () => {
     service.sections.set(4, new Map());
     session = { user: { name: "no-account", id: 4 }, sid: "bmo.sid=no-account", administrator: false };
 
     for (const route of [
       { file: "organization/units/[unit]/secrets.get", method: "GET", path: "/api/organization/units/1/secrets" },
+      { file: "organization/units/[unit]/secret-kinds.get", method: "GET", path: "/api/organization/units/1/secret-kinds" },
       { file: "organization/units/[unit]/secrets.post", method: "POST", path: "/api/organization/units/1/secrets" },
       { file: "organization/units/[unit]/secrets/[name].delete", method: "DELETE", path: "/api/organization/units/1/secrets/KEY_A" },
       { file: "organization/units/[unit]/people.get", method: "GET", path: "/api/organization/units/1/people" },

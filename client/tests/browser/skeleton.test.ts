@@ -19,7 +19,7 @@ afterAll(async () => { await browser?.close(); });
 // The board is typed as the screen's own, so a column added to it fails the static check here
 // rather than throwing inside a render nobody is watching.
 const empty: TodoBoard = {
-  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0,
+  queue: [], pending: [], held: [], merged: [], done: [], doneTotal: 0, dropped: [], droppedTotal: 0,
   choices: { workers: [], chats: [], requesters: [] },
   standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false, deployHold: null
@@ -32,6 +32,7 @@ const item = (id: number, title: string): TodoItem => ({
   holdPending: false, orderActive: false, seconds: null, spans: [], note: null, reports: [],
   unfinished: null, unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null,
   heldReason: null, heldKind: null, noticesOff: null, mergedInto: null, mergedAt: null, mergedIntoTitle: null,
+  dropReason: null,
   mergedFrom: [], createdAt: 1, doneAt: null
 });
 
@@ -286,7 +287,7 @@ describe.skipIf(!origin || !touchReady())('a screen keeps its frame while it fet
     // Where a region a phone reaches through a drawer is the one fetching, the drawer is opened
     // first: that is where its place is kept, and it is where a reader goes to look.
     for (const [path, title, narrowOpen] of [
-      ['agents', wording('screens.label.agents'), null],
+      ['organization', wording('screens.label.organization'), null],
       ['monitor', wording('screens.label.monitor'), null],
       ['siren', wording('screens.label.siren'), null], ['db', 'DB', null],
       ['documents', wording('screens.label.documents'), KO.line_282_3],
@@ -424,7 +425,7 @@ async function openRecorded(width: number): Promise<Page> {
 }
 
 // Every screen that fetches, read from its first frame to the moment its skeletons are gone.
-const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'agents', 'account'];
+const SCREENS = ['', 'monitor', 'mail/', 'archive', 'siren', 'documents', 'db', 'organization', 'account'];
 
 describe.skipIf(!origin || !touchReady())('a skeleton stands once, from the read to its answer', () => {
   for (const width of [1440, 390]) {

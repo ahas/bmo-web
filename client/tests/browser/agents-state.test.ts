@@ -55,9 +55,9 @@ describe.skipIf(!origin || !touchReady())("what each agent is doing now", () => 
       try {
         const page = await context.newPage();
 
-        // The old live address lands on the agents tab.
+        // The old live address lands on the organisation screen's supervisors tab at the platform node.
         await page.goto(`${origin}/live`, { waitUntil: "load" });
-        await page.waitForURL(/\/agents\?tab=supervisors$/, { timeout: 15_000 });
+        await page.waitForURL(/\/organization\?company=platform&tab=supervisors$/, { timeout: 15_000 });
 
         const row = (name: string) => page.locator("[data-role-agents-table] tbody tr").filter({ hasText: name });
         const working = row("worker-01").locator('[data-agent-state="working"]');
@@ -102,7 +102,7 @@ describe.skipIf(!origin || !touchReady())("what each agent is doing now", () => 
         expect(stopped).toEqual([{ target: { kind: "item", id: "12" } }]);
 
         // The roles tab counts the slot the worker's reservation keeps.
-        await page.goto(`${origin}/agents?tab=roles`, { waitUntil: "load" });
+        await page.goto(`${origin}/organization?company=platform&tab=roles`, { waitUntil: "load" });
         await page.locator("#setting-role-worker").waitFor({ timeout: 15_000 });
         await page.locator("[data-settings-table] tbody tr").filter({ hasText: wording("agents.label.role_reserved", { n: "1" }) }).first().waitFor({ timeout: 15_000 });
       } finally {
@@ -131,7 +131,7 @@ describe.skipIf(!origin || !touchReady())("what each agent is doing now", () => 
       const first = `Job · ${wording("live.label.run_item", { id: 12 })}`;
       const second = `Job · ${wording("live.label.run_item", { id: 13 })}`;
 
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
       await cell.waitFor({ timeout: 15_000 });
 
       // The earliest run stands on the line, with how many the agent carries beside it.
@@ -176,7 +176,7 @@ describe.skipIf(!origin || !touchReady())("what each agent is doing now", () => 
       const page = await context.newPage();
       const state = (name: string) => page.locator("[data-supervisors-table] tbody tr").filter({ hasText: name }).locator("[data-agent-state]");
 
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
       await state("agent-a").and(page.locator('[data-agent-state="working"]')).waitFor({ timeout: 15_000 });
       expect(await state("agent-a").innerText()).toContain(wording("live.label.answering", { rooms: rooms[0]!.title }));
       expect(await state("agent-c").getAttribute("data-agent-state")).toBe("idle");

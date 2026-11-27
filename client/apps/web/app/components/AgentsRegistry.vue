@@ -104,6 +104,7 @@ import { tableHeaders } from "bmo-ui/app/domain/column-widths";
 import { failureText } from "bmo-ui/app/domain/errors";
 
 import { settingsAnchor } from "~/domain/agent-settings";
+import { useAgentScope } from "~/domain/agent-scope";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure } from "~/domain/events";
 import { emptyModelForm, healthMark, healthText, modelChange, modelCreate, modelForm, modelRefusalPlace, registrationName, usedByText } from "~/domain/registry";
@@ -114,12 +115,23 @@ import type { DropdownMenuItem } from "@nuxt/ui";
 import type { ModelForm } from "~/domain/registry";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
+// `company` is the node the organisation screen passes to a tab of a company or a unit; the address is what
+// decides the scope, so the prop stands only to take it out of the way.
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean; company?: unknown }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const askFirst = useConfirm();
 
 // The page's search reads the same answer under the same key.
-const { data: models, error, refresh, status } = useFetch<ModelPage>("/api/models", { key: "models", lazy: true, server: false });
+// The node chosen on the organisation screen scopes these rows by the agency's owner parameters, and the answer is
+// held per node, so a node's list never shows what another node read (the agency's `docs/api.md`,
+// 「Who a caller acts for」; docs/web.md, 「Agent management screen」, the agent tabs).
+const scope = useAgentScope();
+const { data: models, error, refresh, status } = useFetch<ModelPage>("/api/models", {
+  key: computed(() => `models:${scope.value?.key ?? "all"}`),
+  query: computed(() => scope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 const readFailure = useReadFailure({ failed: () => !!error.value && models.value === undefined, reading: () => status.value === "pending", reread: () => void refresh() });
 
 interface RegistryRow {
@@ -210,7 +222,10 @@ async function save(): Promise<void> {
 
   try {
     if (adding.value) {
-      await $fetch<ModelView>("/api/models", { method: "POST", body: modelCreate(form.value) });
+      await $fetch<ModelView>("/api/models", {
+        method: "POST",
+        body: { ...modelCreate(form.value), ...(scope.value?.ownerUnit === undefined ? {} : { unit: scope.value.ownerUnit }) }
+      });
     } else {
       await $fetch<ModelView>(`/api/models/${encodeURIComponent(editedName.value)}`, { method: "PATCH", body: modelChange(form.value) });
     }

@@ -1,7 +1,8 @@
 //! The platform's own mail (docs/accounts.md, 「The platform's own mail」): the system mail the administrator sets —
-//! one of bmo-mail's outgoing servers, the sender, and the name of the secret the server is signed in with — kept in
-//! `settings` under `mail.system`, and each mail sent through bmo-mail's system send in its reader's language. The
-//! service never reads the secret's value: bmo-mail reads it by its name.
+//! one of bmo-mail's outgoing servers, the sender, and the name of the secret the server is signed in with — kept as
+//! the setting kind `mail.system` on the delegation chain at the platform link, with each mail sent through bmo-mail's
+//! system send in its reader's language. An organisation unit may hold its own as the same kind at its unit link.
+//! The service never reads the secret's value: bmo-mail reads it by its name.
 
 use std::sync::Arc;
 
@@ -10,10 +11,14 @@ use axum::Router;
 use axum::extract::State;
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::{get, post};
-use bmo_web_client::{MailServer, MailTestAsk, SystemMail, SystemMailAsk};
-use sea_orm::ConnectionTrait;
+use bmo_web_client::{
+  ChainKind, ChainLevel, ChainMode, ChainPersonWriter, ChainShape, MailServer, MailTestAsk, SystemMail,
+  SystemMailAsk,
+};
+use sea_orm::{ConnectionTrait, DatabaseConnection};
 use serde::{Deserialize, Serialize};
 
+use crate::chain::Link;
 use crate::lang::Language;
 use crate::lang::account_mail::{ACCOUNT_MAIL, Letter};
 use crate::marks::fill_marks;
@@ -21,8 +26,10 @@ use crate::routes::{Answer, Body};
 use crate::secrets::Space;
 use crate::{Refusal, Service, one, run};
 
-/// The `settings` key the system mail is kept under.
+/// The `settings` key the system mail stood under before it moved onto the chain, read once to seed the platform link.
 const SETTING: &str = "mail.system";
+/// The chain kind the system mail now stands under, declared by this service.
+pub const KIND: &str = "mail.system";
 
 /// What a mail is kept by in bmo-mail's log.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -244,22 +251,111 @@ pub struct Kept {
   pub secret: Option<String>,
 }
 
-/// The system mail as kept, its defaults where none is.
+/// The chain kind the system mail stands under (docs/accounts.md, 「The kinds the service's own consumers
+/// declare」): a `json` object this service judges, `nearest`, at the platform and a unit's link, a unit's head
+/// writing its own.
+pub fn system_kind() -> ChainKind {
+  ChainKind {
+    key: KIND.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
+    description:
+      "A link's system outgoing mail: its bmo-mail outgoing server, the sender's address and name, and \
+                  the name of the secret in that link's own space it signs in with."
+        .to_owned(),
+    shape: ChainShape::Json,
+    choices: vec![],
+    mode: ChainMode::Nearest,
+    default: None,
+    rules: false,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit],
+    unit_permission: crate::units::HEADS.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
+  }
+}
+
+/// The platform link's system mail, its defaults where the link says none.
 pub async fn kept<C: ConnectionTrait>(db: &C) -> Result<Kept, Refusal> {
-  match one(db, r#"SELECT "value" FROM "settings" WHERE "key" = $1"#, vec![SETTING.into()]).await? {
-    Some(row) => Ok(serde_json::from_str(&row.try_get::<String>("", "value")?).unwrap_or_default()),
+  match crate::chain::value_at(db, KIND, Link::Platform).await? {
+    Some(value) => Ok(serde_json::from_value(value).unwrap_or_default()),
     None => Ok(Kept::default()),
   }
 }
 
-/// Whether system mail is set up: bmo-mail named, a server chosen and a sender's address standing.
+/// The system mail the recipient's chain answers: the nearest value standing over them, with its login
+/// secret's name written as an address under `env/` for the link that answers, so a unit's own login is read
+/// from that unit's space (docs/accounts.md, 「The platform's own mail」). None where the chain answers no
+/// usable mail.
+pub async fn kept_for<C: ConnectionTrait>(db: &C, recipient: i32) -> Result<Option<Kept>, Refusal> {
+  let (_path, resolved) =
+    crate::chain::resolve(db, &system_kind(), crate::chain::Subject::Person(recipient)).await?;
+  let Some(value) = resolved.value else {
+    return Ok(None);
+  };
+  let mut kept: Kept = serde_json::from_value(value).unwrap_or_default();
+
+  if let (Some(Link::Unit(unit)), Some(secret)) = (resolved.from, &kept.secret) {
+    kept.secret = Some(format!("units/{unit}/{secret}"));
+  }
+
+  Ok(usable(&kept).then_some(kept))
+}
+
+// Whether a mail stands ready to send: an outgoing server chosen and a sender's address standing.
+fn usable(kept: &Kept) -> bool {
+  kept.server.is_some() && !kept.from.trim().is_empty()
+}
+
+/// The system mail moved once off the `settings` row it stood in before the chain: where the row holds a value
+/// and the platform link holds none, the row's value is written to the link and the row let go (docs/accounts.md,
+/// 「The platform's own mail」).
+pub async fn seed_once(db: &DatabaseConnection) -> Result<(), Refusal> {
+  let Some(row) =
+    one(db, r#"SELECT "value" FROM "settings" WHERE "key" = $1"#, vec![SETTING.into()]).await?
+  else {
+    return Ok(());
+  };
+  let kept: Kept = serde_json::from_str(&row.try_get::<String>("", "value")?).unwrap_or_default();
+
+  // The row's value moves onto the link only where the link says nothing yet; a link that already stands keeps
+  // what it holds, and the row goes either way, so it is no longer a second source.
+  if kept != Kept::default() && crate::chain::value_at(db, KIND, Link::Platform).await?.is_none() {
+    let value = serde_json::to_value(&kept)
+      .map_err(|why| Refusal::new(StatusCode::INTERNAL_SERVER_ERROR, why.to_string()))?;
+    crate::chain::put_value(db, &system_kind(), Link::Platform, Some(&value), None).await?;
+  }
+
+  run(db, r#"DELETE FROM "settings" WHERE "key" = $1"#, vec![SETTING.into()]).await?;
+
+  Ok(())
+}
+
+/// The system mail written to the platform link; the caller is the administrator, whose write no lock above binds.
+pub async fn write_platform(db: &DatabaseConnection, by: i32, kept: &Kept) -> Result<(), Refusal> {
+  let value = serde_json::to_value(kept)
+    .map_err(|why| Refusal::new(StatusCode::INTERNAL_SERVER_ERROR, why.to_string()))?;
+
+  crate::chain::put_value(db, &system_kind(), Link::Platform, Some(&value), Some(by)).await
+}
+
+/// Whether the platform link's system mail is set up: bmo-mail named, a server chosen and a sender's address
+/// standing.
 pub async fn configured(service: &Service) -> Result<Option<Kept>, Refusal> {
   let kept = kept(&service.db).await?;
 
-  Ok((service.mail.named() && kept.server.is_some() && !kept.from.trim().is_empty()).then_some(kept))
+  Ok((service.mail.named() && usable(&kept)).then_some(kept))
 }
 
-/// A mail of one kind sent to `to` in `language`, its marks filled.
+/// Whether a mail to `recipient` can go: bmo-mail named, and their chain's nearest mail usable.
+pub async fn configured_for(service: &Service, recipient: i32) -> Result<Option<Kept>, Refusal> {
+  if !service.mail.named() {
+    return Ok(None);
+  }
+
+  kept_for(&service.db, recipient).await
+}
+
+/// A mail of one kind sent to `to` on the platform link's mail.
 pub async fn send(
   service: &Service,
   kind: MailKind,
@@ -268,6 +364,33 @@ pub async fn send(
   marks: &[(&str, &str)],
 ) -> Result<(), Refusal> {
   let kept = configured(service).await?.ok_or_else(unset)?;
+
+  dispatch(service, kind, &kept, to, language, marks).await
+}
+
+/// A mail of one kind sent to `to` on the mail the recipient's own chain answers, so a unit's people are told
+/// by their unit's mail where it keeps one (docs/accounts.md, 「The platform's own mail」).
+pub async fn send_to(
+  service: &Service,
+  kind: MailKind,
+  recipient: i32,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) -> Result<(), Refusal> {
+  let kept = configured_for(service, recipient).await?.ok_or_else(unset)?;
+
+  dispatch(service, kind, &kept, to, language, marks).await
+}
+
+async fn dispatch(
+  service: &Service,
+  kind: MailKind,
+  kept: &Kept,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) -> Result<(), Refusal> {
   let words = ACCOUNT_MAIL.in_language(language);
   let letter: &Letter = match kind {
     MailKind::Test => &words.test,
@@ -305,6 +428,23 @@ pub async fn notify(
   marks: &[(&str, &str)],
 ) {
   if let Err(why) = send(service, kind, to, language, marks).await
+    && why.code != "mail-unset"
+  {
+    eprintln!("bmo-web-server: a {} notice was not sent: {}", kind.word(), why.detail);
+  }
+}
+
+/// A notice to `recipient` sent on their own chain's mail beside another act, standing where it does not go.
+#[allow(clippy::too_many_arguments)]
+pub async fn notify_to(
+  service: &Service,
+  kind: MailKind,
+  recipient: i32,
+  to: &str,
+  language: Language,
+  marks: &[(&str, &str)],
+) {
+  if let Err(why) = send_to(service, kind, recipient, to, language, marks).await
     && why.code != "mail-unset"
   {
     eprintln!("bmo-web-server: a {} notice was not sent: {}", kind.word(), why.detail);
@@ -419,7 +559,7 @@ async fn write_route(
   headers: HeaderMap,
   Body(ask): Body<SystemMailAsk>,
 ) -> Answer<SystemMail> {
-  administrator(&service, &headers).await?;
+  let by = administrator(&service, &headers).await?;
 
   let from = ask.from.trim().to_owned();
   let server = ask.server.map(|server| server.trim().to_owned()).filter(|server| !server.is_empty());
@@ -445,19 +585,15 @@ async fn write_route(
       .map_err(|_| Refusal::bad("`secret` is no secret's name").coded("bad-mail"))?;
   }
 
-  let kept = Kept {
-    server,
-    from,
-    from_name: ask.from_name.trim().to_owned(),
-    secret,
-  };
-  let value = serde_json::to_string(&kept).map_err(|why| Refusal::bad(why.to_string()))?;
-
-  run(
+  write_platform(
     &service.db,
-    r#"INSERT INTO "settings" ("key", "value") VALUES ($1, $2)
-       ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value""#,
-    vec![SETTING.into(), value.into()],
+    by,
+    &Kept {
+      server,
+      from,
+      from_name: ask.from_name.trim().to_owned(),
+      secret,
+    },
   )
   .await?;
 

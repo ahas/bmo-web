@@ -18,7 +18,10 @@ export default defineEventHandler(async (event): Promise<ModelView> => {
 
   if (key === "" || model === "") throw fail(400, wording("agents.error.registry_value"));
 
-  const change: ModelChange = {
+  // A registration filed under a unit is named by `unit`, as the agency reads it (the agency's `docs/api.md`,
+  // 「Who a caller acts for」); the agency judges whose unit may file one.
+  const unit = typeof body?.unit === "number" && Number.isInteger(body.unit) && body.unit >= 1 ? body.unit : undefined;
+  const change: ModelChange & { unit?: number } = {
     action: "add",
     name: key,
     label: key,
@@ -32,7 +35,8 @@ export default defineEventHandler(async (event): Promise<ModelView> => {
     url: null,
     key: null,
     cardService,
-    roleFiles: typeof body?.roleFiles === "boolean" ? body.roleFiles : null
+    roleFiles: typeof body?.roleFiles === "boolean" ? body.roleFiles : null,
+    ...(unit === undefined ? {} : { unit })
   };
 
   return await agencyCall(agency(event).POST("/models", { body: change }));

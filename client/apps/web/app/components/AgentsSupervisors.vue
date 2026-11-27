@@ -182,6 +182,7 @@ import { mayRead } from "#shared/sections";
 import { defaultThreshold, emptyRoad, fractionOf, percentOf, providerWord, refusalOf, SUPERVISOR_LINE, thresholdText, useProviders } from "~/domain/axes";
 import { agentMetaOf, roomTitle } from "~/domain/agents";
 import { useAgentCatalogue } from "~/domain/catalogue";
+import { useAgentScope } from "~/domain/agent-scope";
 import { useConfirm } from "~/domain/confirm";
 import { useReadFailure, useSupervisorTurns } from "~/domain/events";
 import { restMarkOf, useRest } from "~/domain/rest";
@@ -196,7 +197,9 @@ import type { AgentDoing } from "~/domain/agent-state";
 import type { LogPlace } from "~/domain/log";
 import type { SettingsColumn } from "~/domain/settings-columns";
 
-const props = withDefaults(defineProps<{ query?: string; readonly?: boolean }>(), { query: "", readonly: false });
+// `company` is the node the organisation screen passes to a tab of a company or a unit; the address is what
+// decides the scope, so the prop stands only to take it out of the way.
+const props = withDefaults(defineProps<{ query?: string; readonly?: boolean; company?: unknown }>(), { query: "", readonly: false });
 const { t } = useI18n();
 const island = useIsland(t);
 const askFirst = useConfirm();
@@ -205,7 +208,16 @@ const askFirst = useConfirm();
 const SUPERVISOR_ICON = "i-material-symbols-chat-bubble-outline";
 
 // The page's search reads the same answers under the same keys.
-const { data: supervisors, error, refresh, status } = useFetch<SupervisorView[]>("/api/supervisors", { key: "supervisors", lazy: true, server: false });
+// The node chosen on the organisation screen scopes these rows by the agency's owner parameters, and the answer is
+// held per node, so a node's list never shows what another node read (the agency's `docs/api.md`,
+// 「Who a caller acts for」; docs/web.md, 「Agent management screen」, the agent tabs).
+const scope = useAgentScope();
+const { data: supervisors, error, refresh, status } = useFetch<SupervisorView[]>("/api/supervisors", {
+  key: computed(() => `supervisors:${scope.value?.key ?? "all"}`),
+  query: computed(() => scope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 // Whether the one signed in is the owner's login: a supervisor they add is filed under the owner's account, or under
 // none, and so runs as the owner's own user.
 const { data: owner } = useFetch<OwnerChat>("/api/owner", { key: "owner", default: () => ({ chatId: null, senderId: null, senders: [], administrator: false, owner: false }) });

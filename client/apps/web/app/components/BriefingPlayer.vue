@@ -14,7 +14,7 @@
       role="group"
       :aria-label="$t('briefing.label.title')"
       :surface-scale="swell"
-      class="absolute z-30 w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none gap-2 p-1.5 [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
+      class="absolute w-72 max-w-[calc(100%-2*var(--bmo-gutter))] touch-none gap-2 p-1.5 [--bmo-gutter:1rem] sm:[--bmo-gutter:1.5rem]"
       :class="dragAt === null ? '' : 'cursor-grabbing'"
       :style="placed"
       @pointerdown="drag.grab"
@@ -89,6 +89,9 @@ import { useNarrow } from "bmo-ui/app/domain/screen";
 
 import type { DragBounds } from "bmo-ui/app/domain/floating-drag";
 import type { ComponentPublicInstance } from "vue";
+
+// The page area it floats over: it stands in a box laid over that area, so the bar at the area's foot is read there.
+const props = defineProps<{ area: HTMLElement | null }>();
 
 const { t } = useI18n();
 const shown = briefingState();
@@ -229,9 +232,9 @@ watch(player, (element) => {
 });
 
 function measureFoot(): void {
-  const area = player.value?.offsetParent;
+  const area = props.area;
 
-  if (!(area instanceof HTMLElement)) return;
+  if (area === null || player.value === null) return;
 
   foot.value = Math.round(footClearance(area.getBoundingClientRect(), [...area.querySelectorAll(SCREEN_FOOT)].map((one) => one.getBoundingClientRect())));
 }

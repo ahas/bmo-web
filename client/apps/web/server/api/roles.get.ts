@@ -6,6 +6,9 @@ import type { RolesView } from "#shared/axes";
 // role with only its agents that are the reader's own or the deployment's (docs/web.md, 「Access」).
 export default defineEventHandler(async (event): Promise<RolesView> => {
   const signed = await signedInUser(event);
+  // A scoped read replaces the roles' agents with the node's own, the agency having judged them reached; the
+  // console's whose-row filter answers the unscoped read as before.
+  const scope = ownerParamsOf(getQuery(event));
 
-  return await readRoles((role) => listedRole(role, signed.id), event);
+  return await readRoles((role) => listedRole(role, signed.id), event, scope);
 });

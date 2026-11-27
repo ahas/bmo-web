@@ -10,7 +10,7 @@
     "./schema": "./src/schema.ts"
   },
   "scripts": {
-    "generate": "openapi-typescript ../../../docs/openapi.json --output src/schema.ts",
+    "generate": "openapi-typescript ../../../docs/openapi-accounts.json --output src/schema.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {

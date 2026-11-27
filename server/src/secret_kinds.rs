@@ -10,13 +10,19 @@ use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::get;
 use axum::{Json, Router};
-use bmo_web_client::{SecretField, SecretInput, SecretKind, SecretKinds};
-use sea_orm::{DatabaseConnection, QueryResult};
+use bmo_web_client::{
+  ChainKind, ChainLevel, ChainMode, ChainPersonWriter, ChainShape, SecretField, SecretInput, SecretKind,
+  SecretKinds,
+};
+use sea_orm::{ConnectionTrait, DatabaseConnection, QueryResult};
 use serde_json::Value;
 
 use crate::routes::{Answer, Body};
 use crate::secrets::administrator;
 use crate::{Refusal, Service, all, now_ms, one, run};
+
+/// The chain kind that limits which of these kinds the links below keep, declared and re-declared by this module.
+pub const CHAIN_KIND: &str = "secret.kinds";
 
 /// The longest key a kind takes.
 pub const KEY_MAX: usize = 64;
@@ -196,6 +202,122 @@ pub fn read_off<'kinds>(text: &str, kinds: &'kinds [SecretKind]) -> Option<&'kin
     .map(|kind| kind.key.as_str())
 }
 
+/// The chain kind that narrows which secret kinds each link may keep (docs/accounts.md, 「Secret kinds」):
+/// `keys`, `narrowing`, every registered kind by default, with rules, at the platform and a unit's link, a
+/// unit's head writing its own.
+pub fn chain_kind(choices: Vec<String>) -> ChainKind {
+  let default = Value::Array(choices.iter().cloned().map(Value::String).collect());
+
+  ChainKind {
+    key: CHAIN_KIND.to_owned(),
+    declared_by: crate::UNIT.to_owned(),
+    description: "The secret kinds the links below may keep, narrowing the kinds offered above them."
+      .to_owned(),
+    shape: ChainShape::Keys,
+    choices,
+    mode: ChainMode::Narrowing,
+    default: Some(default),
+    rules: true,
+    levels: vec![ChainLevel::Platform, ChainLevel::Unit],
+    unit_permission: crate::units::HEADS.to_owned(),
+    person_writer: ChainPersonWriter::Heads,
+    person_raises: false,
+  }
+}
+
+/// The registry's keys, in the order the kinds were added.
+pub async fn registry_keys<C: ConnectionTrait>(db: &C) -> Result<Vec<String>, Refusal> {
+  Ok(
+    all(db, r#"SELECT "key" FROM "secret_kinds" ORDER BY "position", "key""#, vec![])
+      .await?
+      .into_iter()
+      .map(|row| row.try_get::<String>("", "key"))
+      .collect::<Result<Vec<_>, _>>()?,
+  )
+}
+
+/// Declare or re-declare `secret.kinds` to the registry as it now stands. Widening its choices and moving its
+/// default are always allowed; a key the registry has let go is taken out of every stored value and rule of the
+/// kind first, so the narrower declaration is not refused as standing in use. Where the registry stands empty the
+/// kind is left as it stands, since a keys kind names choices.
+pub async fn sync_chain(db: &DatabaseConnection) -> Result<(), Refusal> {
+  let choices = registry_keys(db).await?;
+
+  if choices.is_empty() {
+    return Ok(());
+  }
+
+  let kept: HashSet<&String> = choices.iter().collect();
+
+  for row in all(
+    db,
+    r#"SELECT "link", "value"::text AS "value" FROM "chain_links"
+       WHERE "kind" = $1 AND "value" IS NOT NULL AND jsonb_typeof("value") = 'array'"#,
+    vec![CHAIN_KIND.into()],
+  )
+  .await?
+  {
+    let (link, value) = (row.try_get::<String>("", "link")?, row.try_get::<String>("", "value")?);
+
+    if let Some(pruned) = pruned(&value, &kept) {
+      run(
+        db,
+        r#"UPDATE "chain_links" SET "value" = $2::jsonb WHERE "kind" = $1 AND "link" = $3"#,
+        vec![CHAIN_KIND.into(), pruned.into(), link.into()],
+      )
+      .await?;
+    }
+  }
+
+  for row in all(
+    db,
+    r#"SELECT "link", "who", "value"::text AS "value" FROM "chain_rules"
+       WHERE "kind" = $1 AND jsonb_typeof("value") = 'array'"#,
+    vec![CHAIN_KIND.into()],
+  )
+  .await?
+  {
+    let (link, who, value) = (
+      row.try_get::<String>("", "link")?,
+      row.try_get::<String>("", "who")?,
+      row.try_get::<String>("", "value")?,
+    );
+
+    if let Some(pruned) = pruned(&value, &kept) {
+      run(
+        db,
+        r#"UPDATE "chain_rules" SET "value" = $3::jsonb WHERE "kind" = $1 AND "link" = $2 AND "who" = $4"#,
+        vec![CHAIN_KIND.into(), link.into(), pruned.into(), who.into()],
+      )
+      .await?;
+    }
+  }
+
+  crate::chain::declare(db, &chain_kind(choices)).await.map(|_| ())
+}
+
+/// The JSON array `text` with every key not in `kept` taken out, as JSON text; none where it already holds only
+/// kept keys, so an unchanged row is written no more.
+fn pruned(text: &str, kept: &HashSet<&String>) -> Option<String> {
+  let keys: Vec<String> = serde_json::from_str(text).ok()?;
+  let held: Vec<String> = keys.iter().filter(|key| kept.contains(key)).cloned().collect();
+
+  (held.len() != keys.len()).then(|| serde_json::to_string(&held).unwrap_or_else(|_| "[]".to_owned()))
+}
+
+/// The kinds `subject` is offered down the chain, none where the chain says nothing, the kind is not declared or
+/// every kind stands; the store writes a value only where the kind it reads as is offered.
+pub async fn offered<C: ConnectionTrait>(
+  db: &C,
+  subject: crate::chain::Subject,
+) -> Option<HashSet<String>> {
+  let kind = crate::chain::kind(db, CHAIN_KIND).await.ok()?;
+  let (_, resolved) = crate::chain::resolve(db, &kind, subject).await.ok()?;
+  let standing = resolved.value.or_else(|| kind.default.clone())?;
+
+  Some(standing.as_array()?.iter().filter_map(Value::as_str).map(str::to_owned).collect())
+}
+
 /// `GET /secret-kinds`: every kind, in the order they were added, for any call, since every person's form asks
 /// in them.
 async fn list(State(service): State<Service>) -> Answer<SecretKinds> {
@@ -234,6 +356,8 @@ async fn add(
       Refusal::new(StatusCode::CONFLICT, "a kind stands under the key already").coded("kind-exists"),
     );
   }
+
+  sync_chain(&service.db).await?;
 
   Ok((StatusCode::CREATED, Json(kind)))
 }
@@ -288,6 +412,9 @@ async fn remove(
   if removed == 0 {
     return Err(no_kind());
   }
+
+  // The kind's key leaves the chain kind's choices, and every stored value and rule that named it.
+  sync_chain(&service.db).await?;
 
   Ok(StatusCode::NO_CONTENT)
 }

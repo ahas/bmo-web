@@ -39,6 +39,7 @@ function item(running: boolean): TodoItem {
     id: ITEM, title: "item-title", instruction: "item-instruction", requester: "Owner", requesterId: null, chatId: null, approved: true,
     awaitingApproval: false, recommended: false, done: !running, running, liveState: running ? "running" : null, worker: "worker-a", priority: 1,
     status: running ? "running" : "done", model: null, agent: null, ranOn: null, note: null, reports: [], unfinished: null, rejections: 0,
+    dropReason: null,
     unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, noticesOff: null, mergedInto: null,
     mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null,
@@ -85,7 +86,7 @@ async function open(viewport: (typeof WIDTHS)[number], running: boolean, latest:
 
     const board = (await (await route.fetch()).json()) as TodoBoard;
 
-    await route.fulfill({ json: running ? { ...board, queue: [item(true)] } : { ...board, done: [item(false)], doneTotal: 1 } });
+    await route.fulfill({ json: running ? { ...board, queue: [item(true)] } : { ...board, done: [item(false)], doneTotal: 1 , dropped: [], droppedTotal: 0} });
   });
   await context.route(new RegExp(`/api/todos/${ITEM}$`), (route) => route.fulfill({ json: item(running) }));
   await context.route(new RegExp(`/api/todos/${ITEM}/runs(\\?|$)`), async (route) => {

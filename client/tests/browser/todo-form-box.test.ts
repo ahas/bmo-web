@@ -40,7 +40,7 @@ function item(over: Partial<TodoItem> = {}): TodoItem {
     id: ITEM, title: "item-title of a fairly ordinary length for a request", instruction: BRIEF, requester: "requester-a", requesterId: null, chatId: null, approved: true,
     awaitingApproval: false, recommended: true, done: false, running: false, worker: "worker-b", priority: 3, status: "open", model: null, agent: "agent-a", ranOn: null, note: null,
     reports: [], unfinished: null, rejections: 0,
-    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, heldKind: null, noticesOff: null,
+    unfinishedResolvedAt: null, unfinishedResolution: null, heldAt: null, heldReason: null, dropReason: null, heldKind: null, noticesOff: null,
     mergedInto: null, mergedAt: null, mergedIntoTitle: null, mergedFrom: [], attempts: 1, progress: null, stopped: null, holding: null, waiting: null,
     deployWaits: false, closing: null, deployHeld: false, holdPending: false, orderActive: false, seconds: null, spans: [], createdAt: NOW - 4_000, doneAt: null,
     ...over

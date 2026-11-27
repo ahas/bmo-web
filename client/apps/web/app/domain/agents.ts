@@ -422,11 +422,13 @@ function runOf(t: Translate, run: RoleSlotRun, index: number, catalogue: readonl
 }
 
 // One catalogue entry as a screen shows it. Its room sessions are the rooms of the list in hand, in its order: a room
-// the list leaves out, one never added, stands under no agent either (docs/web.md, 「Sidebar」).
+// the list leaves out, one never added, stands under no agent either, and the room that stands as the agent itself —
+// its own private room, which the room list already shows as the agent — is no session listed under it
+// (docs/web.md, 「Sidebar」).
 export function metaOf(t: Translate, agent: AgentSummary, rooms: RoomSummary[], catalogue: readonly AgentSummary[] = held.value): AgentMeta {
   const standing = (chatId: number): number => rooms.findIndex((room) => room.chatId === chatId);
   const sessions = (agent.sessions ?? [])
-    .filter((session) => standing(session.chatId) !== -1)
+    .filter((session) => standing(session.chatId) !== -1 && rooms[standing(session.chatId)]!.agent !== agent.name)
     .map((session) => ({ ...session, label: roomTitle(t, rooms, session.chatId) }))
     .sort((left, right) => standing(left.chatId) - standing(right.chatId));
 

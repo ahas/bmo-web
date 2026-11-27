@@ -1,7 +1,8 @@
 <template>
   <!-- One agent's road chosen in its own form (docs/web.md, 「Settings」, the own-agents section; 「System and organisation」, the
        agents tab): the first choice names no road — the one the screen says that stands for — then every provider whose
-       program carries the agent's line; under a provider its model, a model the reader's supply does not carry standing
+       program carries the agent's line, one the owner or the reader's chain has closed standing disabled with who closed
+       it; under a provider its model, a model the reader's supply does not carry standing
        disabled with why, and its effort where the model takes levels. The save sends the road whole, and a refusal
        stands under the form. -->
   <SettingsDialog v-model:open="open" :title="props.title" :description="props.description" :dirty="changed">
@@ -55,12 +56,14 @@
 <script setup lang="ts">
 import { failureText } from "bmo-ui/app/domain/errors";
 
+import { decidedLine } from "~/domain/chain-decided";
+
 import type { OwnModel, OwnProvider, OwnRoad } from "#shared/own-agents";
 
 interface Props {
   title: string;
   description?: string;
-  // The providers on now; those whose program carries `line` are offered.
+  // Every provider the reader's read carries; those whose program carries `line` are offered, closed ones marked off.
   providers: OwnProvider[];
   line: string;
   // The road the form opens on, null for none.
@@ -98,9 +101,17 @@ const changed = computed(() => {
 });
 const complete = computed(() => draft.provider === "" || draft.model !== "");
 
+// A provider the owner switched off or the reader's chain closes stands in the choice marked off, saying who
+// decided it; it carries no road, so it cannot be picked (docs/web.md, 「Settings」, the own-agents section).
 const providerItems = computed(() => [
   { label: props.noneLabel, value: NONE },
-  ...props.providers.filter((one) => one.lines.length === 0 || one.lines.includes(props.line)).map((one) => ({ label: one.label, value: one.name }))
+  ...props.providers
+    .filter((one) => one.lines.length === 0 || one.lines.includes(props.line))
+    .map((one) => ({
+      label: one.label,
+      value: one.name,
+      ...(one.off === null ? {} : { disabled: true, description: `${t("own_agents.label.provider_off")} · ${decidedLine(t, one.offBy) ?? t("org_agents.label.decided_unit")}` })
+    }))
 ]);
 
 // A model the reader's supply does not carry stands disabled, saying so; one the road names that the list does not

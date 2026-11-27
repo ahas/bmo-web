@@ -3,14 +3,20 @@ import type { Component, ComputedRef, Ref } from "vue";
 import type { LocationQuery } from "vue-router";
 import type { InviteUnit, UnitRow } from "@web/server-client";
 import type { OrgMemoryUnitView } from "#shared/org-memory";
+import type { AgentSection } from "#shared/sections";
+import type { AgentTab } from "./agent-settings";
 import type { SideNode } from "bmo-ui/app/domain/side-parts";
 
 import { useAdministrator } from "./access";
+import { AGENT_TABS } from "./agent-settings";
 import { inviteCompanies } from "./invites";
 import { PERSON_PANE_KEY } from "./person-panes";
 import { useRosterCompanies } from "./roster";
+import { useSectionAccess, useSectionAccessReady } from "./section-access";
 import { useSupplyReader, useSupplyUnits } from "./supply";
 import { SETTINGS_QUERY } from "./settings-dialog";
+
+import { AGENT_SECTIONS, agentSectionsRead } from "#shared/sections";
 
 // The system and organisation screen (docs/web.md, 「System and organisation」): one tree of the organisations at
 // its left, the node chosen at its right, and inside it a tab to a section, the platform's own settings among the
@@ -54,6 +60,9 @@ export interface OrganizationReader {
   memory: boolean;
   // Whether the reader heads a unit of the organisation chosen, so may invite into it.
   heads: boolean;
+  // Which of the agency's agent sections the reader may read, from the account service's grants; whole for the
+  // administrator whatever that read has yet answered. The agent tabs stand where their section is read.
+  agents: readonly AgentSection[];
   known: boolean;
 }
 
@@ -74,9 +83,12 @@ export interface OrganizationTab {
   // The tab's own component, loaded when it is first opened.
   load: () => Promise<{ default: Component }>;
   // The components it shows while a link node is chosen, each reading and writing that link of the tab's settings:
-  // the platform's own, and the reader's own. These are the whole of what a link node offers: a tab declaring none for
-  // a link holds nothing to set there and is not offered at it.
+  // the platform's own, and the reader's own. These are the whole of what a link node offers: a tab holding no view
+  // of a link holds nothing to set there and is not offered at it. Where a link's view still turns on the reader's
+  // rights — an agent tab at one's own link stands on its section alone — `opensLink` says so; left out, every
+  // reader the link itself reaches opens the view.
   links?: Partial<Record<LinkNode, () => Promise<{ default: Component }>>>;
+  opensLink?: (reader: OrganizationReader, link: LinkNode) => boolean;
 }
 
 // Every reader the screen stands for, wherever they stand in its tree.
@@ -120,6 +132,30 @@ function platformNodeOnlyOpens(): boolean {
   return false;
 }
 
+// The words and the icon of one part of agent management, kept in the one table the old agent screen stood
+// the tabs on (docs/web.md, 「System and organisation」, the agent tabs).
+function agentWord(value: AgentTab): string {
+  return AGENT_TABS.find((one) => one.value === value)!.label;
+}
+
+function agentIcon(value: AgentTab): string {
+  return AGENT_TABS.find((one) => one.value === value)!.icon;
+}
+
+// A row resource's tab — the supervisors with their roles' agents, the repositories, the registered models: its
+// section says who may read it, and at a company or a unit the reader must head one of it as well, since the
+// agency answers a node's list to its heads alone (「System and organisation」, the agent tabs; the agency's
+// `docs/api.md`, 「Who a caller acts for」).
+function agentRowsOpens(section: AgentSection) {
+  return (reader: OrganizationReader): boolean => reader.administrator || (reader.heads && reader.agents.includes(section));
+}
+
+// The same section at a link of the chain without the heading: a reader's own link holds their own rows, which
+// their section alone decides, and the platform's link reaches here only through the administrator's tree.
+function agentRowsLinkOpens(section: AgentSection) {
+  return (reader: OrganizationReader): boolean => reader.administrator || reader.agents.includes(section);
+}
+
 // The people tab's key, and the permissions tab's, where a person's sections moved from their pane on the people tab.
 const PEOPLE_TAB = "people";
 const PERMISSIONS_TAB = "permissions";
@@ -132,6 +168,41 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
   // company, so it declares no view of a link of the chain and stands at an organisation node alone.
   { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
   { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
+  {
+    value: "supervisors",
+    label: agentWord("supervisors"),
+    icon: agentIcon("supervisors"),
+    opens: agentRowsOpens("supervisors"),
+    keys: [],
+    wide: true,
+    load: () => import("~/components/AgentsSupervisors.vue"),
+    links: { platform: () => import("~/components/AgentsSupervisors.vue"), me: () => import("~/components/AgentsSupervisors.vue") },
+    opensLink: agentRowsLinkOpens("supervisors")
+  },
+  { value: "roles", label: agentWord("roles"), icon: agentIcon("roles"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsRoles.vue"), links: { platform: () => import("~/components/AgentsRoles.vue") } },
+  {
+    value: "repositories",
+    label: agentWord("repositories"),
+    icon: agentIcon("repositories"),
+    opens: agentRowsOpens("repositories"),
+    keys: [],
+    wide: true,
+    load: () => import("~/components/AgentsRepositories.vue"),
+    links: { platform: () => import("~/components/AgentsRepositories.vue"), me: () => import("~/components/AgentsRepositories.vue") },
+    opensLink: agentRowsLinkOpens("repositories")
+  },
+  {
+    value: "models",
+    label: agentWord("models"),
+    icon: agentIcon("models"),
+    opens: agentRowsOpens("models"),
+    keys: [],
+    wide: true,
+    load: () => import("~/components/AgentsRegistry.vue"),
+    links: { platform: () => import("~/components/AgentsRegistry.vue"), me: () => import("~/components/AgentsRegistry.vue") },
+    opensLink: agentRowsLinkOpens("models")
+  },
+  { value: "model-files", label: agentWord("model-files"), icon: agentIcon("model-files"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsCatalogue.vue"), links: { platform: () => import("~/components/AgentsCatalogue.vue") } },
   { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
   { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
   { value: "mail-servers", label: "org_mail.label.tab", icon: "i-material-symbols-mail-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMailServers.vue"), links: { platform: () => import("~/components/OrganizationPlatformMailServers.vue") } },
@@ -171,6 +242,16 @@ const MOVED_AWAY: Readonly<Record<string, { path: string; query: LocationQuery; 
 // open, the organisation kept.
 const MOVED_PANES: Readonly<Record<string, string>> = { permissions: PERMISSIONS_TAB };
 
+/** Where the `/agents` address lands: the platform node's own link, with the agent tab its `tab=` key names
+ * where it names one of the five and no tab where it names none (docs/web.md, 「System and organisation」,
+ * 「Agent management screen」). */
+export function agentsLanding(query: LocationQuery = {}): { path: string; query: LocationQuery } {
+  const asked = Array.isArray(query.tab) ? query.tab[0] : query.tab;
+  const tab = AGENT_TABS.find((one) => one.value === asked);
+
+  return { path: ORGANIZATION_PATH, query: { [ORGANIZATION_KEY]: PLATFORM_NODE, ...(tab === undefined ? {} : { tab: tab.value }) } };
+}
+
 /** The address a key of a tab that moved away from this screen now leads to, where it names one, read off the address it was asked on. */
 export function organizationMovedAway(key: unknown, query: LocationQuery = {}): { path: string; query: LocationQuery } | null {
   const pane = query[PERSON_PANE_KEY];
@@ -193,7 +274,7 @@ export function organizationMovedAway(key: unknown, query: LocationQuery = {}): 
 // link of the chain, only where the tab declares its view of that link, which is what the node can show at all. A tab
 // holding no view of a link is not offered there, so no node falls back to saying it has nothing to set.
 function opensAt(tab: OrganizationTab, reader: OrganizationReader, link: LinkNode | null): boolean {
-  return link === null ? tab.opens(reader) : tab.links?.[link] !== undefined;
+  return link === null ? tab.opens(reader) : tab.links?.[link] !== undefined && (tab.opensLink?.(reader, link) ?? true);
 }
 
 /** The tabs a reader opens at the node chosen: each reader's own say at a company or a unit of one, the views the tab
@@ -415,7 +496,7 @@ export function organizationTabNamed(key: string): OrganizationTab | null {
 
 // A reader who holds every part of the screen, for asking which tabs stand by their own say at any node: a tab not
 // open to even this reader stands only where a link node's row takes it in.
-const EVERY_REACH: OrganizationReader = { administrator: true, roster: true, supply: true, plans: true, memory: true, heads: true, known: true };
+const EVERY_REACH: OrganizationReader = { administrator: true, roster: true, supply: true, plans: true, memory: true, heads: true, agents: AGENT_SECTIONS, known: true };
 
 /** The tab that stands at the platform link node alone, where a key names one: an address may name it without naming
  * a node, and the node then comes from here (docs/web.md, 「System and organisation」). */
@@ -480,6 +561,8 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
   const supplied = useSupplyUnits();
   const memory = useOrgMemoryUnits();
   const headed = useHeadedUnits();
+  const sections = useSectionAccess();
+  const sectionsReady = useSectionAccessReady();
   const rosterAnswered = useAnswered(status);
   const memoryAnswered = useAnswered(memory.status);
   const headsAnswered = useAnswered(headed.status);
@@ -496,7 +579,8 @@ export function useOrganizationReader(chosen: () => number | null = () => null):
     plans: covers(supplied.value),
     memory: covers(memory.units.value.map((one) => one.company)),
     heads: covers(headed.units.value.map((one) => one.company)),
-    known: administrator.value || (rosterAnswered.value && supply.value.known && memoryAnswered.value && headsAnswered.value)
+    agents: administrator.value ? AGENT_SECTIONS : sectionsReady.value ? agentSectionsRead(sections.value) : [],
+    known: administrator.value || (rosterAnswered.value && supply.value.known && memoryAnswered.value && headsAnswered.value && sectionsReady.value)
   }));
 }
 

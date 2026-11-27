@@ -109,7 +109,25 @@ describe.skipIf(!origin || !touchReady())("the reader's own agents tab", () => {
         const dialog = page.locator("[data-road-dialog]");
 
         await dialog.waitFor({ timeout: 10_000 });
-        await pick(page, dialog.locator("[data-road-dialog-provider] button, button[data-road-dialog-provider]").first(), "DeepSeek", phone);
+        // A provider stood off for the reader stands in the choice marked off with who closed it, unpickable
+        // (docs/web.md, 「Settings」, the own-agents section).
+        const providerSelect = dialog.locator("[data-road-dialog-provider] button, button[data-road-dialog-provider]").first();
+        await press(page, providerSelect, phone);
+
+        const closed = page.getByRole("option", { name: "OpenRouter", exact: false }).first();
+
+        await closed.waitFor({ timeout: 10_000 });
+        // Disabled as the list marks a choice no hand may pick.
+        await expect(closed.evaluate((element) => element.hasAttribute("data-disabled") || element.getAttribute("aria-disabled") === "true")).resolves.toBe(true);
+        await expect(closed.textContent()).resolves.toContain(wording("own_agents.label.provider_off"));
+        await expect(closed.textContent()).resolves.toContain(wording("org_agents.label.decided_platform"));
+
+        // One stood open is picked from the same opened list.
+        const deepseek = page.getByRole("option", { name: "DeepSeek", exact: false }).first();
+
+        await deepseek.waitFor({ timeout: 10_000 });
+        if (phone) await deepseek.tap();
+        else await deepseek.click();
         await press(page, dialog.locator("[data-road-dialog-model] button, button[data-road-dialog-model]").first(), phone);
 
         const flash = page.getByRole("option", { name: /deepseek-flash/ }).first();

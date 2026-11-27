@@ -33,7 +33,7 @@ const REVIEWS: TodoReview[] = [
 ];
 
 function item(): TodoItem {
-  return {
+  return { dropReason: null,
     id: ITEM, title: TITLE, instruction: "Do the thing.", requester: "requester-a", requesterId: null, chatId: null, approved: true,
     awaitingApproval: false, recommended: true, done: false, running: true, worker: "worker-b", priority: 3, status: "open", model: null, agent: "agent-a", ranOn: null, note: null,
     reports: [], unfinished: null, rejections: 1,

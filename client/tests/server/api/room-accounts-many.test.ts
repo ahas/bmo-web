@@ -161,14 +161,26 @@ describe("people let into a room at once", () => {
 
     const checks = accounts.asked.filter((one) => one.path === "/checks/entry").map((one) => one.body);
 
-    expect(checks).toEqual([
-      { room: GROUP, actor: String(READER), user: String(COLLEAGUE), act: "let-in" },
-      { room: GROUP, actor: String(READER), user: String(TEAMMATE), act: "let-in" }
-    ]);
-    expect(said).toEqual([
-      { name: "rooms", data: { account: COLLEAGUE } },
-      { name: "rooms", data: { account: TEAMMATE } }
-    ]);
+    // Both people are checked in parallel and told in parallel, so which line the stand-in records first is
+    // timing; what the route promises is that each was checked and each told alone, whichever order they land in.
+    const ofUser = (one: unknown) => {
+      const row = one as { user?: unknown; data?: { account?: unknown } };
+
+      return Number(row.user ?? row.data?.account);
+    };
+
+    expect([...checks].sort((a, b) => ofUser(a) - ofUser(b))).toEqual(
+      [
+        { room: GROUP, actor: String(READER), user: String(COLLEAGUE), act: "let-in" },
+        { room: GROUP, actor: String(READER), user: String(TEAMMATE), act: "let-in" }
+      ].sort((a, b) => Number(a.user) - Number(b.user))
+    );
+    expect([...said].sort((a, b) => ofUser(a) - ofUser(b))).toEqual(
+      [
+        { name: "rooms", data: { account: COLLEAGUE } },
+        { name: "rooms", data: { account: TEAMMATE } }
+      ].sort((a, b) => a.data.account - b.data.account)
+    );
   });
 
   test("one person refused refuses the whole, and an organisation of another company is refused", async () => {

@@ -46,7 +46,7 @@ async function open(viewport: { width: number; height: number }, phone = false):
 
 // The agents screen at one of its tabs, read to the end.
 async function agents(page: Page, tab: "models" | "model-files", first: string): Promise<void> {
-  await page.goto(`${origin}/agents?tab=${tab}`, { waitUntil: "load" });
+  await page.goto(`${origin}/organization?company=platform&tab=${tab}`, { waitUntil: "load" });
   await page.waitForLoadState("networkidle", { timeout: 15_000 }).catch(() => undefined);
   await page.locator(first).waitFor({ timeout: 15_000 });
 }

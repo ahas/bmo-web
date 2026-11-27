@@ -318,7 +318,10 @@ async fn the_routes_write_list_and_delete_and_no_answer_carries_a_value() {
   assert!(!made.contains(VALUE));
 
   let made = read(&made);
-  let keys: Vec<&String> = made.as_object().unwrap().keys().collect();
+  // The answer's fields, by their names in their own order, not by the order the map happens to write them.
+  let mut keys: Vec<&String> = made.as_object().unwrap().keys().collect();
+
+  keys.sort();
 
   assert_eq!(keys, ["bytes", "changedAt", "name"]);
   assert_eq!(made["name"], "agent-a.token");

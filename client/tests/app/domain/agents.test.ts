@@ -156,6 +156,16 @@ describe("a supervisor's room sessions", () => {
     expect(sessionLink("agent-b", shown.sessions[0]!)).toBe("/agents/agent-b?chat=-1&at=100");
     expect(sessionLink("agent-b", shown.sessions[1]!)).toBe("/agents/agent-b?chat=-2");
   });
+
+  test("leave out the room that stands as the supervisor itself, which the room list already shows as it", () => {
+    const rooms = [{ ...room(-1, "Agent B"), agent: "agent-b" }, room(-2, "Room Two")];
+    const own = {
+      ...catalogueRow("agent-b", "room", "Agent B"),
+      sessions: [{ chatId: -1, lastAt: 100 }, { chatId: -2, lastAt: 50 }]
+    };
+
+    expect(metaOf(wording, own, rooms).sessions.map((session) => session.label)).toEqual(["Room Two"]);
+  });
 });
 
 describe("a role's runs", () => {

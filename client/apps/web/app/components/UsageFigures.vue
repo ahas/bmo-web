@@ -1,7 +1,6 @@
 <template>
   <!-- What one group has left (docs/web.md, 「Usage in the title bar」 and 「System and organisation」): each window as the share
-       remaining with a bar and how long is left until it resets, the balance in its currency with how long ago it was
-       read, and a request allowance as how many are left of the day's ceiling with a bar. The rows stand on shared
+       remaining with a bar and how long is left until it resets, the balance in its currency, and a request allowance as how many are left of the day's ceiling with a bar. The rows stand on shared
        columns, so the names read down one column, the bars start on one line and the figures end on one line; the
        balance, which has no whole, keeps the bar's place empty. Where the group is narrow each bar takes a line of its
        own under its row. A group the agency states neither windows nor a balance for says so in one line. -->
@@ -30,12 +29,11 @@
         </dd>
       </div>
 
-      <!-- What a provider paid by the request or an endpoint account has left in money, and how long ago it was read. -->
+      <!-- What a provider paid by the request or an endpoint account has left in money. -->
       <div v-if="props.group.balance !== null" class="col-span-full grid grid-cols-subgrid items-center" data-usage-balance>
         <dt class="col-start-1 max-w-32 min-w-0 truncate text-muted">{{ $t("usage.label.balance") }}</dt>
         <dd class="contents">
           <span class="col-start-4 text-right tabular-nums whitespace-nowrap text-default">{{ moneyText(props.group.balance) }}</span>
-          <span class="col-start-3 text-right tabular-nums whitespace-nowrap text-muted">{{ $t("usage.label.balance_seen", { wait: elapsedText($t, Math.max(0, props.now - props.group.balance.seenAt)) }) }}</span>
         </dd>
       </div>
 
@@ -62,7 +60,6 @@
 </template>
 
 <script setup lang="ts">
-import { elapsedText } from "bmo-ui/app/domain/time";
 
 import { liveWindow, moneyText, requestsLabel, requestsPercent, requestsText, resetClock, resetDay, resetText, sharePercent, shareText, shareTone, toneClass, windowLabel } from "~/domain/usage";
 

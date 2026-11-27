@@ -15,7 +15,7 @@ import type { BarColor } from "bmo-ui/app/domain/bars";
 import type { Translate } from "#shared/wording";
 
 export interface TodoSection {
-  key: "pending" | "queue" | "held" | "merged" | "done";
+  key: "pending" | "queue" | "held" | "merged" | "dropped" | "done";
   label: string;
   items: TodoItem[];
   // What stands in the section's place when it holds nothing.
@@ -25,7 +25,7 @@ export interface TodoSection {
 // Where one item stands, in the words the panel speaks: waiting on the owner, waiting in the
 // queue, being launched, being done by a job, its work merged and waiting for its deployment or being
 // put live by one, held while its run still goes, done but still being reported, set aside, merged into another item and
-// waiting for it, or done.
+// waiting for it, dropped without being done, or done.
 export type TodoState =
   | "pending"
   | "waiting"
@@ -37,6 +37,7 @@ export type TodoState =
   | "reporting"
   | "held"
   | "merged"
+  | "dropped"
   | "done";
 
 // What the filter chips name. Reporting and waiting-to-stop are not among them: each is a state a
@@ -73,7 +74,7 @@ export const NO_CONDITIONS: TodoConditions = { worker: null, unfinished: null, c
 
 const CONDITION_KEYS = Object.keys(NO_CONDITIONS) as (keyof TodoConditions)[];
 
-const FILTERS: readonly TodoFilter[] = ["all", "waiting", "running", "deploy", "deploying", "pending", "held", "merged", "done"];
+const FILTERS: readonly TodoFilter[] = ["all", "waiting", "running", "deploy", "deploying", "pending", "held", "merged", "dropped", "done"];
 
 export const DEFAULT_VIEW: TodoView = { filter: "all", conditions: NO_CONDITIONS };
 
@@ -92,6 +93,7 @@ const STATE_LABELS: Record<Exclude<TodoState, "stopping">, string> = {
   reporting: "todo.label.state_reporting",
   held: "todo.label.state_held",
   merged: "todo.label.state_merged",
+  dropped: "todo.label.state_dropped",
   done: "todo.label.state_done"
 };
 
@@ -203,6 +205,11 @@ export const PANEL_DEFAULT_WIDTH = 320;
 // ended; no clock of the console's bounds it, since a job whose runner died is ended by the agency's own sweep
 // (docs/web.md, the TODO panel's section).
 export function todoState(item: TodoItem): TodoState {
+  // Dropped work is finished but was never done.
+  if (item.status === "dropped") {
+    return "dropped";
+  }
+
   if (item.done) {
     return item.reporting === true || (item.liveState ?? null) !== null ? "reporting" : "done";
   }
@@ -377,6 +384,7 @@ const STATE_MARKS: Record<TodoState, StateMark> = {
   reporting: { icon: "i-material-symbols-progress-activity", spins: true },
   held: { icon: "i-material-symbols-pause-circle-outline" },
   merged: { icon: "i-material-symbols-merge" },
+  dropped: { icon: "i-material-symbols-block" },
   done: { icon: "i-material-symbols-check-circle-outline" }
 };
 
@@ -498,6 +506,12 @@ export function heldLine(t: Translate, item: TodoItem, formatStamp: (at: number)
     : t("todo.label.held_since_reason", { since, kind, reason: item.heldReason });
 }
 
+// The line a dropped item carries: why it was dropped, the note its drop was made with. Null for every other row, and for
+// a drop that carried no note.
+export function droppedLine(t: Translate, item: TodoItem): string | null {
+  return todoState(item) === "dropped" && item.dropReason !== null ? t("todo.label.dropped_reason", { reason: item.dropReason }) : null;
+}
+
 // The line an item whose job notices are off carries: why, and in the opened item since when as well. Null while they
 // are on.
 export function noticesOffLine(t: Translate, item: TodoItem, formatStamp?: (at: number) => string): string | null {
@@ -581,6 +595,7 @@ const SECTIONS: { key: TodoSection["key"]; label: string; empty: string; waiting
   { key: "queue", label: "todo.title.section_queue", empty: "todo.message.section_queue_empty", waiting: 3 },
   { key: "held", label: "todo.title.section_held", empty: "todo.message.section_held_empty", waiting: 2 },
   { key: "merged", label: "todo.title.section_merged", empty: "todo.message.section_merged_empty", waiting: 2 },
+  { key: "dropped", label: "todo.title.section_dropped", empty: "todo.message.section_dropped_empty", waiting: 2 },
   { key: "done", label: "todo.title.section_done", empty: "todo.message.section_done_empty", waiting: 3 }
 ];
 
@@ -626,6 +641,7 @@ export function todoSections(
     queue: queueWith(board.queue, reporting),
     held: board.held,
     merged: board.merged,
+    dropped: board.dropped,
     done: board.done.filter((item) => todoState(item) !== "reporting")
   };
 
@@ -1245,7 +1261,7 @@ function runsNow(item: TodoItem): boolean {
 // Null where a line is not on the board in hand or now stands in another list: the lines the board holds changed, and
 // only the whole board says how.
 export function patchedBoard(board: TodoBoard, rows: readonly TodoBoardRow[]): TodoBoard | null {
-  const lists = { queue: board.queue, pending: board.pending, held: board.held, merged: board.merged, done: board.done };
+  const lists = { queue: board.queue, pending: board.pending, held: board.held, merged: board.merged, dropped: board.dropped, done: board.done };
   let { running, deploy } = board.standing;
 
   for (const row of rows) {
@@ -1411,6 +1427,11 @@ function holdsFilter(key: TodoSection["key"], filter: TodoFilter, searching: boo
     return filter === "merged" || searching;
   }
 
+  // What was dropped is out of the way the same way: it was finished without being done.
+  if (key === "dropped") {
+    return filter === "dropped" || searching;
+  }
+
   if (filter === "all") {
     return true;
   }
@@ -1491,6 +1512,7 @@ export function todoSearchFields(
     { label: t("todo.label.field_stopped"), text: stoppedLine(t, item), shown: true },
     // A held row's reason and the reason its job notices are off, each under the row's title.
     { label: t("todo.label.hold_reason"), text: item.heldAt === null ? null : item.heldReason, shown: true },
+    { label: t("todo.label.drop_reason"), text: item.dropReason, shown: true },
     { label: t("todo.label.notices_reason"), text: item.noticesOff?.reason ?? null, shown: true },
     { label: t("todo.label.field_waiting"), text: waitingLine(t, item, now), shown: true },
     { label: t("todo.label.field_deploy_waits"), text: deployWaitsLine(t, item), shown: true },
@@ -1508,7 +1530,7 @@ export function todoSearchFields(
 }
 
 export function searchTally(t: Translate, board: TodoBoard): string {
-  const total = board.queue.length + board.pending.length + board.held.length + board.merged.length + board.doneTotal;
+  const total = board.queue.length + board.pending.length + board.held.length + board.merged.length + board.droppedTotal + board.doneTotal;
 
   return total === 0 ? t("todo.message.search_none") : t("todo.message.search_found", { n: total });
 }

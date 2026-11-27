@@ -10,7 +10,7 @@ import { DEFAULT_THEME } from "bmo-ui/shared/themes";
 // something.
 function dropdown(floor: string) {
   return {
-    content: `w-max max-w-[calc(100vw-1rem)] ${floor} ${GROWS}`,
+    content: `w-max max-w-[calc(100vw-1rem)] ${floor} ${GROWS} ${POPPER_LAYER}`,
     viewport: "overflow-x-auto",
     group: "w-max min-w-full",
     itemTrailing: "empty:hidden",
@@ -39,6 +39,14 @@ const GROWS_AFTER_DELAY =
   "data-[state=delayed-open]:animate-[scale-in_var(--bmo-motion-quick)_var(--bmo-ease-enter)] data-[state=closed]:animate-[scale-out_var(--bmo-motion-quick)_var(--bmo-ease-exit)]";
 const UNFOLDS =
   "data-[state=open]:animate-[collapsible-down_var(--bmo-motion-unfold)_var(--bmo-ease-enter)] data-[state=closed]:animate-[collapsible-up_var(--bmo-motion-unfold)_var(--bmo-ease-exit)]";
+// The console's one order of layers (main.css, the layers): a sheet's shade and the sheet itself stand over the page
+// and its sidebar whatever an element in the page is given, the briefing playing over the sheets, what drops from a
+// control over all of those, and a notice over everything.
+const SHEET_LAYER = "z-(--bmo-layer-sheet)";
+const POPPER_LAYER = "z-(--bmo-layer-popper)";
+const NOTICE_LAYER = "z-(--bmo-layer-notice)";
+const SHEET = { overlay: SHEET_LAYER, content: SHEET_LAYER };
+
 const SHADES =
   "data-[state=open]:animate-[fade-in_var(--bmo-motion-pop)_var(--bmo-ease-enter)] data-[state=closed]:animate-[fade-out_var(--bmo-motion-pop)_var(--bmo-ease-exit)]";
 
@@ -129,7 +137,7 @@ export default defineAppConfig({
     // them, tightened to that box's own line so the tooltip keeps its height.
     tooltip: {
       slots: {
-        content: `text-sm/4 ${GROWS_AFTER_DELAY}`
+        content: `text-sm/4 ${GROWS_AFTER_DELAY} ${POPPER_LAYER}`
       }
     },
     // The marker under the chosen tab moves to the next one as a thing changing state where it stands.
@@ -236,6 +244,7 @@ export default defineAppConfig({
     // dialog out of its own middle: here it grows out of the control pressed to open it, and only
     // fades where nothing was (`~/domain/dialog-origin`).
     modal: {
+      slots: SHEET,
       variants: {
         transition: {
           true: {
@@ -270,9 +279,11 @@ export default defineAppConfig({
     // keeps, so its colour still runs to the edge while its last line stands as far from the bar as
     // every other sheet's does. The phone's sidebar is one of these drawers, so it is held too.
     drawer: {
+      slots: SHEET,
       compoundVariants: [{ direction: ["bottom", "left", "right"], class: { content: "pb-(--bmo-safe-bottom)" } }]
     },
     slideover: {
+      slots: SHEET,
       variants: {
         transition: {
           true: { overlay: SHADES }
@@ -360,6 +371,7 @@ export default defineAppConfig({
         body: "p-4 sm:p-6 [&>*]:mx-auto [&>*]:w-full [&>*]:max-w-[calc(var(--ui-container)+var(--bmo-inset,0px))]"
       }
     },
+    toaster: { slots: { viewport: NOTICE_LAYER } },
     popover: {
       slots: {
         // A popover is drawn beside what opened it and grows to whatever it was given, so a
@@ -375,7 +387,7 @@ export default defineAppConfig({
         // popover written later cannot be the one that forgot, and a panel that fits today fits
         // by luck. What a popover says about its own width is untouched — where there is room
         // the shape it was given stands, and the ceiling binds only where there is not.
-        content: `max-h-(--reka-popover-content-available-height) max-w-(--reka-popover-content-available-width) overflow-y-auto overscroll-contain ${GROWS}`
+        content: `max-h-(--reka-popover-content-available-height) max-w-(--reka-popover-content-available-width) overflow-y-auto overscroll-contain ${GROWS} ${POPPER_LAYER}`
       }
     },
     // The bar every message box is written in wears its focus on the bar itself (main.css, `focus-bar`).

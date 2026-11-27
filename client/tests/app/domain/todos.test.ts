@@ -4,6 +4,7 @@ import { wording } from "../../../apps/web/shared/wording";
 
 import { setModelRegistrations } from "../../../apps/web/shared/model-short";
 import {
+  droppedLine,
   itemModel,
   itemFreeAgent,
   freeAgentWords,
@@ -116,6 +117,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     unfinishedResolution: null,
     heldAt: null,
     heldReason: null,
+    dropReason: null,
     heldKind: null,
     noticesOff: null,
     mergedInto: null,
@@ -148,8 +150,7 @@ const board: TodoBoard = {
   pending: [item(9, { approved: false, awaitingApproval: true, requester: "Heidi", requesterId: 777, chatId: -1002 })],
   held: [], merged: [],
   done: [item(4, { done: true, doneAt: 1_756_900_000, status: "done" })],
-  doneTotal: 1,
- 
+  doneTotal: 1, dropped: [], droppedTotal: 0,
   choices: CHOICES,
   standing: { queue: 3, running: 1, deploy: 0, deploying: 0, pending: 1, held: 0, merged: 0 },
   paused: false, deployHold: null
@@ -190,7 +191,7 @@ describe("the panel's sections", () => {
     expect(todoWaitingSections(wording, { ...DEFAULT_VIEW, filter: "pending" }).map((one) => one.key)).toEqual(["pending"]);
     expect(todoWaitingSections(wording, { ...DEFAULT_VIEW, filter: "running" }).map((one) => one.key)).toEqual(["queue"]);
     expect(todoWaitingSections(wording, { ...DEFAULT_VIEW, filter: "all" }, true).map((one) => one.key))
-      .toEqual(["pending", "queue", "held", "merged", "done"]);
+      .toEqual(["pending", "queue", "held", "merged", "dropped", "done"]);
   });
 
   test("under a condition nothing can be said about which sections will stand, so none is named", () => {
@@ -200,9 +201,25 @@ describe("the panel's sections", () => {
     expect(conditioned[0]?.rows).toBe(4);
   });
 
+  test("a discarded item stands apart from what was done, under its own chip, with the note it was discarded with", () => {
+    const discarded = item(7, { done: true, status: "dropped", dropReason: "carried into another list" });
+    const withDiscarded: TodoBoard = { ...board, dropped: [discarded], droppedTotal: 1 };
+
+    expect(todoState(discarded)).toBe("dropped");
+    expect(todoSections(wording, withDiscarded).map((section) => section.key)).toEqual(["pending", "queue", "done"]);
+    expect(todoSections(wording, withDiscarded).find((section) => section.key === "done")?.items.map((one) => one.id)).toEqual([4]);
+
+    const shown = todoSections(wording, withDiscarded, { ...DEFAULT_VIEW, filter: "dropped" });
+
+    expect(shown.map((section) => section.key)).toEqual(["dropped"]);
+    expect(shown[0]?.items.map((one) => one.id)).toEqual([7]);
+    expect(droppedLine(wording, discarded)).toBe(wording("todo.label.dropped_reason", { reason: "carried into another list" }));
+    expect(droppedLine(wording, board.done[0]!)).toBeNull();
+  });
+
   test("an empty section says so rather than standing blank", () => {
     const sections = todoSections(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [], doneTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null });
+    done: [], doneTotal: 0, dropped: [], droppedTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null });
 
     expect(sections.map((section) => section.empty)).toEqual([
       wording("todo.message.section_pending_empty"),
@@ -962,8 +979,7 @@ describe("the row a job is going on for standing first", () => {
     pending: [],
     held: [], merged: [],
     done: [],
-    doneTotal: 0,
-   
+    doneTotal: 0, dropped: [], droppedTotal: 0,
     choices: CHOICES,
     standing: NO_STANDING,
     paused: false, deployHold: null
@@ -1224,17 +1240,17 @@ describe("the line under the finished list", () => {
 describe("what a search found", () => {
   test("counts every list, since a search reaches the whole table and not the finished alone", () => {
     expect(searchTally(wording, { queue: [item(1)], pending: [item(2)], held: [], merged: [],
-    done: [item(3)], doneTotal: 12, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "14" }));
+    done: [item(3)], doneTotal: 12, dropped: [], droppedTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "14" }));
   });
 
   test("says so once where nothing anywhere matched", () => {
     expect(searchTally(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [], doneTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_none"));
+    done: [], doneTotal: 0, dropped: [], droppedTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_none"));
   });
 
   test("counts the ones behind the page rather than the ones on the screen", () => {
     expect(searchTally(wording, { queue: [], pending: [], held: [], merged: [],
-    done: [item(3)], doneTotal: 40, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "40" }));
+    done: [item(3)], doneTotal: 40, dropped: [], droppedTotal: 0, choices: CHOICES, standing: NO_STANDING, paused: false, deployHold: null })).toBe(wording("todo.message.search_found", { n: "40" }));
   });
 });
 
@@ -1242,7 +1258,7 @@ describe("what a search found", () => {
 // is out of sight everywhere except its own chip — which is the whole of what he asked for.
 describe("an item set aside", () => {
   const aside = item(7, { status: "held", heldAt: 1_756_900_000, heldReason: "not now" });
-  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
+  const board: TodoBoard = { queue: [item(1)], pending: [item(9, { approved: false, awaitingApproval: true })], held: [aside], merged: [], done: [], doneTotal: 0, dropped: [], droppedTotal: 0, choices: CHOICES, standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 1, held: 1, merged: 0 }, paused: false, deployHold: null };
 
   test("is neither waiting nor waiting on him: it waits on nothing", () => {
     expect(todoState(aside)).toBe("held");
@@ -1290,8 +1306,7 @@ describe("an item merged into another", () => {
     held: [],
     merged: [merged],
     done: [],
-    doneTotal: 0,
-   
+    doneTotal: 0, dropped: [], droppedTotal: 0,
     choices: CHOICES,
     standing: { queue: 1, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 1 },
     paused: false, deployHold: null

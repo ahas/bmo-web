@@ -223,7 +223,9 @@ export async function unitComposition(event: H3Event, unit: number, signed: Sign
       agents: role.agents === null || role.agents === undefined ? null : role.agents.length,
       own: choiceOf(own[role.role])
     })),
-    providers: providers.filter((one) => one.enabled).map((one) => ({ name: one.name, label: one.label, lines: one.lines })),
+    // The unit's road chooser offers what the provider list carries; whose own switch or chain closes a provider is
+    // each person's standing, which no unit-wide setting names here, so none stands marked off.
+    providers: providers.filter((one) => one.enabled).map((one) => ({ name: one.name, label: one.label, lines: one.lines, off: null, offBy: null })),
     delegation: entry.delegation,
     writable: entry.writable,
     lockedBy: entry.lockedBy ?? null,

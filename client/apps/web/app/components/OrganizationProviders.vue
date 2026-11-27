@@ -1,6 +1,7 @@
 <template>
   <!-- The providers tab of the administration screen (docs/web.md, 「System and organisation」, the providers tab): every
-       provider the agency carries, in its order, with whose its gateway road is where one person owns it all, what it
+       provider the agency carries, in its order, with whose its gateway road is where one account or one unit owns it
+       all, what it
        has left, why it cannot answer now and the owner's switch, each taking effect as it is thrown; under them the
        secrets the agency's provider tools read, and last the minutes between the agency's flushes of the deploy queue.
        The platform's own keys and Claude accounts stand on the organisation screen's supply tab with the platform
@@ -33,7 +34,7 @@
             <span class="text-sm text-highlighted">{{ one.label }}</span>
             <UIcon :name="markOf(one).icon" class="size-4 shrink-0" :class="markOf(one).tone" />
           </span>
-          <span v-if="owners.has(one.name)" class="text-sm text-muted" data-provider-owner>{{ ownerText($t, owners.get(one.name), names) }}</span>
+          <span v-if="owners.has(one.name)" class="text-sm text-muted" data-provider-owner>{{ roadOwnerLine($t, owners.get(one.name), names) }}</span>
           <!-- What the provider itself has left — the slot the chat runs on where it holds no login, its own road's
                balance, and each of its accounts the Claude list below does not carry, under that account's name — as
                the title bar's panel reads it. An account the list carries stands on its own row there. -->
@@ -75,7 +76,7 @@ import { emptyFallbackView } from "~/domain/agent-settings";
 import { useProviders } from "~/domain/axes";
 import { useReadFailure } from "~/domain/events";
 import { useAccountNames } from "~/domain/nodes";
-import { ownerText, roadOwner } from "~/domain/supply";
+import { roadOwner, roadOwnerLine } from "~/domain/supply";
 import { providerGroups, usageGroups } from "~/domain/usage";
 import { useUsageRead } from "~/domain/usage-read";
 

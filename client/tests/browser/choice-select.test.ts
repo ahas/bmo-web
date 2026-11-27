@@ -28,7 +28,7 @@ const WIDTHS = [
   { width: 360, height: 780, phone: true }
 ];
 
-const ITEM: TodoItem = {
+const ITEM: TodoItem = { dropReason: null,
   id: 1, title: "item-1", instruction: "item-1", requester: "Owner", requesterId: 42, chatId: 42,
   approved: true, awaitingApproval: false, recommended: false, done: false, running: false, worker: "bmo-a",
   priority: 1, status: "waiting", model: null, role: null, agent: null, jobAgent: null, ranOn: null, note: null,

@@ -154,8 +154,36 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
   };
 }
 
-export async function readSupervisors(madeFor?: H3Event): Promise<SupervisorView[]> {
-  const [page, answerer, owner] = await Promise.all([agencyCall(agency(madeFor).GET("/supervisors")), defaultAnswerer(), ownersAccount()]);
+/** The owner parameters an address may give a list of the agency's reached rows (the agency's `docs/api.md`,
+ * 「Who a caller acts for」): one account, or one unit and — where asked — the units under it. */
+export type OwnerParams = { ownerAccount?: number; unit?: number; unitSubtree?: boolean };
+
+/** The owner parameters of a route's query, read for shape alone: one not whole answers as none named, since an
+ * unscoped list stands on the reader's own reach as it always did. */
+export function ownerParamsOf(query: Record<string, unknown>): OwnerParams | undefined {
+  const named = (value: unknown): number | undefined => (typeof value === "string" && /^[1-9][0-9]*$/.test(value) ? Number(value) : undefined);
+  const ownerAccount = named(query.ownerAccount);
+  const unit = named(query.unit);
+
+  if (ownerAccount === undefined && unit === undefined) return undefined;
+
+  return {
+    ...(ownerAccount === undefined ? {} : { ownerAccount }),
+    ...(unit === undefined ? {} : { unit, ...(query.unitSubtree === "true" || query.unitSubtree === true ? { unitSubtree: true } : {}) })
+  };
+}
+
+/** The options a scoped read carries to the agency's list route. */
+function scoped(scope: OwnerParams) {
+  return { params: { query: scope } };
+}
+
+export async function readSupervisors(madeFor?: H3Event, scope?: OwnerParams): Promise<SupervisorView[]> {
+  const [page, answerer, owner] = await Promise.all([
+    agencyCall(scope === undefined ? agency(madeFor).GET("/supervisors") : agency(madeFor).GET("/supervisors", scoped(scope))),
+    defaultAnswerer(),
+    ownersAccount()
+  ]);
 
   return page.items.map((supervisor) => supervisorViewOf(supervisor, answerer, owner));
 }
@@ -310,11 +338,24 @@ export function roleViewOf(role: Role & Following): RoleView {
   };
 }
 
-/** Every role, each as `listed` keeps it of what the agency answers: whole where none is named. */
-export async function readRoles(listed: (role: Role) => Role = (role) => role, madeFor?: H3Event): Promise<RolesView> {
-  const answer = await agencyCall(agency(madeFor).GET("/roles"));
+/** Every role, each as `listed` keeps it of what the agency answers: whole where none is named. Where the read
+ * names an owner, the roles stay the platform's list and each role's agents are the node's own, read from the
+ * agency's reached agents list rather than the whole the role answer embeds (the agency's `docs/api.md`,
+ * 「Who a caller acts for」). */
+export async function readRoles(listed: (role: Role) => Role = (role) => role, madeFor?: H3Event, scope?: OwnerParams): Promise<RolesView> {
+  const [answer, reached] = await Promise.all([
+    agencyCall(agency(madeFor).GET("/roles")),
+    scope === undefined ? Promise.resolve(null) : agencyCall(agency(madeFor).GET("/role-agents", scoped(scope)))
+  ]);
 
-  return { roles: answer.roles.map((role) => roleViewOf(listed(role))), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
+  const kept = (role: Role): Role => {
+    if (scope === undefined) return listed(role);
+    if (reached === null) return { ...role, agents: [] };
+
+    return { ...role, agents: reached.items.filter((one) => one.role === role.name) };
+  };
+
+  return { roles: answer.roles.map((role) => roleViewOf(kept(role))), bundles: answer.bundles.map(bundleOf), skills: answer.skills ?? [], lines: answer.lines };
 }
 
 const SESSIONS = ["keep", "fresh"] as const;
@@ -432,9 +473,9 @@ const AGENT_LISTS = ["bundles", "skills"] as const;
  * role; a change any one field. Null where the body does not read as one; whether the values stand is the agency's to
  * say.
  */
-export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["RoleAgentChange"] & Following & { role?: string; name?: string }) | null {
+export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["RoleAgentChange"] & Following & { role?: string; name?: string; ownerUnit?: number }) | null {
   const held = record(body);
-  const change: Schemas["RoleAgentChange"] & Following & { role?: string; name?: string } = {};
+  const change: Schemas["RoleAgentChange"] & Following & { role?: string; name?: string; ownerUnit?: number } = {};
 
   if ("followsAsker" in held) {
     if (held.followsAsker !== null && typeof held.followsAsker !== "boolean") return null;
@@ -451,6 +492,14 @@ export function roleAgentChangeOf(body: unknown, adding: boolean): (Schemas["Rol
       if (text(held.name) === null) return null;
 
       change.name = (held.name as string).trim();
+    }
+
+    // A row filed under a unit is its head's to file; the agency judges the heading (the agency's `docs/api.md`,
+    // 「Who a caller acts for」), this only lets a whole number through.
+    if ("ownerUnit" in held && held.ownerUnit !== undefined && held.ownerUnit !== null) {
+      if (!wholeFrom(held.ownerUnit, 1)) return null;
+
+      change.ownerUnit = held.ownerUnit as number;
     }
   }
 
@@ -510,22 +559,24 @@ function agentRefusal(body: RefusalBody): RefusalBody {
   return body.error?.startsWith(ADVISOR_REFUSED) === true ? { ...body, code: "advisor-refused", field: "advisor" } : body;
 }
 
-export async function addRoleAgent(change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
+export async function addRoleAgent(change: Schemas["RoleAgentChange"] & { role?: string; name?: string }, madeFor?: H3Event): Promise<RoleAgentView> {
   const { role, ...fields } = change;
 
   if (role === undefined) throw fail(400, wording("common.error.bad_action"));
 
-  return roleAgentViewOf(await agencyCall(agency().POST("/role-agents", { body: { role, ...fields } }), { codes: AGENT_CODES, refusal: agentRefusal }));
+  // The write goes as the caller, so the agency files the row by whose account or head it is and refuses the
+  // filing it does not reach (the agency's `docs/role-agents.md`).
+  return roleAgentViewOf(await agencyCall(agency(madeFor).POST("/role-agents", { body: { role, ...fields } }), { codes: AGENT_CODES, refusal: agentRefusal }));
 }
 
-export async function changeRoleAgent(name: string, change: Schemas["RoleAgentChange"] & { role?: string; name?: string }): Promise<RoleAgentView> {
+export async function changeRoleAgent(name: string, change: Schemas["RoleAgentChange"] & { role?: string; name?: string }, madeFor?: H3Event): Promise<RoleAgentView> {
   const { role: _role, name: _name, ...body } = change;
 
-  return roleAgentViewOf(await agencyCall(agency().PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body }), { codes: AGENT_CODES, refusal: agentRefusal }));
+  return roleAgentViewOf(await agencyCall(agency(madeFor).PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body }), { codes: AGENT_CODES, refusal: agentRefusal }));
 }
 
-export async function removeRoleAgent(name: string): Promise<void> {
-  await agencyCall(agency().DELETE("/role-agents/{agentName}", { params: { path: { agentName: name } } }), { codes: AGENT_CODES });
+export async function removeRoleAgent(name: string, madeFor?: H3Event): Promise<void> {
+  await agencyCall(agency(madeFor).DELETE("/role-agents/{agentName}", { params: { path: { agentName: name } } }), { codes: AGENT_CODES });
 }
 
 function roleSessionOf(session: Schemas["RoleSession"]): RoleSessionView {
@@ -666,8 +717,8 @@ export function repositoryViewOf(repository: Repository): RepositoryView {
 }
 
 /** Every repository `listed` keeps of what the agency answers: all of them where none is named. */
-export async function readRepositories(listed: (rows: Repository[]) => Repository[], madeFor: H3Event): Promise<RepositoryView[]> {
-  const page = await agencyCall(agency(madeFor).GET("/repositories"));
+export async function readRepositories(listed: (rows: Repository[]) => Repository[], madeFor: H3Event, scope?: OwnerParams): Promise<RepositoryView[]> {
+  const page = await agencyCall(scope === undefined ? agency(madeFor).GET("/repositories") : agency(madeFor).GET("/repositories", scoped(scope)));
 
   return listed(page.items).map(repositoryViewOf);
 }
@@ -681,6 +732,14 @@ export function repositoryChangeOf(body: unknown, adding: boolean): Schemas["Rep
     if (text(held.name) === null) return null;
 
     change.name = (held.name as string).trim();
+
+    // Where the row is filed is the agency's judgement of the caller; these only carry a whole number through.
+    for (const field of ["ownerAccount", "ownerUnit"] as const) {
+      if (!(field in held) || held[field] === undefined || held[field] === null) continue;
+      if (!wholeFrom(held[field], 1)) return null;
+
+      change[field] = held[field] as number;
+    }
   }
 
   for (const field of ["label", "path", "nodeName", "preamble", "rules", "devCommand"] as const) {

@@ -7,6 +7,10 @@ import type { SupervisorView } from "#shared/axes";
 // 「Agent management screen」).
 export default defineEventHandler(async (event): Promise<SupervisorView[]> => {
   const signed = await signedInUser(event);
+  // Where the address names a node of the tree, the agency answers what that reader reaches there and the
+  // console's own whose-row rule stands aside; unscoped, it keeps narrowing as it always did (the agency's
+  // `docs/api.md`, 「Who a caller acts for」; docs/web.md, 「Access」).
+  const scope = ownerParamsOf(getQuery(event));
 
-  return listedSupervisors(await readSupervisors(event), signed.id);
+  return scope === undefined ? listedSupervisors(await readSupervisors(event), signed.id) : await readSupervisors(event, scope);
 });

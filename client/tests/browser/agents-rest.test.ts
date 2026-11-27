@@ -77,7 +77,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's rest", () => {
       try {
         const page = await context.newPage();
 
-        await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+        await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
 
         // The band says until when, the clock alone on the day it ends or with its date on another.
         const band = page.locator("[data-rest-band]");
@@ -132,7 +132,7 @@ describe.skipIf(!origin || !touchReady())("the deployment's rest", () => {
       const page = await context.newPage();
       const band = page.locator("[data-rest-band]");
 
-      await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
+      await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
       await band.locator("[data-rest-mark]").waitFor({ timeout: 15_000 });
 
       // A rest kept to no known moment reads the rest alone.

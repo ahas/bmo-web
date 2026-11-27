@@ -29,13 +29,15 @@ export interface NamedSupervisor {
 }
 
 /** The answering agent a room stands as, before its name is read: for the owner's private chat the supervisor it
- * names, else the default answerer, else the chat agent the settings name, called by the chat agent's label; the
+ * names, else the default answerer, else the chat agent the settings name, called by that supervisor's own label and
+ * by the chat agent's label the settings name only where it has none, as its row in the sidebar is; the
  * supervisor that answers any other private room, the one the room's account owns first; none for any other room. */
 export function answeringAgent(room: AnsweredRoom, owner: number | null, supervisors: readonly NamedSupervisor[], answerer: string | null = null): NamedSupervisor | null {
   if (owner !== null && room.id === owner) {
     const chat = chatAgent();
     const name = room.supervisors[0] ?? answerer ?? (chat.name === "" ? null : chat.name);
-    const label = chat.label !== "" ? chat.label : supervisors.find((supervisor) => supervisor.name === name)?.label;
+    const own = supervisors.find((supervisor) => supervisor.name === name)?.label?.trim() ?? "";
+    const label = own !== "" ? own : chat.label;
 
     return name === null ? null : { name, label };
   }

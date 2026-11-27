@@ -21,13 +21,13 @@ test("a whole console shows every screen of its own", () => {
 });
 
 test("a personal install's console leaves out the organisation, research, cache siren and monitor, for a member; the administrator keeps the merged screen and its platform settings", () => {
-  expect(screensWithBundles([], featuredScreens(PERSONAL)).map((screen) => screen.to).sort()).toEqual(["/agents", "/db", "/documents"]);
-  expect(screensWithBundles([], featuredScreens(PERSONAL, SCREENS, true)).map((screen) => screen.to).sort()).toEqual(["/agents", "/db", "/documents", "/organization"]);
+  expect(screensWithBundles([], featuredScreens(PERSONAL)).map((screen) => screen.to).sort()).toEqual(["/db", "/documents"]);
+  expect(screensWithBundles([], featuredScreens(PERSONAL, SCREENS, true)).map((screen) => screen.to).sort()).toEqual(["/db", "/documents", "/organization"]);
 });
 
 test("an address under a screen left out is left out, the card board with the monitor; the administrator keeps the systems-and-organisation screen, not the store", () => {
   for (const path of ["/organization", "/research", "/siren", "/monitor", "/monitor/node-a", "/cards"]) expect(featureLeftOut(PERSONAL, path)).toBe(true);
-  for (const path of ["/", "/db", "/agents", "/rooms/1", "/organizer"]) expect(featureLeftOut(PERSONAL, path)).toBe(false);
+  for (const path of ["/", "/db", "/rooms/1", "/organizer"]) expect(featureLeftOut(PERSONAL, path)).toBe(false);
   expect(featureLeftOut(PERSONAL, "/organization", true)).toBe(false);
   expect(featureLeftOut(PERSONAL, "/store", true)).toBe(true);
   expect(featureLeftOut(EVERY_FEATURE, "/organization")).toBe(false);

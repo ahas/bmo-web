@@ -7,7 +7,7 @@ usage: |-
     start     Starts the generation as the user unit bmo-gate-eval (run by the binary that ran this command).
     generate  Runs the same generation in the foreground. The unit runs this.
     status    Shows, per gate, how many were made, asked, refused and discarded, how many remain, and the state.
-    score     Asks the gates with --road claude|kakia and scores them. --limit <n> takes only that many per gate, spread evenly over the whole set.
+    score     Asks the gates with --road claude|kiki and scores them. --limit <n> takes only that many per gate, spread evenly over the whole set.
     report    Shows each gate's last score on each road side by side.
 
     --set <name>      Set name (default v1). The data is in the data root's gate-eval/<name>/.

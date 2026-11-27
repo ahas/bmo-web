@@ -64,6 +64,7 @@ function item(id: number, over: Partial<TodoItem> = {}): TodoItem {
     unfinishedResolution: null,
     heldAt: null,
     heldReason: null,
+    dropReason: null,
     heldKind: null,
     noticesOff: null,
     mergedInto: null,
@@ -182,7 +183,7 @@ async function open(viewport: (typeof WIDTHS)[number], scheme: (typeof SCHEMES)[
     const queue = narrowed ? ITEMS.filter((one) => waiting().some((question) => question.todoId === one.id)) : ITEMS;
 
     await route.fulfill({
-      json: { ...board, pending: [], queue, held: [], merged: [], done: [], doneTotal: 0, standing: { ...board.standing, queue: queue.length, running: 0 } }
+      json: { ...board, pending: [], queue, held: [], merged: [], done: [], doneTotal: 0, dropped: [], droppedTotal: 0, standing: { ...board.standing, queue: queue.length, running: 0 } }
     });
   });
   await context.addInitScript(() => {

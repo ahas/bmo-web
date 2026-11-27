@@ -535,7 +535,37 @@ pub async fn unit_delete(
   Ok(StatusCode::NO_CONTENT)
 }
 
-// A value written under a name in a space, answered with the status of what the write did.
+// The value refused where it reads as a secret kind the space's chain is not offered; a file that reads as no
+// kind, one that is not text, and the platform's own space are passed over (docs/accounts.md, 「Secret kinds」).
+async fn offered_kind(service: &Service, space: Space, value: &[u8]) -> Result<(), Refusal> {
+  let subject = match space {
+    Space::Administrator => return Ok(()),
+    Space::Person(user) => crate::chain::Subject::Person(user),
+    Space::Unit(unit) => crate::chain::Subject::Unit(unit),
+  };
+  let Some(text) = std::str::from_utf8(value).ok() else {
+    return Ok(());
+  };
+  let kinds = secret_kinds::kept(&service.db).await?;
+  let Some(read) = secret_kinds::read_off(text, &kinds) else {
+    return Ok(());
+  };
+
+  if secret_kinds::offered(&service.db, subject)
+    .await
+    .is_some_and(|allowed| !allowed.contains(read))
+  {
+    return Err(
+      Refusal::forbidden(format!("the secret kind `{read}` is not offered down this chain"))
+        .coded("kind-not-offered"),
+    );
+  }
+
+  Ok(())
+}
+
+// A value written under a name in a space, answered with the status of what the write did. A file that reads as
+// one of the secret kinds is refused where that kind is not offered down the space's chain (`secret.kinds`).
 async fn put_in(
   service: &Service,
   space: Space,
@@ -546,7 +576,10 @@ async fn put_in(
     Refusal::bad("the body does not read as a secret's `value`, `replace?` and `encoding?`")
   })?;
   let store = store_of(service)?;
-  let value = bytes_of(ask.value, ask.encoding)?;
+  let value = bytes_of(ask.value.clone(), ask.encoding)?;
+
+  offered_kind(service, space, &value).await?;
+
   let (kept, written) = blocking(move || store.put(space, &name, &value, ask.replace)).await?;
   let status = match written {
     Written::Made => StatusCode::CREATED,

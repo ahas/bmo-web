@@ -116,12 +116,14 @@ describe("the platform's policy form", () => {
 });
 
 describe("whose supply is", () => {
-  const member = (name: string, road: string | null, account: string | null): GatewayMember => ({ name, road, label: name, provider: "openai", account });
+  const member = (name: string, road: string | null, account: string | null, unit: string | null = null): GatewayMember =>
+    ({ name, road, label: name, provider: "openai", account, unit, unitLabel: null });
 
-  test("names the one person every member of a road belongs to, and nobody for a road of the platform's, mixed or empty", () => {
-    const members = [member("a", "deepseek", "7"), member("b", "deepseek", "7"), member("c", "openrouter", "7"), member("d", "openrouter", null), member("e", "codex", "7"), member("f", "codex", "8"), member("g", null, "7")];
+  test("names the one owner every member of a road belongs to, and nobody for a road of the platform's, mixed or empty", () => {
+    const members = [member("a", "deepseek", "7"), member("b", "deepseek", "7"), member("c", "openrouter", "7"), member("d", "openrouter", null), member("e", "codex", "7"), member("f", "codex", "8"), member("g", null, "7"), member("h", "company", null, "4"), member("i", "company", null, "4")];
 
-    expect(roadOwner(members, "deepseek")).toBe("7");
+    expect(roadOwner(members, "deepseek")).toEqual({ kind: "account", id: "7", name: null });
+    expect(roadOwner(members, "company")).toEqual({ kind: "unit", id: "4", name: null });
     expect(roadOwner(members, "openrouter")).toBeNull();
     expect(roadOwner(members, "codex")).toBeNull();
     expect(roadOwner(members, "claude")).toBeNull();

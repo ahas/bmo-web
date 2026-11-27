@@ -1,4 +1,3 @@
-import { AGENT_TABS } from "./agent-settings";
 import { MONITOR_TABS } from "./hardware";
 import { ORGANIZATION_PATH, ORGANIZATION_TABS } from "./organization";
 
@@ -105,9 +104,6 @@ export const SCREENS: readonly Screen[] = [
   { label: "screens.label.db", to: "/db", icon: "i-material-symbols-database-outline", nested: false, section: "administration" },
   // The documents the agents read and the deployment's operating documents, read as documents.
   { label: "screens.label.documents", to: "/documents", icon: "i-material-symbols-library-books-outline", nested: false, section: "administration" },
-  // The catalogue as a screen: who the agents are, and the job workers the owner adds and removes. Its pages below
-  // its address are the agents' own, so they do not light it.
-  { label: "screens.label.agents", to: "/agents", icon: "i-material-symbols-list-alt-outline", nested: false, tabs: AGENT_TABS, section: "administration" },
   // The research unit watched at work: whether its loop runs, its categories and its queue, each item's run opening
   // over the list; its settings tab holds what every research run is held to and the research supervisor.
   { label: "screens.label.research", to: "/research", icon: "i-material-symbols-travel-explore", nested: false, feature: "research", section: "administration" },

@@ -113,6 +113,7 @@
 <script setup lang="ts">
 import { useOpenedWith } from "bmo-ui/app/domain/form-save";
 
+import { useAgentScope } from "~/domain/agent-scope";
 import { providerWord, refusalOf, useProviders } from "~/domain/axes";
 import { sameValue } from "~/domain/form-values";
 
@@ -130,8 +131,14 @@ const emit = defineEmits<{ saved: [role: RoleView] }>();
 const { t } = useI18n();
 const formId = useId();
 
-// The roles tab reads the same answer under the same key.
-const { data: view, refresh } = useFetch<RolesView>("/api/roles", { key: "roles", lazy: true, server: false });
+// The roles tab reads the same answer under the same key, of the node the address chooses.
+const roleScope = useAgentScope();
+const { data: view, refresh } = useFetch<RolesView>("/api/roles", {
+  key: computed(() => `roles:${roleScope.value?.key ?? "all"}`),
+  query: computed(() => roleScope.value?.params ?? {}),
+  lazy: true,
+  server: false
+});
 const { data: providers } = useProviders();
 
 const adding = computed(() => props.name === null);

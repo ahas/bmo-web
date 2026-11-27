@@ -222,46 +222,50 @@ prepare one first with `nuxi prepare`; a tree that already holds one keeps it un
 
 ## The repository-wide checks
 
-The checks that span the repository stand in the root's `tests/`, in `repository.rs`. The root is a Cargo
-workspace and holds no package, so the server's crate runs them as a module of its test harness, `repository`, and
-they run with the server's tests:
+What must hold across the whole tree is swept by the testbed's quick checks, which the repository's
+declaration enables (`bmo-testbed check quick`), and by the two guard modules the repository itself runs:
+`tests/literals.rs`, a module of the root harness, which reads this machine's account name, host name and the
+address git commits under and refuses them, their Hangul among them, across the tree, and `repository`, a module
+of the account service's test harness, which holds what only the console's files are judged by:
 
 ```
 bmo-testbed cargo test -p bmo-web-server --test main repository::
 ```
 
-They read every file git tracks or would track, the new ones it does not ignore among them.
-
-- **Dependencies.** No package depends on a `bmo-*` package but the base libraries `bmo-chat`, `bmo-chat-client`,
-  `bmo-ui` and `bmo-text`, and the published clients of the units the console calls (`docs/boundary.md`): not the Cargo workspace's
-  packages, as Cargo's metadata answers them, and not a `package.json` of the console. The server's own crates —
-  `bmo-web-server` and the client crate generated from its contract, `bmo-web-client` — are no unit's package and
-  stand beside them. No Rust file names another `bmo_` crate at the head of a path but the server's own crates and
-  the base libraries, and no console file imports another `bmo-*` or `@bmo/` package outside a bundle. Another
-  unit is reached over HTTP alone.
-- **Korean.** No code or test file holds a Hangul character: the Korean a person reads stands in the language
-  packs (`server/lang/`, `client/apps/web/i18n/`), and the Korean a test reads in the tests' fixtures
-  (`server/tests/fixtures/`, `client/tests/fixtures/`). The testbed's Korean ledger, `korean-ledger.json`, stays
-  empty, allowing no file any.
-- **Layout.** No directory is named after its parent, the root holds no manifest but Cargo's workspace and its
-  lockfile, and no test stands inside a `src/` folder or anywhere but a `tests/` folder: no Rust test module in a
-  crate's source, and no `.test.` or `.spec.` file beside the code it tests.
-- **Assertions.** No console file, its code or its tests, asserts a value through `unknown` into another type
-  (`as unknown as`). A value takes its type from a type guard, a narrowing function, a generic parameter, an
-  annotation or `satisfies`; where a library's typing leaves no other way, from a single `as` with a line saying why.
-  The third-party packs under `client/vendor/` are passed over.
-- **Personal data.** No tracked file holds a mail address outside the reserved example domains, a person's home
-  path, a telephone number, a token or a private network address. A neutral form is not a finding: a mailbox at
-  `example.com`, `example.net` or `example.org`, a home path naming `user` or an agent such as `agent-a`, and a
-  loopback address. The third-party packs under `client/vendor/` stand as their publishers shipped them and are
-  passed over. The check carries the patterns; no list of addresses, paths or values is kept in the repository
-  (`PERSONAL-DATA.md`).
-- **Names.** No tracked file holds an agent's, a person's or a machine's name. No repository keeps the list of those
-  names, so the check reads it from the file the variable `BMO_NAMES_LIST` names, outside the checkout: a TOML
-  file with `words` (matched as whole words, ignoring case), `exact_words` (whole words, case kept), `anywhere`
-  (matched anywhere, as a Korean name takes its particles with no space) and `allowed` (terms of others that hold a
-  name, such as a dependency's address, set aside first). Where the variable names no file, the names are not
-  checked and the run says so.
+- **Dependencies.** The `dependencies` quick check reads every manifest in the tree and admits only registry
+  crates and packages, entries inside the repository, and the base libraries the declaration names: the base
+  libraries `bmo-chat`, `bmo-chat-client`, `bmo-secret-shapes`, `bmo-text` and `bmo-ui`, the sign-in base
+  `sumida`, and the published clients of the units the parts reach (`docs/api.md`, 「Calls agency makes」;
+  `docs/boundary.md`). Another unit is reached over HTTP alone.
+- **Language.** The `language` quick check reads every code file: none holds more lines with a letter that is
+  not English than the ledger `korean-ledger.json` allows it, and a file the ledger does not name is allowed
+  none. The Korean and other non-Latin words a person reads stand in the language packs (`server/lang/`,
+  `client/apps/web/i18n/`), and a test's recorded input in its fixtures; the ledger holds the few lines that
+  are the letters of a check reading them or a test's made-up input, which are written as themselves.
+- **Layout.** The `layout` quick check holds the README's folder table to the tree's top-level folders, no
+  folder of the top two levels named for a language outside its own project, and every folder holding a
+  manifest a member of its workspace or a project of its own. `tests/layout.rs` refuses a directory named
+  after its parent and any build tool's manifest but Cargo's at the root.
+- **Assertions and test places.** `repository` reads the console's files — its code and its tests, the
+  third-party packs under `client/vendor/` passed over — and refuses any that asserts a value through
+  `unknown` into another type (`as unknown as`): a value takes its type from a type guard, a narrowing
+  function, a generic parameter, an annotation or `satisfies`; where a library's typing leaves no other way,
+  from a single `as` with a line saying why. It also refuses a test standing inside a `src/` folder or
+  anywhere but a `tests/` folder, in any part of the tree: no Rust test module in a crate's source, and no
+  `.test.` or `.spec.` file beside the code it tests.
+- **Personal data.** The `personal-data` quick check reads every file git tracks or would track for the forms
+  the testbed's policy names — a mail address outside the reserved example domains, a person's home path, a
+  telephone number, a token, a private key's block, a private network address — and names the file, the line
+  and the kind, never the value. A neutral form is not a finding: a mailbox at `example.com`, `example.net` or
+  `example.org`, a home path naming `user` or an agent such as `agent-a`, a loopback address. A file under
+  `fixtures/` or `node_modules/` is recorded input and is never read. No list of addresses, paths or values is
+  kept in the repository (`docs/PERSONAL-DATA.md`).
+- **Names.** `tests/literals.rs` holds the machine's own names out of the tree, and the list of agent, person
+  and machine names no tracked file may hold is read from outside every repository, from the file the variable
+  `BMO_NAMES_LIST` names: a TOML file with `words` (matched as whole words, ignoring case), `exact_words`
+  (whole words, case kept), `anywhere` (matched anywhere, as a Korean name takes its particles with no space)
+  and `allowed` (terms of others that hold a name, such as a dependency's address, set aside first). Where the
+  variable names no file, the names are not checked and the run says so.
 
 What a name is replaced by: an agent by its registration, which the deployment's settings carry (the chat agent's
 name and label among them); a person by their role; a test's people and agents by neutral names such as `agent-a`.

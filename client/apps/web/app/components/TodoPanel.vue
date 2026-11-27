@@ -481,6 +481,8 @@ const EMPTY: TodoBoard = {
   merged: [],
   done: [],
   doneTotal: 0,
+  dropped: [],
+  droppedTotal: 0,
   choices: { workers: [], chats: [], requesters: [] },
   standing: { queue: 0, running: 0, deploy: 0, deploying: 0, pending: 0, held: 0, merged: 0 },
   paused: false,
@@ -905,7 +907,11 @@ const boardRead = useReadFailure({ failed: () => boardFailure.value !== "", read
 // at a time: the sentinel at the foot of the list can come into view again while a read for it
 // is still going, and asking twice for the same page would only answer the same thing twice.
 async function loadMore(): Promise<void> {
-  const next = nextDoneLimit(board.value.done.length, board.value.doneTotal);
+  // The finished and the discarded lists are paged together, by the one limit the board is read with.
+  const next = nextDoneLimit(
+    Math.max(board.value.done.length, board.value.dropped.length),
+    Math.max(board.value.doneTotal, board.value.droppedTotal)
+  );
 
   // Nothing is fetched while a row is in the air or an order is on its way: rows arriving below
   // would move the ground under a drag, and the read would race the order being saved.

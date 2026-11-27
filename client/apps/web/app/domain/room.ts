@@ -336,6 +336,10 @@ export interface FeedItem {
   deletedText?: string;
   // The picture a message deleted on its messenger carried, which the row opens with its words.
   deletedImageUrl?: string;
+  // The sticker a message deleted on its messenger was, which the row opens the same way: its kept file, or its emoji
+  // where nothing of it is kept to draw.
+  deletedSticker?: MessageAttachment;
+  deletedStickerEmoji?: string;
   editedAt?: number | null;
   pinnedAt?: number | null;
   reactions?: ReactionView[];
@@ -1760,6 +1764,8 @@ function feedItemOf(
         { expressions: [], formats: [] }
       )
     : shown;
+  const heldSticker = deleted ? (message.attachments ?? []).find((attachment) => attachment.kind === "sticker" && attachment.available) : undefined;
+  const heldEmoji = deleted && heldSticker === undefined && !heldPicture ? stickerEmojiOf(message.stickerEmoji, false, []) : null;
   const headed = message.replyQuote != null || message.forwardedFrom != null;
   const bare = !deleted && bareMedia(shown.text, carriedKinds(sticker || emoji !== null ? "sticker" : pictured ? "picture" : null, attachments), headed);
 
@@ -1773,6 +1779,8 @@ function feedItemOf(
     shownText: deleted ? "" : shown.text,
     ...(deleted && held.text.trim() !== "" ? { deletedText: held.text } : {}),
     ...(heldPicture ? { deletedImageUrl: imageUrlFor(message.chatId, message.messageId) } : {}),
+    ...(heldSticker === undefined ? {} : { deletedSticker: heldSticker }),
+    ...(heldEmoji === null ? {} : { deletedStickerEmoji: heldEmoji }),
     quote: deleted ? null : (message.replyQuote ?? null),
     imageUrl: !pictured ? null : imageUrlFor(message.chatId, message.messageId),
     ...(sticker ? { stickerPicture: true } : {}),

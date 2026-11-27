@@ -258,10 +258,11 @@
                         </p>
 
                         <!-- A deleted message keeps its place as one quiet line (docs/web.md, 「What was done to a message」);
-                             one deleted on its messenger still holds its words, which a press on the line opens. -->
+                             one deleted on its messenger still holds its words, its picture or its sticker, which a press
+                             on the line opens. -->
                         <template v-else-if="empty">
                           <button
-                            v-if="props.item.deleted && (props.item.deletedText || props.item.deletedImageUrl)"
+                            v-if="props.item.deleted && (props.item.deletedText || props.item.deletedImageUrl || props.item.deletedSticker || props.item.deletedStickerEmoji)"
                             type="button"
                             class="text-muted italic underline decoration-dotted underline-offset-2 hover:text-default"
                             data-deleted
@@ -281,6 +282,16 @@
                             class="mt-1 max-h-80 max-w-full rounded-md border-s-2 border-default ps-2 object-contain"
                             loading="lazy"
                           />
+                          <div v-if="showingDeleted && (props.item.deletedSticker || props.item.deletedStickerEmoji)" data-deleted-sticker class="mt-1 border-s-2 border-default ps-2">
+                            <MessageSticker
+                              :src="null"
+                              :attachment="props.item.deletedSticker ?? null"
+                              :emoji="props.item.deletedStickerEmoji ?? null"
+                              :chat-id="props.chatId"
+                              :message-id="archivedId"
+                              :alt="$t('room.label.sticker_preview')"
+                            />
+                          </div>
                           <p v-if="showingDeleted && props.item.deletedText" data-deleted-words class="mt-1 border-s-2 border-default ps-2 text-toned whitespace-pre-wrap break-words">
                             {{ props.item.deletedText }}
                           </p>

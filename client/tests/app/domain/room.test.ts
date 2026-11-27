@@ -932,6 +932,20 @@ describe("a message that is only what it carried", () => {
     expect(captioned?.deletedImageUrl).toBeDefined();
   });
 
+  // A sticker deleted on its messenger is opened as the sticker it was: its kept file, or its emoji where nothing of it
+  // is kept to draw.
+  test("opens a sticker deleted on its messenger as its file or its emoji", () => {
+    const file = { id: 3, kind: "sticker" as const, name: "sticker.webp", bytes: 3, type: null, available: true };
+    const kept = rowOf({ ...archived(13, "[Sticker]"), attachments: [file], sticker: true, deletedAt: 1 });
+    const bare = rowOf({ ...archived(14, "[Sticker]"), stickerEmoji: "\u{1F600}", deletedAt: 1 });
+
+    expect(kept?.deleted).toBe(true);
+    expect(kept?.deletedSticker).toEqual(file);
+    expect(kept?.attachments).toEqual([]);
+    expect(bare?.deletedStickerEmoji).toBe("\u{1F600}");
+    expect(bare?.deletedSticker).toBeUndefined();
+  });
+
   test("keeps the bubble where it has words, and where it carried nothing at all", () => {
     expect(rowOf({ ...archived(1, KO.line_629), attachments: [document] })?.look.variant).toBe("soft");
     expect(rowOf({ ...archived(2, KO.line_630), imagePath: "/kept/2.jpg" })?.look.variant).toBe("soft");

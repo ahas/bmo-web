@@ -5755,9 +5755,9 @@ Four bounds keep it from growing forever.
     carried and its chips are gone, and its menu offers nothing but its link. A message deleted on its messenger keeps
     its words in the record (the receiver's `docs/messages.md`): its line reads 삭제된 메시지 · 눌러서 보기, and
     pressing it opens what it held under the line, marked off by a rule at their leading edge, and closes them again:
-    its words with the media mark taken off as a live message's are, and the picture it carried. A
-    message the console's own delete took keeps no words and has nothing to open; one that held a picture alone opens
-    the picture.
+    its words with the media mark taken off as a live message's are, the picture it carried, and the sticker it was —
+    its kept file, or its emoji where nothing of it is kept to draw. A message the console's own delete took keeps no
+    words and has nothing to open; one that held a picture or a sticker alone opens that.
   - **An edited message** carries 수정됨 on its meta line before its time, and its tooltip says when it changed.
   - **A forwarded message** stands marked over its words: 전달됨 with the name of whoever said the original, from the
     record's `forwardedFrom`, which carries the original's room, message and sender (the receiver's `docs/api.md`,

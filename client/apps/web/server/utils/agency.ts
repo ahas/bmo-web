@@ -4,7 +4,9 @@ import { CONTROL_UNREACHABLE } from "#shared/config";
 import { wording } from "#shared/wording";
 
 import { signedInUser } from "./accounts";
-import { ownerHeaders } from "./owner-key";
+import { sectionsOf } from "./account-service";
+import { guardAgencyCall } from "./agency-guard";
+import { OWNER_KEY_HEADER, OWNER_ROLE_HEADER, ownerHeaders } from "./owner-key";
 import { unitAt, unitHeaders } from "./units";
 import { answered } from "./unit-answer";
 
@@ -56,11 +58,45 @@ async function ownerOf(event: H3Event): Promise<Record<string, string>> {
   return headers;
 }
 
+// What a call made for a person carries for the guard: its method, its path and the body a change names a unit in.
+async function guardedOf(request: Request): Promise<{ method: string; path: string; body: Record<string, unknown> | null }> {
+  const body = request.method === "GET" || request.method === "HEAD" ? null : await request.clone().json().catch(() => null);
+
+  return { method: request.method, path: new URL(request.url).pathname, body: body !== null && typeof body === "object" ? (body as Record<string, unknown>) : null };
+}
+
+// Whether the row an agent management route names is an organisation unit's, read as the deployment's own; a row the
+// agency does not answer is none.
+async function rowIsUnits(root: string, name: string): Promise<boolean> {
+  const unit = unitAt("AGENCY");
+
+  if (unit === null) return false;
+
+  const answer = await fetch(`${unit.address}${root}/${encodeURIComponent(name)}`, { headers: { ...unitHeaders(unit), accept: "application/json" } }).catch(() => null);
+  const row: unknown = answer?.ok === true ? await answer.json().catch(() => null) : null;
+  const held = row !== null && typeof row === "object" ? (row as Record<string, unknown>) : {};
+
+  return typeof held.ownerUnit === "number" || typeof held.unit === "number";
+}
+
 function carryingOwnerOf(event: H3Event): AgencyFetch {
   return async (request) => {
+    const owner = await ownerOf(event);
+    const key = owner[OWNER_KEY_HEADER] ?? null;
+    const role = owner[OWNER_ROLE_HEADER] ?? null;
+    // Who may reach which part of agent management is the console's to judge, before the call goes out.
+    const refused = await guardAgencyCall(await guardedOf(request), { key, role }, {
+      sections: async () => await sectionsOf(key ?? "", { key: key ?? "", role: "member" }),
+      rowIsUnits
+    });
+
+    if (refused !== null) {
+      return new Response(JSON.stringify({ code: refused.code, error: refused.error }), { status: refused.status, headers: { "content-type": "application/json" } });
+    }
+
     const headers = new Headers(request.headers);
 
-    for (const [name, value] of Object.entries(await ownerOf(event))) headers.set(name, value);
+    for (const [name, value] of Object.entries(owner)) headers.set(name, value);
 
     return await fetch(new Request(request, { headers }));
   };

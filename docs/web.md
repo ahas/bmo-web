@@ -352,6 +352,18 @@ The owner alone sees it. Without logging in, no screen and no API open. The agen
 conversation and the credentials handed to the seeker as they are, so the log stands behind
 this rule alone and goes nowhere else.
 
+- **Who may reach agent management is the console's to judge, before a call goes out.** The console is the one way
+  in for a person, and the agency answers whoever its token lets in, so every call the console makes on the agency
+  for a signed-in person is judged here first, on the sections the account service grants that person
+  (`docs/accounts.md`, 「Console sections」): each part of agent management — the supervisors, the roles and a
+  role's agents, the repositories, the registered models, the model files — stands under its section; a change
+  needs its own section's write; a read needs the read of a section it stands under, the agent list any agent
+  section and the models and the model files their own alone. The platform administrator and a call carrying
+  nobody are not judged. A change of a row an organisation unit owns, or an add naming a unit, asks no section,
+  heading the unit being the whole of who may. A refusal is the agency's own shape, 403 `forbidden`, and a
+  permission that cannot be read is no access, 503 `access-unchecked`, so the screen says either as it says the
+  agency's.
+
 - **GitHub's deliveries are the one call taken with no sign-in.** GitHub posts an organisation's webhook
   deliveries to `api/github/deliveries` under the console's base path, and nobody signs in to post them. The
   console takes that one path for `POST` alone, and a body of at most 1 MB, and hands it on unchanged to the

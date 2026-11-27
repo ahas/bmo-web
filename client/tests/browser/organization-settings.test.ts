@@ -4,6 +4,7 @@ import { chromium } from "playwright-core";
 import { contrast } from "./contrast";
 import { centre } from "./row-carry";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { platformTabs } from "./platform-tabs";
 import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page } from "playwright-core";
@@ -150,11 +151,7 @@ async function dialogSections(page: Page, home: string): Promise<string[]> {
 
 // The tabs of a screen as its tab row names them, the organisation screen's where no row is named.
 async function tabNames(page: Page, rowLabel = "organization.aria.tabs"): Promise<string[]> {
-  const row = page.locator(`[aria-label="${wording(rowLabel)}"]`);
-
-  await row.waitFor({ timeout: 20_000 });
-
-  return (await row.getByRole("tab").allInnerTexts()).map((one) => one.trim());
+  return await platformTabs(page, rowLabel);
 }
 
 // Nothing on the page runs past the screen's edge sideways.
@@ -511,14 +508,14 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           // A head of a company writes the org memory of the units they head, sets their agents and manages that company's
           // supply, so the agents, org memory, supply and plans tabs stand for them too (docs/web.md, 「System and organisation」).
           expect({ pass, tabs: await tabNames(page) }).toEqual({ pass, tabs: ["roster.label.tab", "catalogue.label.tab", "settings.label.invites", "org_agents.label.tab", "apps.label.tab", "org_storage.label.tab", "org_mail.label.tab", "settings.label.secrets", "org_memory.label.tab", "settings.label.permissions", "supply.label.tab", "security.label.security_tab"].map((key) => wording(key)) });
-          expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
+          expect(await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"][aria-selected="true"]`).allInnerTexts()).toEqual([wording("catalogue.label.tab")]);
 
           // The row's underline stands under the chosen tab, though a tab came in before it once the head was known.
-          const chosen = (await page.locator('[role="tab"][aria-selected="true"]').boundingBox())!;
+          const chosen = (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"][aria-selected="true"]`).boundingBox())!;
 
           await page.waitForFunction(
-            (left) => Math.abs((document.querySelector('[data-slot="indicator"]')?.getBoundingClientRect().left ?? -1) - left) <= 1,
-            chosen.x,
+            ([row, left]) => Math.abs((document.querySelector(`[aria-label="${row}"] [data-slot="indicator"]`)?.getBoundingClientRect().left ?? -1) - left) <= 1,
+            [wording("organization.aria.tabs"), chosen.x] as const,
             { timeout: 10_000 }
           );
           expect({ pass, invites: await column(page).getByText(wording("invites.label.open"), { exact: true }).count() }).toEqual({ pass, invites: 0 });
@@ -529,7 +526,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         await standing(page);
         await page.locator("[data-roster-search]").waitFor({ timeout: 20_000 });
         expect(await page.locator("[data-organization-waiting]").count()).toBe(0);
-        expect(await page.locator('[role="tab"][aria-selected="true"]').allInnerTexts()).toEqual([wording("roster.label.tab")]);
+        expect(await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"][aria-selected="true"]`).allInnerTexts()).toEqual([wording("roster.label.tab")]);
       } finally {
         await context.close();
         await administer(`/api/organization/units/${company}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
@@ -764,9 +761,12 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await standing(page);
           // The row holds the tabs every member opens until the org memory read says which units the head writes, and
           // the org memory tab comes in then (docs/web.md, 「System and organisation」), so the row is read once it stands.
-          await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("org_memory.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
+          // The org memory stands among the values, under the current-values group, read across the groups and the page put back as it stood.
+          const deadline = Date.now() + 20_000;
+
+          while (!(await platformTabs(page)).includes(wording("org_memory.label.tab")) && Date.now() < deadline) await page.waitForTimeout(500);
           // A head of a unit holds its supply too, so the supply tab comes in once the supply reach has answered.
-          await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab", { name: wording("supply.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
+          while (!(await platformTabs(page)).includes(wording("supply.label.tab")) && Date.now() < deadline + 20_000) await page.waitForTimeout(500);
           expect(await tabNames(page)).toEqual([wording("settings.label.invites"), wording("org_agents.label.tab"), wording("apps.label.tab"), wording("org_storage.label.tab"), wording("org_mail.label.tab"), wording("settings.label.secrets"), wording("org_memory.label.tab"), wording("settings.label.permissions"), wording("supply.label.tab"), wording("security.label.security_tab")]);
 
           // A head asks for a link into their unit from the tab row's add and its dialog, and the service

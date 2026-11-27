@@ -2004,8 +2004,13 @@ permissions:
     write_of: "Write {name}"
 organization:
   aria:
+    groups: Setting groups
     tabs: Platform tabs
   label:
+    group_organization: Organization
+    group_status: Current
+    group_settings: Settings
+    group_access: Access
     chart: Org chart
     none: No organizations
     list: Organizations
@@ -4994,7 +4999,7 @@ security:
     mail_off: "Not set up"
     test_mail: "Send a test mail"
     test_to: "To address"
-    mail_tab: "Mail"
+    mail_tab: System mail
     security_tab: "Security"
     require_factor: "Require two-step verification"
     below: "Units below"

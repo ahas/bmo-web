@@ -43,8 +43,24 @@
 
           <section v-else class="flex min-h-0 min-w-0 flex-1 flex-col" :aria-label="chosenName" :data-organization-chosen="link !== null ? undefined : chosen?.id" :data-organization-node="chosenNode ?? undefined">
             <!-- On a phone the tree's button stands at the row's start, giving way to the tabs. -->
-            <div ref="tabRow" :class="['flex h-12 shrink-0 items-center gap-2 ps-2 pe-4 sm:ps-4', TAB_ROW_LINE, OPENER_GIVES_WAY]">
+            <div ref="tabRow" :class="['flex min-h-12 shrink-0 flex-wrap items-center gap-x-2 ps-2 pe-4 sm:h-12 sm:flex-nowrap sm:ps-4', TAB_ROW_LINE, OPENER_GIVES_WAY]">
               <component :is="opener" />
+              <!-- The groups the node holds a tab of, the open tab's chosen, at the row's start, or on a phone on a
+                   line of their own above it; one choice opens its group's first tab (docs/web.md, 「System and
+                   organisation」). A node of one group stands none. -->
+              <UTabs
+                v-if="groupItems.length > 1"
+                :model-value="groupChosen"
+                :items="groupItems"
+                :content="false"
+                color="neutral"
+                variant="pill"
+                size="xs"
+                class="order-first w-full shrink-0 overflow-x-auto pt-2 sm:order-none sm:w-auto sm:pt-0"
+                :aria-label="$t('organization.aria.groups')"
+                data-organization-groups
+                @update:model-value="(value: string | number) => setGroup(String(value))"
+              />
               <UTabs
                 :key="rowKey"
                 :model-value="tabChosen"
@@ -53,7 +69,7 @@
                 color="neutral"
                 variant="link"
                 size="sm"
-                class="min-w-0 flex-1 self-stretch"
+                class="h-12 min-w-0 flex-1 self-stretch sm:h-auto"
                 :ui="TAB_ROW_UI"
                 :aria-label="$t('organization.aria.tabs')"
                 @update:model-value="(value: string | number) => setTab(String(value))"
@@ -184,6 +200,7 @@ import {
   organizationMovedAway,
   organizationNodeAddress,
   organizationNodes,
+  ORGANIZATION_GROUPS,
   organizationRowTabs,
   platformOnlyTab,
   organizationTabOf,
@@ -199,7 +216,7 @@ import { revealOpenTab } from "~/domain/tab-row";
 import { AGENT_SECTIONS, mayRead, mayWrite } from "#shared/sections";
 
 import type { AgentTab, SettingsEntry, SettingsHit } from "~/domain/agent-settings";
-import type { LinkNode, TreeDrop } from "~/domain/organization";
+import type { LinkNode, OrganizationGroup, TreeDrop } from "~/domain/organization";
 import type { TabCreate } from "~/domain/tab-create";
 import type { CatalogueView, ModelPage } from "#shared/agency";
 import type { AgentSection } from "#shared/sections";
@@ -316,7 +333,15 @@ const reader = useOrganizationReader(() => (link.value !== null ? null : (chosen
 const tabs = computed(() => organizationTabsFor(reader.value, link.value));
 const tab = computed(() => organizationTabOf(route.query.tab, reader.value, link.value));
 const tabChosen = computed(() => tab.value?.value ?? String(route.query.tab ?? ""));
-const tabItems = computed(() => organizationRowTabs(reader.value, route.query.tab, link.value).map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) })));
+const rowTabs = computed(() => organizationRowTabs(reader.value, route.query.tab, link.value));
+// The group the open tab stands in, the first the node holds where no tab is open yet.
+const groupChosen = computed<OrganizationGroup | undefined>(() => rowTabs.value.find((one) => one.value === tabChosen.value)?.group ?? rowTabs.value[0]?.group);
+const groupItems = computed(() =>
+  ORGANIZATION_GROUPS.filter((group) => rowTabs.value.some((one) => one.group === group.value)).map((group) => ({ value: group.value, label: t(group.label) }))
+);
+const tabItems = computed(() =>
+  rowTabs.value.filter((one) => one.group === groupChosen.value).map((one) => ({ value: one.value, icon: one.icon, label: t(one.label) }))
+);
 // The row is drawn again whenever the tabs it holds change, so its underline is measured afresh under the chosen tab
 // where a tab came in before it.
 const rowKey = computed(() => tabItems.value.map((one) => one.value).join(" "));
@@ -387,6 +412,13 @@ onMounted(() =>
 
 // The tab stands in the address, and moving to another is a step of the history that keeps the node chosen; the first
 // is the node's own address.
+// A group chosen opens the first of its tabs the node holds.
+function setGroup(next: string): void {
+  const first = rowTabs.value.find((one) => one.group === next);
+
+  if (first !== undefined) setTab(first.value);
+}
+
 function setTab(next: string): void {
   if (next === tabChosen.value) return;
 

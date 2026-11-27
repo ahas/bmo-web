@@ -66,9 +66,23 @@ export interface OrganizationReader {
   known: boolean;
 }
 
+/** The groups the tabs stand in (docs/web.md, 「System and organisation」): the organisation, the values kept, how a
+ * service runs, and who may do what. */
+export type OrganizationGroup = "organization" | "status" | "settings" | "access";
+
+/** The groups in the order their row stands, each with its name in the language pack. */
+export const ORGANIZATION_GROUPS: readonly { value: OrganizationGroup; label: string }[] = [
+  { value: "organization", label: "organization.label.group_organization" },
+  { value: "status", label: "organization.label.group_status" },
+  { value: "settings", label: "organization.label.group_settings" },
+  { value: "access", label: "organization.label.group_access" }
+];
+
 export interface OrganizationTab {
   // Its key in the address, `?tab=<value>`; the first tab is the screen's own address.
   value: string;
+  // The group it stands in.
+  group: OrganizationGroup;
   // Its name in the language pack.
   label: string;
   icon: string;
@@ -161,15 +175,15 @@ const PEOPLE_TAB = "people";
 const PERMISSIONS_TAB = "permissions";
 
 export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
-  { value: "organization", label: "organization.label.chart", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
-  { value: PEOPLE_TAB, label: "roster.label.tab", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
-  { value: "catalogue", label: "catalogue.label.tab", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
+  { value: "organization", label: "organization.label.chart", group: "organization", icon: "i-material-symbols-account-tree-outline", opens: administratorOpens, keys: [], wide: false, load: () => import("~/components/OrganizationUnits.vue") },
+  { value: PEOPLE_TAB, label: "roster.label.tab", group: "organization", icon: "i-material-symbols-group-outline", opens: rosterReaderOpens, keys: ["q", "kind", "role", "state", "user", PERSON_PANE_KEY], wide: true, load: () => import("~/components/OrganizationPeople.vue") },
+  { value: "catalogue", label: "catalogue.label.tab", group: "organization", icon: "i-material-symbols-category-outline", opens: rosterReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationCatalogue.vue") },
   // What it sets is a link made into a unit of the organisation chosen and the asks to share a machine into that
   // company, so it declares no view of a link of the chain and stands at an organisation node alone.
-  { value: "invites", label: "settings.label.invites", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
-  { value: "agents", label: "org_agents.label.tab", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
+  { value: "invites", label: "settings.label.invites", group: "organization", icon: "i-material-symbols-person-add-outline", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationInvites.vue") },
+  { value: "agents", label: "org_agents.label.tab", group: "settings", icon: "i-material-symbols-smart-toy-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationAgents.vue"), links: { platform: () => import("~/components/OrganizationPlatformAgents.vue"), me: () => import("~/components/OrganizationPersonAgents.vue") } },
   {
-    value: "supervisors",
+    value: "supervisors", group: "status",
     label: agentWord("supervisors"),
     icon: agentIcon("supervisors"),
     opens: agentRowsOpens("supervisors"),
@@ -179,9 +193,9 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
     links: { platform: () => import("~/components/AgentsSupervisors.vue"), me: () => import("~/components/AgentsSupervisors.vue") },
     opensLink: agentRowsLinkOpens("supervisors")
   },
-  { value: "roles", label: agentWord("roles"), icon: agentIcon("roles"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsRoles.vue"), links: { platform: () => import("~/components/AgentsRoles.vue") } },
+  { value: "roles", group: "status", label: agentWord("roles"), icon: agentIcon("roles"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsRoles.vue"), links: { platform: () => import("~/components/AgentsRoles.vue") } },
   {
-    value: "repositories",
+    value: "repositories", group: "status",
     label: agentWord("repositories"),
     icon: agentIcon("repositories"),
     opens: agentRowsOpens("repositories"),
@@ -192,7 +206,7 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
     opensLink: agentRowsLinkOpens("repositories")
   },
   {
-    value: "models",
+    value: "models", group: "status",
     label: agentWord("models"),
     icon: agentIcon("models"),
     opens: agentRowsOpens("models"),
@@ -202,26 +216,26 @@ export const ORGANIZATION_TABS: readonly OrganizationTab[] = [
     links: { platform: () => import("~/components/AgentsRegistry.vue"), me: () => import("~/components/AgentsRegistry.vue") },
     opensLink: agentRowsLinkOpens("models")
   },
-  { value: "model-files", label: agentWord("model-files"), icon: agentIcon("model-files"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsCatalogue.vue"), links: { platform: () => import("~/components/AgentsCatalogue.vue") } },
-  { value: "apps", label: "apps.label.tab", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
-  { value: "storage", label: "org_storage.label.tab", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
-  { value: "mail-servers", label: "org_mail.label.tab", icon: "i-material-symbols-mail-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMailServers.vue"), links: { platform: () => import("~/components/OrganizationPlatformMailServers.vue") } },
+  { value: "model-files", group: "status", label: agentWord("model-files"), icon: agentIcon("model-files"), opens: platformNodeOnlyOpens, keys: [], wide: true, load: () => import("~/components/AgentsCatalogue.vue"), links: { platform: () => import("~/components/AgentsCatalogue.vue") } },
+  { value: "apps", label: "apps.label.tab", group: "status", icon: "i-material-symbols-apps", opens: everyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationApps.vue"), links: { platform: () => import("~/components/OrganizationPlatformApps.vue"), me: () => import("~/components/OrganizationPersonApps.vue") } },
+  { value: "storage", label: "org_storage.label.tab", group: "settings", icon: "i-material-symbols-hard-drive-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationArtifactStorage.vue") },
+  { value: "mail-servers", label: "org_mail.label.tab", group: "settings", icon: "i-material-symbols-mail-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMailServers.vue"), links: { platform: () => import("~/components/OrganizationPlatformMailServers.vue") } },
   // The platform's system mail, beside the servers it sends through. Its own content and its platform view are the
   // one component, since the tab stands nowhere else.
-  { value: "mail", label: "security.label.mail_tab", icon: "i-material-symbols-outgoing-mail", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSystemMail.vue"), links: { platform: () => import("~/components/OrganizationSystemMail.vue") } },
-  { value: "secrets", label: "settings.label.secrets", icon: "i-material-symbols-key-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecrets.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecrets.vue"), me: () => import("~/components/OrganizationPersonSecrets.vue") } },
+  { value: "mail", label: "security.label.mail_tab", group: "settings", icon: "i-material-symbols-outgoing-mail", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSystemMail.vue"), links: { platform: () => import("~/components/OrganizationSystemMail.vue") } },
+  { value: "secrets", label: "settings.label.secrets", group: "status", icon: "i-material-symbols-key-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecrets.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecrets.vue"), me: () => import("~/components/OrganizationPersonSecrets.vue") } },
   // The secret kinds every person's secret form asks in, beside the secrets themselves.
-  { value: "secret-kinds", label: "secrets.label.kinds", icon: "i-material-symbols-key-vertical-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue"), links: { platform: () => import("~/components/OrganizationSecretKinds.vue") } },
-  { value: "memory", label: "org_memory.label.tab", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue"), links: { platform: () => import("~/components/OrganizationPlatformMemory.vue") } },
-  { value: PERMISSIONS_TAB, label: "settings.label.permissions", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
+  { value: "secret-kinds", label: "secrets.label.kinds", group: "settings", icon: "i-material-symbols-key-vertical-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecretKinds.vue"), links: { platform: () => import("~/components/OrganizationSecretKinds.vue") } },
+  { value: "memory", label: "org_memory.label.tab", group: "status", icon: "i-material-symbols-psychology-outline", opens: memoryReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationMemory.vue"), links: { platform: () => import("~/components/OrganizationPlatformMemory.vue") } },
+  { value: PERMISSIONS_TAB, label: "settings.label.permissions", group: "access", icon: "i-material-symbols-admin-panel-settings-outline", opens: headReaderOpens, keys: ["user"], wide: false, load: () => import("~/components/OrganizationPermissions.vue") },
   // The supply tab stands for a reader who holds any part of the organisation's supply — its policy and credits, or
   // its plan alone — the administrator everywhere (docs/web.md, 「System and organisation」, the supply tab).
-  { value: "supply", label: "supply.label.tab", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } },
+  { value: "supply", label: "supply.label.tab", group: "status", icon: "i-material-symbols-bolt-outline", opens: supplyReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSupplyTab.vue"), links: { platform: () => import("~/components/OrganizationPlatformSupply.vue"), me: () => import("~/components/OrganizationPersonSupply.vue") } },
   // The providers every run goes out on, beside the supply they carry.
-  { value: "providers", label: "settings.label.providers", icon: "i-material-symbols-hub-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue"), links: { platform: () => import("~/components/OrganizationProviders.vue") } },
+  { value: "providers", label: "settings.label.providers", group: "settings", icon: "i-material-symbols-hub-outline", opens: platformNodeOnlyOpens, keys: [], wide: false, load: () => import("~/components/OrganizationProviders.vue"), links: { platform: () => import("~/components/OrganizationProviders.vue") } },
   // Whether the people under a node must hold a second factor: its heads and the administrator, and the platform's own
   // link for the administrator (docs/web.md, 「System and organisation」, the security tab).
-  { value: "security", label: "security.label.security_tab", icon: "i-material-symbols-shield-lock-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecurity.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecurity.vue") } }
+  { value: "security", label: "security.label.security_tab", group: "access", icon: "i-material-symbols-shield-lock-outline", opens: headReaderOpens, keys: [], wide: false, load: () => import("~/components/OrganizationSecurity.vue"), links: { platform: () => import("~/components/OrganizationPlatformSecurity.vue") } }
 ];
 
 // Where a section that once stood here as a tab stands now, by the key its tab had, so a link made before it moved

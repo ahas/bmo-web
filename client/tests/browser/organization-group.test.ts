@@ -173,12 +173,18 @@ describe.skipIf(!origin || !touchReady())("the organisation entry and the agents
         await entry.click();
         await page.waitForURL((url) => url.pathname.endsWith("/organization"), { timeout: 15_000 });
 
-        // The screen keeps its own tab row, every tab of it the administrator's, and the entry is lit on any of them.
+        // The screen keeps its own tab row, every tab of it the administrator's, and the entry is lit on any of them. The
+        // row opens on the organisation's own group; the agent settings tab stands under the settings group.
         const row = page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`);
         const agents = row.getByRole("tab", { name: wording("org_agents.label.tab"), exact: true });
 
-        await agents.waitFor({ timeout: 20_000 });
+        await row.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).waitFor({ timeout: 20_000 });
         expect(await row.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).count()).toBe(1);
+        await page
+          .locator(`[aria-label="${wording("organization.aria.groups")}"]`)
+          .getByRole("tab", { name: wording("organization.label.group_settings"), exact: true })
+          .click();
+        await agents.waitFor({ timeout: 20_000 });
 
         const lit = await organizationSection(page, width);
 

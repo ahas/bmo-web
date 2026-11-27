@@ -2027,8 +2027,13 @@ permissions:
     write_of: "{name} 쓰기"
 organization:
   aria:
+    groups: 설정 묶음
     tabs: 플랫폼 탭
   label:
+    group_organization: 조직
+    group_status: 현황
+    group_settings: 설정
+    group_access: 권한
     chart: 조직도
     none: 조직 없음
     list: 조직 목록
@@ -5016,7 +5021,7 @@ security:
     mail_off: "설정 안 됨"
     test_mail: "테스트 메일 보내기"
     test_to: "받는 주소"
-    mail_tab: "메일"
+    mail_tab: 시스템 메일
     security_tab: "보안"
     require_factor: "2단계 인증 요구"
     below: "아래 조직"

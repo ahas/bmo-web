@@ -2008,8 +2008,13 @@ permissions:
     write_of: "写入{name}"
 organization:
   aria:
+    groups: 设置分组
     tabs: 平台标签页
   label:
+    group_organization: 组织
+    group_status: 现状
+    group_settings: 设置
+    group_access: 权限
     chart: 组织架构图
     none: 无组织
     list: 组织列表
@@ -5024,7 +5029,7 @@ security:
     mail_off: "未设置"
     test_mail: "发送测试邮件"
     test_to: "收件地址"
-    mail_tab: "邮件"
+    mail_tab: 系统邮件
     security_tab: "安全"
     require_factor: "要求两步验证"
     below: "下级组织"

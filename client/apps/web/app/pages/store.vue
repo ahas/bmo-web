@@ -78,9 +78,15 @@
                   <UIcon :name="KIND_ICONS[app.kind]" class="size-5 shrink-0 text-muted" :aria-label="$t(KIND_WORDS[app.kind])" role="img" :data-catalogue-app-icon="app.kind" />
                 </UTooltip>
                 <span class="flex min-w-0 flex-1 flex-col">
-                  <span class="truncate text-sm text-highlighted" data-catalogue-app-title>
-                    <span v-if="shownText(app, locale).own">{{ shownText(app, locale).title }}</span>
-                    <TranslatedInline v-else :text="app.title" :follow="auto" />
+                  <!-- The app's state stands right after its name, where the eye reading the name meets it. -->
+                  <span class="flex min-w-0 items-center gap-1.5">
+                    <span class="truncate text-sm text-highlighted" data-catalogue-app-title>
+                      <span v-if="shownText(app, locale).own">{{ shownText(app, locale).title }}</span>
+                      <TranslatedInline v-else :text="app.title" :follow="auto" />
+                    </span>
+                    <UTooltip v-for="mark in stateMarks(t, app, locale)" :key="mark.key" :text="mark.label">
+                      <UIcon :name="mark.icon" :class="['size-4 shrink-0', mark.tone]" :aria-label="mark.label" role="img" :data-catalogue-mark="mark.key" />
+                    </UTooltip>
                   </span>
                   <span class="truncate text-sm text-muted" data-catalogue-app-line>
                     <span :data-catalogue-app-kind="app.kind">{{ appLine(t, catalogue, app) }}</span>
@@ -90,11 +96,6 @@
                       <TranslatedInline v-else :text="app.description" :follow="auto" />
                     </template>
                   </span>
-                </span>
-                <span class="flex shrink-0 items-center gap-1">
-                  <UTooltip v-for="mark in stateMarks(t, app, locale)" :key="mark.key" :text="mark.label">
-                    <UIcon :name="mark.icon" :class="['size-5', mark.tone]" :aria-label="mark.label" role="img" :data-catalogue-mark="mark.key" />
-                  </UTooltip>
                 </span>
                 <span class="w-16 shrink-0 text-end text-sm tabular-nums text-muted" :aria-label="$t('app_catalogue.label.installs')" data-catalogue-app-installs>{{ app.installs.toLocaleString() }}</span>
                 <UIcon name="i-material-symbols-chevron-right" class="size-5 shrink-0 text-muted" />

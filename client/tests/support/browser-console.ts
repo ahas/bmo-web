@@ -110,6 +110,7 @@ const ACCOUNTS: readonly [string, string][] = [
   ["org-group", "fixture-password-3903"],
   ["org-storage", "fixture-password-3921"],
   ["org-mail", "fixture-password-3931"],
+  ["org-groups", "fixture-password-3905"],
   ["copy-marks", "fixture-password-3291"],
   ["machine-unbind", "fixture-password-3583"],
   ["permanent-delete", "fixture-password-3611"],

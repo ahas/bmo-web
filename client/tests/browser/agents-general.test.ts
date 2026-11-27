@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium, devices } from "playwright-core";
 
+import { platformTabs } from "./platform-tabs";
 import { wording } from "../../apps/web/shared/wording";
 import { carryByMouse, centre, rowMarks } from "./row-carry";
 import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
@@ -70,7 +71,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
         await page.locator("#setting-supervisor-agent-a").waitFor({ timeout: 15_000 });
         expect(await page.locator("#setting-supervisor-agent-c").count()).toBe(1);
         // The five agent tabs stand in the organisation screen's own row, in their order, beside the screen's others.
-        const shown = (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim());
+        const shown = await platformTabs(page);
         const agentTabs = ["agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files"].map((key) => wording(key));
 
         expect(shown.filter((one) => agentTabs.includes(one))).toEqual(agentTabs);

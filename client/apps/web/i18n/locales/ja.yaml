@@ -2008,8 +2008,13 @@ permissions:
     write_of: "{name}の編集"
 organization:
   aria:
+    groups: 設定のグループ
     tabs: プラットフォームタブ
   label:
+    group_organization: 組織
+    group_status: 現況
+    group_settings: 設定
+    group_access: 権限
     chart: 組織図
     none: 組織なし
     list: 組織一覧
@@ -5024,7 +5029,7 @@ security:
     mail_off: "未設定"
     test_mail: "テストメールを送る"
     test_to: "宛先アドレス"
-    mail_tab: "メール"
+    mail_tab: システムメール
     security_tab: "セキュリティ"
     require_factor: "2段階認証を必須にする"
     below: "下位組織"

@@ -8460,6 +8460,14 @@ settings on the research screen (「Research screen」).
   them chooses an organisation or a unit of its own.
   The console search finds each tab as it finds every screen's; the sidebar lists the screen as one entry, 시스템 및 조직,
   among the 시스템 서비스, and the tabs stand in the screen's own row alone (「Sidebar」).
+- **The tabs stand in four groups, and the row shows one group's tabs.** A value kept and the setting of how a
+  service runs never stand side by side under like names: 조직 holds 조직도, 사용자, 직책·종류 and 초대; 현황 holds
+  the values themselves — 감독관, 역할, 저장소, 등록 모델, 모델 파일, 앱·도구·스킬, 비밀 보관함, 조직 기억 and 공급; 설정
+  holds how a service runs — 에이전트 설정, 공급자, 비밀 종류, 메일 서버, 시스템 메일 and 아티팩트 저장; and 권한 holds 권한
+  and 보안. At the tab row's start stand the groups the node holds a tab of, on a phone on a line of their own above it,
+  the open tab's group chosen;
+  choosing a group opens its first tab the reader opens there. A node holding the tabs of one group alone stands no
+  group row.
 - **With a link node chosen, the row holds only the tabs declaring a view of that link.** A link of the chain offers
   what its tabs can set there and nothing else: each tab declares the links it holds a view of — the platform's, the
   reader's own — and a tab declaring none for a link stands nowhere at it, so no node is ever offered a tab whose only
@@ -9995,10 +10003,10 @@ so a reader sees and does what their own account may alone, and the agency's wor
   version asks for, `{app} 업데이트에 확인이 필요합니다.`; and a version waiting for their approval as a head,
   `{app} 앱이 승인을 기다립니다.`. 모두 확인 beside the heading keeps that they looked, and the shared ones go.
 - **One row per item,** in the order of their titles, a press opening its details: its kind's icon, named by its
-  tooltip; its title, and under it its kind's word, who made it and what it does; then its states as icons, each named by
-  its tooltip — 번역기로 번역됨 where the text the reader reads was written by a translation, 공유 중단됨, 승인 대기, 업데이트
-  있음, and 설치됨 or 조직에서 설치 where the reader holds a copy — and how many installed it, in a column of its own at the
-  row's end. None says 공유된 앱 없음. The rows keep their place with a
+  tooltip; its title, its states as small icons right after it, each named by its tooltip — 번역기로 번역됨 where the text
+  the reader reads was written by a translation, 공유 중단됨, 승인 대기, 업데이트 있음, and 설치됨 or 조직에서 설치 where the
+  reader holds a copy — and under it its kind's word, who made it and what it does; and how many installed it, in a column
+  of its own at the row's end. None says 공유된 앱 없음. The rows keep their place with a
   skeleton while they are first read, and a read that failed says its reason with 새로고침.
 - **An item's text is read in the reader's language.** Its title and description stand in the reader's locale where the
   item carries that locale's text (its `titles` and `descriptions`), marked 번역기로 번역됨 where a translation wrote it

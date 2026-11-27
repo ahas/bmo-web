@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { platformTabs } from "./platform-tabs";
 import { wording } from "../../apps/web/shared/wording";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
 
@@ -138,7 +139,7 @@ async function moved(page: Page, address: string): Promise<void> {
 const address = (node: Record<string, string | number>, tab: string): string => `/organization?${new URLSearchParams(Object.fromEntries([["tab", tab], ...Object.entries(node).map(([key, value]) => [key, String(value)])])).toString()}`;
 
 async function tabRow(page: Page): Promise<string[]> {
-  return (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim());
+  return await platformTabs(page);
 }
 
 async function supervisorsText(page: Page): Promise<string> {

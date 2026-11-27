@@ -3,6 +3,7 @@ import { chromium } from "playwright-core";
 
 import { carryByMouse, centre, rowMarks } from "./row-carry";
 import { BROWSER_HOOK_MS, touchReady } from "./touch";
+import { platformTabs } from "./platform-tabs";
 import { wording } from "../../apps/web/shared/wording";
 
 import type { Browser, BrowserContext, Locator, Page, Route } from "playwright-core";
@@ -224,11 +225,15 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
         await page.getByRole("tab", { name: wording("roster.label.tab"), exact: true }).click();
         await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
         expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
+        // The supply tab stands among the values, under the current-values group.
+        await page.locator(`[aria-label="${wording("organization.aria.groups")}"]`).getByRole("tab", { name: wording("organization.label.group_status"), exact: true }).click();
         await page.getByRole("tab", { name: wording("supply.label.tab"), exact: true }).click();
         await page.waitForURL((url) => url.searchParams.get("tab") === "supply", { timeout: 15_000 });
         expect([company(page), unit(page)]).toEqual([String(beta), String(team)]);
 
-        // Back walks the tabs and then each choice back, one step each.
+        // Back walks the tabs, the group's first tab its press opened among them, and then each choice back, one step each.
+        await page.goBack();
+        await page.waitForURL((url) => url.searchParams.get("tab") === "supervisors", { timeout: 15_000 });
         await page.goBack();
         await page.waitForURL((url) => url.searchParams.get("tab") === "people", { timeout: 15_000 });
         await page.goBack();
@@ -361,7 +366,7 @@ describe.skipIf(!origin || !touchReady())("the organisation list", () => {
           await fresh.getByRole("dialog").waitFor({ state: "detached", timeout: 10_000 });
         }
         await fresh.locator("[data-plans-applied-row]").waitFor({ timeout: 20_000 });
-        expect((await fresh.locator(`[aria-label="${wording("organization.aria.tabs")}"]`).getByRole("tab").allInnerTexts()).map((one) => one.trim())).toEqual(["settings.label.invites", "apps.label.tab", "supply.label.tab"].map((key) => wording(key)));
+        expect(await platformTabs(fresh)).toEqual(["settings.label.invites", "apps.label.tab", "supply.label.tab"].map((key) => wording(key)));
       } finally {
         await context.close();
         await administer(`/api/organization/units/${team}/heads/${encodeURIComponent(member)}`, "DELETE").catch(() => null);
@@ -598,7 +603,7 @@ describe.skipIf(!origin || !touchReady())("the supply tab", () => {
         const held = await carried(dialog, "supply.label.source_personal").boundingBox();
         const named = await dialog.locator('[data-supply-policy-row="personal"] > span.grow').boundingBox();
 
-        expect(Math.round(held!.width)).toBe(36);
+        expect(Math.round(held!.width)).toBe(24);
         expect(held!.x).toBeLessThan(named!.x);
 
         await dialog.locator('[data-supply-policy-row="personal"]').scrollIntoViewIfNeeded();

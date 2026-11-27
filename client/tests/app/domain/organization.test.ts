@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
 import {
+  ORGANIZATION_GROUPS,
   ORGANIZATION_PATH,
   ORGANIZATION_TABS,
   PERSON_NODE,
@@ -523,4 +524,16 @@ describe("the link nodes", () => {
     expect(adminLanding({ tab: "credits" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "supply" } });
     expect(adminLanding({ tab: "stray", company: "5" })).toEqual({ path: ORGANIZATION_PATH, query: { company: PLATFORM_NODE, tab: "providers" } });
   });
+});
+
+// The tabs stand in four groups (docs/web.md, 「System and organisation」): a value kept and the setting of how a
+// service runs never stand in one group, and every tab stands in one.
+test("each tab stands in one of the four groups, values apart from the settings of how a service runs", () => {
+  const groupOf = (value: string) => ORGANIZATION_TABS.find((tab) => tab.value === value)?.group;
+
+  expect(ORGANIZATION_TABS.every((tab) => ORGANIZATION_GROUPS.some((group) => group.value === tab.group))).toBe(true);
+  expect([groupOf("supply"), groupOf("providers")]).toEqual(["status", "settings"]);
+  expect([groupOf("secrets"), groupOf("secret-kinds")]).toEqual(["status", "settings"]);
+  expect([groupOf("supervisors"), groupOf("agents")]).toEqual(["status", "settings"]);
+  expect([groupOf("permissions"), groupOf("security")]).toEqual(["access", "access"]);
 });

@@ -30,13 +30,14 @@ const BROUGHT = [...HARNESS_SCREEN_UNITS];
 const STORE = wording("screens.label.catalogue");
 
 // The sidebar as each reader reads it, section by section: the heading it shows and its screens' names.
+// The sidebar orders a section's screens by their names in the reader's language, so the platform screen stands after the cache siren.
 const EXPECTED = {
   [ADMINISTRATOR.name]: [
-    [ADMINISTRATION, [wording("screens.label.db"), harnessNamedTitle("administrator"), ...["research", "monitor", "documents", "catalogue", "organization", "siren"].map((key) => wording(`screens.label.${key}`))]],
+    [ADMINISTRATION, [wording("screens.label.db"), harnessNamedTitle("administrator"), ...["research", "monitor", "documents", "catalogue", "siren", "organization"].map((key) => wording(`screens.label.${key}`))]],
     [APPLICATION, BROUGHT]
   ],
   [SECTION_READER.name]: [
-    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "organization", "siren"].map((key) => wording(`screens.label.${key}`))],
+    [ADMINISTRATION, ["db", "research", "monitor", "documents", "catalogue", "siren", "organization"].map((key) => wording(`screens.label.${key}`))],
     [APPLICATION, BROUGHT]
   ],
   [ROOM_READER.name]: [

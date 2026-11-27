@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { chromium } from "playwright-core";
 
+import { platformTabs } from "./platform-tabs";
 import { wording } from "../../apps/web/shared/wording";
 import { HARNESS_SCREEN_UNITS } from "../support/harness-screens";
 import { BROWSER_HOOK_MS, fingerOn, touchReady } from "./touch";
@@ -285,7 +286,7 @@ describe.skipIf(!origin || !touchReady())("the organisation screen's one apps ta
 
         // The platform holds only the tabs declaring a view of it, so the people tab stands nowhere there and no line
         // saying a tab has nothing to set is drawn for it.
-        const platformRow = (await page.locator(`[aria-label="${wording("organization.aria.tabs")}"] [role="tab"]`).allInnerTexts()).map((one) => one.trim());
+        const platformRow = await platformTabs(page);
 
         expect(platformRow).not.toContain(wording("roster.label.tab"));
         expect(platformRow).toEqual(["org_agents.label.tab", "agents.label.tab_supervisors", "agents.label.tab_roles", "agents.label.tab_repositories", "agents.label.tab_models", "agents.label.tab_model_files", "apps.label.tab", "org_mail.label.tab", "security.label.mail_tab", "settings.label.secrets", "secrets.label.kinds", "org_memory.label.tab", "supply.label.tab", "settings.label.providers", "security.label.security_tab"].map((key) => wording(key)));

@@ -9,6 +9,7 @@
     v-else
     ref="handle"
     icon="i-material-symbols-drag-indicator"
+    size="xs"
     :label="$t('common.aria.reorder_named', { name: props.name })"
     :kbds="CARRY_KEYS"
     :class="`${BOX} cursor-grab touch-none focus-inset`"
@@ -35,8 +36,9 @@ const handle = useTemplateRef<{ element: () => HTMLElement | null }>("handle");
 
 // The keys that carry the row, marked in the tooltip after the row's name.
 const CARRY_KEYS = ["↑", "↓"];
-// The handle's own box, which the room it leaves behind takes too, so one measure holds either way.
-const BOX = "size-9 shrink-0";
+// The handle's own box, which the room it leaves behind takes too, so one measure holds either way: compact, the
+// least a finger presses (docs/web.md, 「Changing an order」).
+const BOX = "size-6 shrink-0";
 
 // Where the row stands is read again as each press is caught: a row that stands no handle carries nothing.
 function carry(event: PointerEvent): void {

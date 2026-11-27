@@ -81,12 +81,14 @@ async function keptStages(context: BrowserContext, view: Record<string, unknown>
   return { saves };
 }
 
-// The first supervisor's settings dialog opened from its row's menu, and its draft block.
+// The first supervisor's settings dialog opened from its row's menu at its draft tab, and its draft block.
 async function openBlock(page: Page): Promise<Locator> {
   await page.goto(`${origin}/agents?tab=supervisors`, { waitUntil: "load" });
   await page.locator("[data-supervisors-table] tbody tr").first().waitFor({ timeout: 30_000 });
   await page.locator("[data-supervisors-table] tbody tr").first().getByRole("button").last().click();
   await page.getByRole("menuitem", { name: wording("agents.action.settings") }).click();
+  // The draft block stands in the dialog's own tab, shown once that tab is pressed.
+  await page.locator("[data-supervisor-tabs]").getByRole("tab", { name: wording("agents.title.draft") }).click();
 
   const block = page.locator("[data-supervisor-stages]");
 

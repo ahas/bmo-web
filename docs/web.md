@@ -2153,7 +2153,8 @@ Four groups.
   policy form, the platform's **Claude 계정**, a reader's **공급 로그인** and **공급 키**, a repository's **프리픽스
   문서**, a supervisor's **지시 단계**, and the queue lines of the TODO panel. What a row is stays at the row's end:
   its switch, its menu, its own controls. The reader's gateway keys are ordered within their provider alone, and a
-  key is carried no other provider's place.
+  key is carried no other provider's place. The handle stands compact, its 16px mark in a 24px box, the least a
+  finger presses (`bmo-ui`'s `docs/components.md`), so a row keeps the density it had before the lists shared it.
 - **The handle carries its row by either hand.** The pointer catches it and sets it down on another row's place.
   Once the handle holds the keyboard's focus, its arrow keys move the row one place up or down, and the row keeps
   the focus as it lands, so the keys go on answering from there. Its name says which row it carries, and its

@@ -385,7 +385,7 @@ describe.skipIf(!origin || !touchReady())("the platform's Claude accounts carrie
         const at = Math.round(boxes[0]!.x);
 
         expect(boxes.map((one) => Math.round(one.x))).toEqual([at, at, at]);
-        expect(boxes.map((one) => Math.round(one.width))).toEqual([36, 36, 36]);
+        expect(boxes.map((one) => Math.round(one.width))).toEqual([24, 24, 24]);
 
         await page.locator('[data-account="acct-c"]').scrollIntoViewIfNeeded();
 

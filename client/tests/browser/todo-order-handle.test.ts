@@ -189,7 +189,7 @@ describe.skipIf(!origin || !touchReady())("the TODO panel's queue lines carried 
 
         const boxes = await Promise.all([FIRST, SECOND].map(async (id) => (await handleOf(page, id).boundingBox())!));
 
-        expect(boxes.map((one) => Math.round(one.width))).toEqual([36, 36]);
+        expect(boxes.map((one) => Math.round(one.width))).toEqual([24, 24]);
         expect(boxes[0]!.x).toBe(boxes[1]!.x);
 
         // Down one place, and the focus lands with the line, so the next key answers from there. The whole queue

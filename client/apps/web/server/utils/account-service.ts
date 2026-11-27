@@ -1560,8 +1560,13 @@ export async function chainEntry(key: string, link: string, caller: ProfileCalle
 }
 
 /** A link's value written as the login `caller` names, null to follow above. */
-export async function setChainValue(key: string, link: string, value: unknown, caller: ProfileCaller, options: ServiceOptions = {}): Promise<ChainEntryView> {
-  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/value", { params: { path: { key, link }, header: { "Owner-Key": caller.key } }, body: { value } })));
+export async function setChainValue(key: string, link: string, value: unknown, caller: ProfileCaller, options: ServiceOptions & { judged?: boolean } = {}): Promise<ChainEntryView> {
+  // A `json` kind's value is written naming the unit that declared the kind (docs/accounts.md, 「Kinds」): one the
+  // console writes once that unit has judged it names it, as the chain's own listing of the kind says it.
+  const declarer = options.judged === true ? (await chainKinds(options)).find((kind) => kind.key === key)?.declaredBy : undefined;
+  const header = { "Owner-Key": caller.key, ...(declarer === undefined ? {} : { "Declared-By": declarer }) };
+
+  return answered(await sent(options, clientOf(options).PUT("/chain/kinds/{key}/links/{link}/value", { params: { path: { key, link }, header }, body: { value } })));
 }
 
 /** A link's delegation written as the login `caller` names. */

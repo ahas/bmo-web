@@ -250,7 +250,7 @@ export async function setOwnInstructions(signed: SignedIn, all: string | null, a
   const account = accountOf(signed);
   const judged = await agencyRoute<{ value: unknown }>("POST", `/own-instructions/${account}/judge`, { all, agents }, CALL);
 
-  await setChainValue(PERSONAL_TEXT_KIND, `person:${account}`, judged.value, { key: String(account), role: "member" });
+  await setChainValue(PERSONAL_TEXT_KIND, `person:${account}`, judged.value, { key: String(account), role: "member" }, { judged: true });
 
   return await ownInstructions(signed);
 }

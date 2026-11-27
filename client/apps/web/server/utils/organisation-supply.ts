@@ -270,7 +270,7 @@ export async function changeComposition(event: H3Event, unit: number, change: { 
     // agency asks again when it next reads the composition.
     const judged = await agencyRoute<{ value: unknown }>("POST", "/signup-composition/judge", { value }, { codes: CODES });
 
-    await setChainValue(COMPOSITION_KIND, `unit:${unit}`, judged.value, callerOf(signed));
+    await setChainValue(COMPOSITION_KIND, `unit:${unit}`, judged.value, callerOf(signed), { judged: true });
   }
 
   if (change.delegation !== undefined) await setChainDelegation(COMPOSITION_KIND, `unit:${unit}`, change.delegation, callerOf(signed));

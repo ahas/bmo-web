@@ -1,4 +1,4 @@
-//! The account service's OpenAPI 3.1 document (`docs/openapi-accounts.json`): every route the server exposes, in the
+//! The account service's OpenAPI 3.1 document (`docs/openapi.json`): every route the server exposes, in the
 //! common wire format. The bodies' schemas are generated from this crate's own types; the TypeScript package is
 //! generated from this document.
 
@@ -2486,7 +2486,7 @@ pub fn openapi() -> Value {
   })
 }
 
-/// The document as `docs/openapi-accounts.json` keeps it: pretty, ending in a line break, its object
+/// The document as `docs/openapi.json` keeps it: pretty, ending in a line break, its object
 /// members in name order. The order is written here rather than left to the JSON map, whose entries follow
 /// whatever order the building's features give it, so the kept document is one text however the crate is
 /// built.

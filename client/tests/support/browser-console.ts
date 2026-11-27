@@ -1198,8 +1198,8 @@ async function organisationSupplyAnswer(path: string, request: Request): Promise
 }
 
 // The sign-up composition as the agency's stand-in answers it: what stands read off the account service's chain as
-// the agency reads it, and a write judged as any composition of known roles and put on the chain in the caller's name,
-// naming the agency as the kind's declarer (the agency's `docs/role-agents.md`, 「The agents an account is given」).
+// the agency reads it, and a composition judged as any composition of known roles and answered for the console to put on
+// its own chain (the agency's `docs/role-agents.md`, 「The agents an account is given」).
 async function compositionAnswer(path: string, request: Request): Promise<Response | null> {
   const service = `http://127.0.0.1:${accountServicePort}`;
 
@@ -1218,17 +1218,12 @@ async function compositionAnswer(path: string, request: Request): Promise<Respon
     return Response.json({ subject: `unit:${unit}`, roles, own: null });
   }
 
-  const link = /^\/signup-composition\/([^/]+)$/.exec(path)?.[1];
+  if (path !== "/signup-composition/judge" || request.method !== "POST") return null;
 
-  if (link === undefined || request.method !== "PUT") return null;
-
+  // A composition is judged here and answered as it stands; the console writes it on its own chain.
   const body = (await request.json()) as { value: unknown };
 
-  return await fetch(`${service}/chain/kinds/signup.composition/links/${link}/value`, {
-    method: "PUT",
-    headers: { authorization: `Bearer ${TOKEN}`, "owner-key": request.headers.get("owner-key") ?? "", "declared-by": "agency", "content-type": "application/json" },
-    body: JSON.stringify(body)
-  });
+  return Response.json({ value: body.value ?? null });
 }
 
 // A person's own agents as the agency's stand-in answers them (the agency's `docs/api.md`, 「own-agents」): a worker
@@ -1348,7 +1343,8 @@ async function ownAgentsAnswer(path: string, request: Request): Promise<Response
   }
 
   if (kind === "instructions") {
-    if (request.method === "PUT") return Response.json({ code: "instructions-withheld", error: "withheld" }, { status: 403 });
+    // The judging the console asks before it writes the instructions on its chain.
+    if (request.method === "POST" && rest === "judge") return Response.json({ code: "instructions-withheld", error: "withheld" }, { status: 403 });
 
     return Response.json({
       allowed: { allowed: false, from: company === null ? null : `unit:${company}` },

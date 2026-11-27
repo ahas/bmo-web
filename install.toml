@@ -147,6 +147,7 @@ KEEPALIVE_CONSUMER=receiver
 BMO_WEB_SERVER_BIN={{prefix}}/bmo-web/deploy/bin/bmo-web-server
 BMO_WEB_SERVER_DIR={{prefix}}/bmo-web/deploy/server
 DEPLOY_ROOTS={{prefix}}/bmo-cli:{{prefix}}/bmo-pocket:{{prefix}}/bmo-testbed:{{prefix}}/bmo-web:{{prefix}}/bmo-job:{{prefix}}/bmo-brain:{{prefix}}/bmo-cache-warmer:{{prefix}}/bmo-agency:{{prefix}}/bmo-receiver:{{prefix}}/bmo-gate:{{prefix}}/bmo-explorer:{{prefix}}/bmo-telegram:{{prefix}}/bmo-discord:{{prefix}}/bmo-artifact:{{prefix}}/bmo-note:{{prefix}}/bmo-calendar:{{prefix}}/bmo-drive:{{prefix}}/bmo-mail:{{prefix}}/bmo-remote:{{prefix}}/bmo-review:{{prefix}}/bmo-research:{{prefix}}/bmo-node:{{prefix}}/bmo-arbiter:{{prefix}}/bmo-voice:{{prefix}}/bmo-eye:{{prefix}}/bmo-face:{{prefix}}/bmo-voc:{{prefix}}/bmo-cache-siren:{{prefix}}/bmo-theater:{{prefix}}/jake-hub
+DEPLOY_ROOTS_UNDER={{prefix}}
 '''
 
 # The server's address and token for the units that ask the account service and read them from this file, the

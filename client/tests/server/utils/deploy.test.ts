@@ -70,6 +70,21 @@ describe("the record", () => {
     expect(none).toEqual({ unitName: "unit-b", record: null, writtenAt: null, root: join(scratch, "unit-b") });
   });
 
+  test("is read under every bmo- folder of the folders the second setting names that holds a deployment's record, each root once", () => {
+    const under = join(scratch, "installed");
+    const listed = join(under, "bmo-listed");
+    const added = join(under, "bmo-added-later");
+    const finished = join(under, "bmo-finished");
+
+    for (const root of [listed, added, finished, join(under, "bmo-never-deployed"), join(under, "other-folder")]) mkdirSync(root, { recursive: true });
+    writeFileSync(join(listed, "deploy-progress.json"), `${JSON.stringify(record)}\n`);
+    writeFileSync(join(added, "deploy-progress.json"), `${JSON.stringify(record)}\n`);
+    writeFileSync(join(finished, "deployed.json"), "{}\n");
+    writeFileSync(join(under, "other-folder", "deploy-progress.json"), `${JSON.stringify(record)}\n`);
+
+    expect(deployRoots({ DEPLOY_ROOTS: listed, DEPLOY_ROOTS_UNDER: `${under}:${join(scratch, "missing")}` })).toEqual([listed, added, finished]);
+  });
+
   test("is none where no path is named, the file is missing or it does not read as a record", () => {
     const broken = join(scratch, "broken.json");
 

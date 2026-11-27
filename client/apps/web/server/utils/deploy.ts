@@ -1,5 +1,5 @@
-import { existsSync, readFileSync, statSync } from "node:fs";
-import { basename, join } from "node:path";
+import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { basename, join, resolve } from "node:path";
 
 import { deployPhase, readDeployProgress } from "#shared/deploy-progress";
 
@@ -10,7 +10,7 @@ import type { DeployProgress } from "#shared/deploy-progress";
 
 // The deployment as the title bar reads it (docs/web.md, 「Deployment in the title bar」): the testbed's progress
 // record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) of every unit whose deploy
-// root the `DEPLOY_ROOTS` setting lists, whether the run behind each still runs, the commits the deploy carries,
+// root the `DEPLOY_ROOTS` setting lists or a folder of `DEPLOY_ROOTS_UNDER` holds, whether the run behind each still runs, the commits the deploy carries,
 // and the deployment's hold, which bmo-job keeps. None of the records asks a unit, so the reading stands while the
 // units restart under a deployment; a console that lists no root has no deployment to show.
 
@@ -22,9 +22,30 @@ const DEPLOY_LOG_FILE = "deployed.log";
 // two deploys.
 const EXPAND_DIR = "deploy-expand";
 
-/** The deploy roots, as the setting lists them, separated by `:`. */
+// A deploy root's folder name under the folder `DEPLOY_ROOTS_UNDER` names: a unit's own, `bmo-` and its name.
+const UNIT_ROOT = /^bmo-[a-z0-9-]+$/;
+
+// The deploy roots standing in a folder: each `bmo-` folder holding a deployment's record, running or finished, so a
+// unit installed after the setting was written shows as well. None where the folder cannot be read.
+function rootsUnder(folder: string): string[] {
+  try {
+    return readdirSync(folder, { withFileTypes: true })
+      .filter((entry) => entry.isDirectory() && UNIT_ROOT.test(entry.name))
+      .map((entry) => join(folder, entry.name))
+      .filter((root) => existsSync(join(root, RECORD_FILE)) || existsSync(join(root, DEPLOYED_FILE)))
+      .sort();
+  } catch {
+    return [];
+  }
+}
+
+/** The deploy roots: those the setting lists, separated by `:`, then every one the folders `DEPLOY_ROOTS_UNDER` names
+ * hold, each once. */
 export function deployRoots(environment: Record<string, string | undefined> = process.env): string[] {
-  return (environment.DEPLOY_ROOTS ?? "").split(":").map((root) => root.trim()).filter((root) => root !== "");
+  const listOf = (value: string | undefined): string[] => (value ?? "").split(":").map((root) => root.trim()).filter((root) => root !== "");
+  const roots = [...listOf(environment.DEPLOY_ROOTS), ...listOf(environment.DEPLOY_ROOTS_UNDER).flatMap(rootsUnder)];
+
+  return roots.filter((root, at) => roots.findIndex((other) => resolve(other) === resolve(root)) === at);
 }
 
 /** Whether a process still runs, by asking the kernel whether it could be signalled. */

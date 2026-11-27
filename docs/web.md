@@ -1401,8 +1401,9 @@ writing the words. A wording fix is an edit to the packs alone, once the guide b
   right end, before the queue button and the usage figures, from the moment a deployment begins until
   a short while after it ends, and nothing stands there otherwise. It reads the testbed's progress
   record (the testbed's `docs/deploy.md`, 「What a deployment says of itself as it runs」) of every unit
-  whose deploy root `DEPLOY_ROOTS` lists, `deploy-progress.json` under each, so a deployment of any unit
-  shows; a console that lists none stands no run.
+  whose deploy root `DEPLOY_ROOTS` lists, and of every `bmo-` folder of the folders `DEPLOY_ROOTS_UNDER` names that
+  holds a deployment's record, running or finished, `deploy-progress.json` under each, so a deployment of any unit
+  shows, one installed after the setting was written among them; a console that lists none stands no run.
   - **Which run stands.** A run under way stands before any that has ended, the one begun last where
     several run at once; with none under way, the one that ended last. For the administrator the run is
     named by its unit, the deploy root's own folder name, at the head of what the mark says after its

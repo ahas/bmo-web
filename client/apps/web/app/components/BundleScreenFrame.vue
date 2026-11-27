@@ -9,10 +9,11 @@
          screens (docs/web.md, 「Messages」). It stands only where the layout hears the briefings. The shell is a fixed
          box, which holds every layer of what stands in it under a dialog, so the player stands outside it, at the
          page's end, in a box laid exactly over the page area, at the playing player's layer (docs/web.md, 「Floating
-         things」, the layers). -->
+         things」, the layers). The box itself is neither seen nor pressed, so over a dialog or a viewer only the player
+         stands, where it stands. -->
     <Teleport to="body">
-      <div ref="lifted" class="pointer-events-none fixed z-(--bmo-layer-pip)" :style="over">
-        <BriefingPlayer :area="frame" class="pointer-events-auto" />
+      <div ref="lifted" class="pointer-events-none invisible fixed z-(--bmo-layer-pip)" :style="over">
+        <BriefingPlayer :area="frame" class="pointer-events-auto visible" />
       </div>
     </Teleport>
   </div>

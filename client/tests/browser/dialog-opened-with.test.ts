@@ -292,6 +292,8 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       const open = async (): Promise<void> => {
         await page.getByRole("button", { name: wording("common.aria.menu_of", { name: SUPERVISOR.label }), exact: true }).click({ timeout: 30_000 });
         await page.getByRole("menuitem", { name: wording("agents.action.settings") }).click();
+        // The persona stands in the dialog's system prompt tab, shown once that tab is pressed.
+        await page.locator("[data-supervisor-tabs]").getByRole("tab", { name: wording("agents.label.agent_prompt") }).click();
         await persona.waitFor({ timeout: 15_000 });
         expect(await persona.inputValue()).toBe(PERSONA_FILE);
       };

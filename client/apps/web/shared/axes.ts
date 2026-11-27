@@ -73,6 +73,8 @@ export interface SupervisorView {
   runsAsOwner: boolean;
   icon: string | null;
   aliases: string | null;
+  // The words its answers carry in its owner's own account; null keeps the default made of its label.
+  nameTag: string | null;
   sessionScope: string;
   turnShape: string;
   defaultAnswerer: boolean;

@@ -3493,6 +3493,11 @@ archive and this week's tokens remain. That is all that can actually be known th
   thrown. Dialogs are left only for what is not one cell: a supervisor's road, a whole role, one agent of a role, a whole
   repository, a supervisor's own settings, and asking once before a removal; a row's whole settings open from its more-menu or its
   name, never from a cell.
+- **A supervisor's own settings hold its 이름표** (the agency's `docs/supervisors.md`, 「Its name tag」): the words its
+  answers carry before them where they go out in its owner's own account, an emoji in it as written, one line of
+  at most forty characters. The field stands empty where none is set, its placeholder the default the receiver
+  makes of the label, `🤖 <label>`, and a line under it says what it is for; emptied and saved, it goes back to that
+  default.
 - **A supervisor stands on one road** (the agency's `docs/supervisors.md` and `docs/provider-order.md`): a
   provider, a model on it, an effort, thinking, on the registry's provider an answer ceiling, and, on a provider
   that takes one, an advisor: a second model the road's own model consults when it chooses. Every turn of it goes

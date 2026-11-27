@@ -3380,6 +3380,8 @@ agents:
     default_marked: "{value}（默认）"
     description: 说明
     display_name: 显示名称
+    name_tag: "名牌"
+    name_tag_default: "🤖 {name}"
     model_superseded: 上一代
     models_stale: "{time} 读取的列表"
     effort: 强度
@@ -3447,6 +3449,7 @@ agents:
     stages_none: 没有指令阶段
     stages_unused: 未使用的阶段
   message:
+    name_tag_hint: "用你的账号代为回答时加在回答前面。留空则使用默认值。"
     rest_end_confirm: "要结束休息吗？"
     rest_end_takes: "平台的 Claude 登录会立即重新应答，仍达上限的登录会在下次用量检查时再次休息。"
     rest_still: "有登录再次达到上限，休息仍在继续。"

@@ -3358,6 +3358,8 @@ agents:
     default_marked: "{value} (default)"
     description: Description
     display_name: Display name
+    name_tag: "Name tag"
+    name_tag_default: "🤖 {name}"
     model_superseded: Previous generation
     models_stale: "List read at {time}"
     effort: Effort
@@ -3425,6 +3427,7 @@ agents:
     stages_none: No instruction stages
     stages_unused: Unused stages
   message:
+    name_tag_hint: "Goes before its answers when it replies from your own account. Leave it empty to use the default."
     rest_end_confirm: "End the rest?"
     rest_end_takes: "The platform's Claude logins answer again at once, and a login still at its limit rests again at the next usage check."
     rest_still: "A login reads full again, so the rest goes on."

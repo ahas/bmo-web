@@ -284,6 +284,62 @@ describe.skipIf(!origin || !touchReady())("a console dialog holds a change only 
       }
     }, 90_000);
 
+    test(`a supervisor's name tag shows its default until one is written, and a written one is saved trimmed, at ${width}px`, async () => {
+      const context = await contextAt(width, height);
+      const page = await context.newPage();
+      const tag = page.getByRole("dialog").getByRole("textbox", { name: wording("agents.label.name_tag"), exact: true });
+      const sent: unknown[] = [];
+
+      await context.route(`**/api/supervisors/${SUPERVISOR.name}`, async (route) => {
+        if (route.request().method() !== "PATCH") return route.fallback();
+        const body = route.request().postDataJSON() as Record<string, unknown>;
+
+        sent.push(body);
+        return route.fallback();
+      });
+
+      try {
+        // The supervisor starts with no tag of its own, whatever a run before left.
+        await page.request.patch(`${origin}/api/supervisors/${SUPERVISOR.name}`, { data: { nameTag: null } });
+        await visit(page, `/organization?company=platform&tab=supervisors`);
+        await page.getByRole("button", { name: wording("common.aria.menu_of", { name: SUPERVISOR.label }), exact: true }).click({ timeout: 30_000 });
+        await page.getByRole("menuitem", { name: wording("agents.action.settings") }).click();
+        await tag.waitFor({ timeout: 15_000 });
+
+        // Empty, its placeholder the default made of the label, and the line under it saying what it is for.
+        expect(await tag.inputValue()).toBe("");
+        expect(await tag.getAttribute("placeholder")).toBe(wording("agents.label.name_tag_default", { name: SUPERVISOR.label }));
+        await page.getByRole("dialog").getByText(wording("agents.message.name_tag_hint"), { exact: true }).waitFor({ timeout: 10_000 });
+
+        // A tag written, an emoji in it, makes a change, and nothing but spaces makes none.
+        await tag.click();
+        await page.keyboard.type("   ");
+        await saveIs(page, "disabled");
+        await tag.fill(" \u{1F916} Agent ");
+        await saveIs(page, "enabled");
+        const saved = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith(`/api/supervisors/${SUPERVISOR.name}`), { timeout: 10_000 });
+
+        await saveButton(page).click();
+        await saved;
+        expect(sent.at(-1)).toMatchObject({ nameTag: "\u{1F916} Agent" });
+
+        // Emptied and saved, it goes back to the default, so the next width opens on it again.
+        await page.getByRole("button", { name: wording("common.aria.menu_of", { name: SUPERVISOR.label }), exact: true }).click({ timeout: 30_000 });
+        await page.getByRole("menuitem", { name: wording("agents.action.settings") }).click();
+        await tag.waitFor({ timeout: 15_000 });
+        expect(await tag.inputValue()).toBe("\u{1F916} Agent");
+        await tag.fill("");
+
+        const emptied = page.waitForRequest((request) => request.method() === "PATCH" && request.url().endsWith(`/api/supervisors/${SUPERVISOR.name}`), { timeout: 10_000 });
+
+        await saveButton(page).click();
+        await emptied;
+        expect(sent.at(-1)).toMatchObject({ nameTag: null });
+      } finally {
+        await context.close();
+      }
+    }, 90_000);
+
     test(`a supervisor's persona typed back to its file's text holds no change, at ${width}px`, async () => {
       const context = await contextAt(width, height);
       const page = await context.newPage();

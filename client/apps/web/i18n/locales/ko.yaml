@@ -3373,6 +3373,8 @@ agents:
     default_marked: "{value} (기본값)"
     description: 설명
     display_name: 표시 이름
+    name_tag: "이름표"
+    name_tag_default: "🤖 {name}"
     model_superseded: 이전 세대
     models_stale: "{time}에 읽은 목록"
     effort: 강도
@@ -3438,6 +3440,7 @@ agents:
     stages_none: 지시 단계 없음
     stages_unused: 사용하지 않는 단계
   message:
+    name_tag_hint: "내 계정으로 대신 답할 때 답 앞에 붙어요. 비워 두면 기본값을 써요."
     rest_end_confirm: "휴식을 끝낼까요?"
     rest_end_takes: "플랫폼의 Claude 로그인이 바로 다시 답하고, 한도가 아직 찬 로그인은 다음 사용량 확인 때 다시 쉽니다."
     rest_still: "한도가 다시 가득 찬 로그인이 있어 휴식이 이어집니다."

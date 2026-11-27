@@ -149,7 +149,7 @@ describe("the supervisors", () => {
 
     expect(got.status).toBe(200);
     expect(got.answer?.[0]).toEqual({
-      name: "agent-a", label: "agent-a", ownerAccount: null, runsAsOwner: true, icon: null, aliases: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: false,
+      name: "agent-a", label: "agent-a", ownerAccount: null, runsAsOwner: true, icon: null, aliases: null, nameTag: null, sessionScope: "agent", turnShape: "window", defaultAnswerer: false,
       seeded: false, repository: "repo-a", road: ENTRY, warming: { "claude-code": true }, foldRatio: 0.8
     });
   });
@@ -191,6 +191,12 @@ describe("the supervisors", () => {
 
     expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { foldRatio: 0.7, warming: { deepseek: true } } })).toMatchObject({ status: 200 });
     expect(calls).toMatchObject([{ method: "PATCH", path: "/supervisors/agent-a", body: { foldRatio: 0.7, warming: { deepseek: true } } }]);
+
+    // A name tag is carried trimmed, and an emptied one goes back to the default as null.
+    calls.length = 0;
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { nameTag: " \u{1F916} Agent A " } })).toMatchObject({ status: 200 });
+    expect(await asked(supervisorChange, { params: { name: "agent-a" }, body: { nameTag: "  " } })).toMatchObject({ status: 200 });
+    expect(calls.map((call) => call.body)).toEqual([{ nameTag: "\u{1F916} Agent A" }, { nameTag: null }]);
 
     calls.length = 0;
 

@@ -3380,6 +3380,8 @@ agents:
     default_marked: "{value}（デフォルト）"
     description: 説明
     display_name: 表示名
+    name_tag: "ネームタグ"
+    name_tag_default: "🤖 {name}"
     model_superseded: 旧世代
     models_stale: "{time} に読み込んだ一覧"
     effort: 強度
@@ -3447,6 +3449,7 @@ agents:
     stages_none: 指示ステージなし
     stages_unused: 使用していないステージ
   message:
+    name_tag_hint: "あなたのアカウントで代わりに答えるとき、答えの前に付きます。空にすると既定値を使います。"
     rest_end_confirm: "休憩を終えますか？"
     rest_end_takes: "プラットフォームの Claude ログインはすぐにまた応答し、まだ上限に達しているログインは次の使用量確認でまた休憩します。"
     rest_still: "上限に再び達したログインがあるため、休憩が続きます。"

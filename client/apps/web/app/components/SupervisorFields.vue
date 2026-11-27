@@ -8,6 +8,17 @@
       <UInput v-model="draft.label" class="w-full" :disabled="busy" :aria-label="$t('agents.label.display_name')" />
     </UFormField>
 
+    <UFormField :label="$t('agents.label.name_tag')" name="nameTag" :description="$t('agents.message.name_tag_hint')" :error="errorAt('nameTag')">
+      <UInput
+        v-model="draft.nameTag"
+        class="w-full"
+        :maxlength="40"
+        :placeholder="$t('agents.label.name_tag_default', { name: draft.label.trim() === '' ? props.supervisor.name : draft.label.trim() })"
+        :disabled="busy"
+        :aria-label="$t('agents.label.name_tag')"
+      />
+    </UFormField>
+
     <RoadField v-model="draft.road" :line="SUPERVISOR_LINE" :refusal="refusal" :disabled="busy" :runs-as-owner="props.supervisor.runsAsOwner" />
 
     <UFormField :label="$t('agents.label.column_warming')" name="warming" :error="errorAt('warming')">
@@ -61,10 +72,12 @@ const { t } = useI18n();
 const { data: providers } = useProviders();
 const { data: repositories } = useFetch<RepositoryView[]>("/api/repositories", { key: "repositories", lazy: true, server: false });
 
-const FIELDS = new Set(["label", "warming", "foldRatio", "repository", ...ROAD_FIELDS]);
+const FIELDS = new Set(["label", "nameTag", "warming", "foldRatio", "repository", ...ROAD_FIELDS]);
 
 interface Draft {
   label: string;
+  // Its name tag as written, empty for the default.
+  nameTag: string;
   // Its road, one whose provider is empty where it names none.
   road: RoadView;
   warming: Record<string, boolean>;
@@ -75,6 +88,7 @@ interface Draft {
 function draftOf(supervisor: SupervisorView): Draft {
   return {
     label: supervisor.label,
+    nameTag: supervisor.nameTag ?? "",
     road: { ...(supervisor.road ?? emptyRoad()) },
     warming: { ...supervisor.warming },
     threshold: percentOf(supervisor.foldRatio),
@@ -104,6 +118,7 @@ function changed(): Record<string, unknown> {
   const body: Record<string, unknown> = {};
 
   if (draft.value.label.trim() !== saved.value.label) body.label = draft.value.label.trim();
+  if (draft.value.nameTag.trim() !== saved.value.nameTag) body.nameTag = draft.value.nameTag.trim() === "" ? null : draft.value.nameTag.trim();
   // A road is sent whole once it names its provider and model.
   if (!sameValue(draft.value.road, saved.value.road) && draft.value.road.model !== "") body.road = draft.value.road;
   if (!sameValue(draft.value.warming, saved.value.warming)) body.warming = draft.value.warming;

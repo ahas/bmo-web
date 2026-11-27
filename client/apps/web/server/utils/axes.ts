@@ -143,6 +143,7 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
     runsAsOwner: runsAsOwner(supervisor, owner),
     icon: supervisor.icon,
     aliases: supervisor.aliases,
+    nameTag: supervisor.nameTag ?? null,
     sessionScope: supervisor.sessionScope,
     turnShape: supervisor.turnShape,
     defaultAnswerer: supervisor.name === answerer,
@@ -228,6 +229,8 @@ export function supervisorChangeOf(body: unknown): Schemas["SupervisorChange"] |
     Object.assign(change, road);
   }
   if (typeof held.foldRatio === "number") change.foldRatio = held.foldRatio;
+  // A name tag emptied goes back to the default.
+  if ("nameTag" in held) change.nameTag = typeof held.nameTag === "string" && held.nameTag.trim() !== "" ? held.nameTag.trim() : null;
   if ("repository" in held) change.repository = text(held.repository);
   if ("warming" in held) {
     const warming: Record<string, boolean> = {};

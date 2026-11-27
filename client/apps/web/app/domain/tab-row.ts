@@ -11,15 +11,17 @@ export function revealedOffset(tab: { left: number; width: number }, row: { left
   return Math.max(0, Math.min(wanted, row.scrollWidth - row.clientWidth));
 }
 
-/** Brings the open tab of the tab list inside `host` into the list's view. */
+/** Brings the open tab of every tab list inside `host` into its list's view: a row may hold more than one list, as a
+ * row of groups standing before the row of their tabs on a phone does. */
 export function revealOpenTab(host: HTMLElement | null): void {
-  const list = host?.querySelector<HTMLElement>('[role="tablist"]');
-  const tab = list?.querySelector<HTMLElement>('[role="tab"][data-state="active"]');
+  for (const list of host?.querySelectorAll<HTMLElement>('[role="tablist"]') ?? []) {
+    const tab = list.querySelector<HTMLElement>('[role="tab"][data-state="active"]');
 
-  if (!list || !tab) return;
+    if (!tab) continue;
 
-  const box = tab.getBoundingClientRect();
-  const frame = list.getBoundingClientRect();
+    const box = tab.getBoundingClientRect();
+    const frame = list.getBoundingClientRect();
 
-  list.scrollLeft = revealedOffset({ left: box.left, width: box.width }, { left: frame.left, scrollLeft: list.scrollLeft, clientWidth: list.clientWidth, scrollWidth: list.scrollWidth });
+    list.scrollLeft = revealedOffset({ left: box.left, width: box.width }, { left: frame.left, scrollLeft: list.scrollLeft, clientWidth: list.clientWidth, scrollWidth: list.scrollWidth });
+  }
 }

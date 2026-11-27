@@ -432,7 +432,8 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
         const columned = [
           { tab: "invites", path: "/organization?tab=invites", screen: "organization" },
           { tab: "providers", path: "/organization?company=platform&tab=providers", screen: "organization" },
-          { tab: "secret-kinds", path: "/organization?company=platform&tab=secret-kinds", screen: "organization" }
+          { tab: "secret-kinds", path: "/organization?company=platform&tab=secret-kinds", screen: "organization" },
+          { tab: "supply", path: "/organization?company=platform&tab=supply", screen: "organization" }
         ];
 
         for (const { tab, path, screen } of columned) {
@@ -444,26 +445,31 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
           await column.waitFor({ timeout: 20_000 });
           // The row narrows as the open tab's add comes in at its end, and the open tab is brought back into its view
           // as it does, so the row is measured once that has settled; the check below still says where it stands.
+          // The row of the screen's own tabs, which a row of groups may stand before on a phone.
+          const tabsLabel = wording("organization.aria.tabs");
+
           await page
             .waitForFunction(
-              () => {
-                const row = document.querySelector('[role="tablist"]')?.getBoundingClientRect();
-                const open = document.querySelector('[role="tablist"] [role="tab"][data-state="active"]')?.getBoundingClientRect();
+              (label) => {
+                const list = document.querySelector(`[aria-label="${label}"] [role="tablist"]`);
+                const row = list?.getBoundingClientRect();
+                const open = list?.querySelector('[role="tab"][data-state="active"]')?.getBoundingClientRect();
 
                 return row !== undefined && open !== undefined && open.left >= row.left - 0.5 && open.right <= row.right + 0.5;
               },
-              null,
+              tabsLabel,
               { timeout: 5_000 }
             )
             .catch(() => undefined);
 
-          const laid = await page.evaluate((screen) => {
+          const laid = await page.evaluate(([screen, label]) => {
             const body = document.querySelector<HTMLElement>(`[data-${screen}-body]`)!;
             const style = getComputedStyle(body);
             const outer = body.getBoundingClientRect();
             const inner = document.querySelector(`[data-${screen}-column]`)!.getBoundingClientRect();
-            const row = document.querySelector('[role="tablist"]')!.getBoundingClientRect();
-            const open = document.querySelector('[role="tablist"] [role="tab"][data-state="active"]')!.getBoundingClientRect();
+            const list = document.querySelector(`[aria-label="${label}"] [role="tablist"]`)!;
+            const row = list.getBoundingClientRect();
+            const open = list.querySelector('[role="tab"][data-state="active"]')!.getBoundingClientRect();
 
             return {
               padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
@@ -472,7 +478,7 @@ describe.skipIf(!origin || !touchReady())("the settings dialog and the organisat
               sides: [inner.left - outer.left, outer.right - inner.right],
               openInRow: open.left >= row.left - 0.5 && open.right <= row.right + 0.5
             };
-          }, screen);
+          }, [screen, tabsLabel] as const);
 
           expect({ tab, padding: laid.padding }).toEqual({ tab, padding: ["16px", "16px", "16px", "16px"] });
           expect(laid.width).toBe(Math.min(768, laid.room));

@@ -470,10 +470,8 @@ watch(
   () => [tabChosen.value, rowKey.value, tabRow.value] as const,
   () =>
     void nextTick(() => {
-      const list = tabRow.value?.querySelector('[role="tablist"]');
-
       rowWidth?.disconnect();
-      if (list) rowWidth?.observe(list);
+      for (const list of tabRow.value?.querySelectorAll('[role="tablist"]') ?? []) rowWidth?.observe(list);
       revealOpenTab(tabRow.value);
     }),
   { immediate: true, flush: "post" }

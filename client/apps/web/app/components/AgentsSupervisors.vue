@@ -470,7 +470,11 @@ async function add(): Promise<void> {
   try {
     const label = draft.value.label.trim();
     const title = draft.value.room.trim();
-    const added = await $fetch<SupervisorAddedView>("/api/supervisors", { method: "POST", body: { ...draft.value, name: draft.value.name.trim(), label, room: title } });
+    const added = await $fetch<SupervisorAddedView>("/api/supervisors", {
+      method: "POST",
+      // A row added at a unit of the tree is filed under that unit.
+      body: { ...draft.value, name: draft.value.name.trim(), label, room: title, ...(scope.value?.ownerUnit === undefined ? {} : { ownerUnit: scope.value.ownerUnit }) }
+    });
 
     // What was added holds no change from here on, so nothing while the lists are read again asks to throw it away.
     await addChanges.take();

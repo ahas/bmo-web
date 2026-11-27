@@ -3144,6 +3144,7 @@ agents:
     word_empty: メッセージを入力してください。
     word_owner_only: ワーカーへのメッセージはオーナーだけが送れます。
     supervisor_own_only: 追加できるのは自分のスーパーバイザーだけです。ほかの人のスーパーバイザーは管理者が追加します。
+    supervisor_unit_head_only: この組織のスーパーバイザーは、組織長か管理者だけが追加できます。
     role_delete_refused: 実行中または待機中の実行があるか、ポリシーで定められたロールのため削除できませんでした。
     role_agent_refused: 実行中のエージェントか、すでにある名前です
     agent_save_failed: エージェントを保存できませんでした。

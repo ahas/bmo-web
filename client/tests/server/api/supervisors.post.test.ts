@@ -30,6 +30,15 @@ const receiver = standIn("RECEIVER", (call) => {
   return answer({ code: "no-route", error: "no route" }, 404);
 }, { headers: true });
 
+// The chain answers unit 5's link of the unit resources kind to its head, account 7, and refuses everyone else.
+standIn("WEB_SERVER", (call) => {
+  if (decodeURIComponent(call.path) === "/chain/kinds/agency.unit-resources.manage/links/unit:5") {
+    return call.headers?.["owner-key"] === "7" ? answer({ key: "agency.unit-resources.manage", link: "unit:5", value: null }) : answer({ code: "forbidden", error: "not a writer" }, 403);
+  }
+
+  return answer({ code: "not-found", error: "no route" }, 404);
+}, { headers: true });
+
 const handler = await routeOf<SupervisorAddedView>("../../apps/web/server/api/supervisors.post");
 const globals = globalThis as Record<string, unknown>;
 
@@ -122,6 +131,28 @@ describe("adding a supervisor", () => {
       expect((await asked(handler, { body: { ...ADD, name: "u5" } })).status).toBe(200);
       expect(receiver.asked[0]?.body).toMatchObject({ name: "u5", ownerAccount: 1 });
       expect(receiver.asked[0]?.headers?.["owner-role"]).toBe("administrator");
+    } finally {
+      globals.signedInUser = held;
+    }
+  });
+
+  test("a unit's head adds a supervisor of the unit, filed under the unit and no account; anyone else is refused, nothing asked", async () => {
+    const held = globals.signedInUser;
+
+    try {
+      globals.signedInUser = async () => ({ id: 7, name: "tester", administrator: false });
+      receiver.asked.length = 0;
+
+      expect((await asked(handler, { body: { ...ADD, ownerUnit: 5 } })).status).toBe(200);
+      expect(receiver.asked[0]?.body).toMatchObject({ name: "agent-b", ownerAccount: null, ownerUnit: 5 });
+
+      // A person's own name is never a unit's supervisor's.
+      receiver.asked.length = 0;
+      expect((await asked(handler, { body: { ...ADD, name: "u7", ownerUnit: 5 } })).status).toBe(400);
+
+      globals.signedInUser = async () => ({ id: 8, name: "other", administrator: false });
+      expect((await asked(handler, { body: { ...ADD, ownerUnit: 5 } })).status).toBe(403);
+      expect(receiver.asked).toEqual([]);
     } finally {
       globals.signedInUser = held;
     }

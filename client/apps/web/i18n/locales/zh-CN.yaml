@@ -3144,6 +3144,7 @@ agents:
     word_empty: 请输入消息。
     word_owner_only: 只有所有者可以向工作器发送消息。
     supervisor_own_only: 只能添加你自己的主管。其他人的主管由管理员添加。
+    supervisor_unit_head_only: 只有该组织的负责人或管理员可以为其添加主管。
     role_delete_refused: 该角色有正在运行或等待中的运行，或由策略指定，无法删除。
     role_agent_refused: 该智能体正在运行，或名称已存在
     agent_save_failed: 无法保存智能体。

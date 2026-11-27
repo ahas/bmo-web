@@ -3122,6 +3122,7 @@ agents:
     word_empty: Enter a message.
     word_owner_only: Only the owner can message a worker.
     supervisor_own_only: "You can only add your own supervisor. An admin adds other people's supervisors."
+    supervisor_unit_head_only: "Only the unit's head or an admin can add a supervisor for this unit."
     role_delete_refused: "Couldn't delete the role because it has running or waiting runs, or a policy defines it."
     role_agent_refused: "The agent is running, or the name already exists"
     agent_save_failed: "Couldn't save the agent."

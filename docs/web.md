@@ -571,6 +571,11 @@ console page. No answer says which framework drew it. Strict transport is the re
   adder's own name, `u<user>`, filed under their own account; a supervisor under any other name — another
   account's BMO, a retired one's, whose name is guessable — is the administrator's act, and the add carries the
   signed-in login's `Owner-Key` and `Owner-Role` so the receiver judges the same.
+- **A unit's head adds a supervisor of the unit.** An add made with a unit chosen on the organisation tree files the
+  supervisor under that unit, under any name but a person's own `u<user>`, and filed under no account. The console's
+  server takes it only from one who heads the unit — whom the delegation chain answers the unit's link of
+  `agency.unit-resources.manage`, the agency's head check for a unit's resources — or the administrator, and hands
+  the receiver the unit, which it passes on to the agency; anyone else is refused before anything is asked.
 - **A person's sections are set on 시스템 및 조직's 권한,** with the person's unit chosen (「권한」): a table of the console's
   sections with a switch for its read and one for its write, by the administrator for anyone and by a head for the
   people under the units they head, within the sections the head holds; a change is saved as it is made, and a write

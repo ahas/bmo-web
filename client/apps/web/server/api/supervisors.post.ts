@@ -1,8 +1,11 @@
 import { wording } from "#shared/wording";
 
+import { AccountRefusal, chainEntry } from "../utils/account-service";
+import { callerOf } from "../utils/organization";
 import { ownerHeaders } from "../utils/owner-key";
 
 import type { components } from "@bmo/receiver-client/schema";
+import type { SignedIn } from "../utils/accounts";
 import type { SupervisorAddedView } from "#shared/axes";
 
 // The receiver's add with the person it is filed under and the scope of the sessions it keeps. Its published schema
@@ -10,6 +13,7 @@ import type { SupervisorAddedView } from "#shared/axes";
 // under that account and to let one session answer every room the person's supervisor speaks in.
 type AddSupervisor = components["schemas"]["SupervisorRequest"] & {
   ownerAccount: number | null;
+  ownerUnit?: number;
   sessionScope?: "agent";
 };
 
@@ -48,7 +52,16 @@ export default defineEventHandler(async (event): Promise<SupervisorAddedView> =>
   const named = (field: string): string => (typeof fields[field] === "string" ? (fields[field] as string).trim() : "");
 
   if (road === null) throw fail(400, wording("agents.error.supervisor_add"));
-  if (!signed.administrator && (signed.id === null || named("name") !== `u${signed.id}`)) throw fail(403, wording("agents.error.supervisor_own_only"));
+
+  const unit = typeof fields.ownerUnit === "number" && Number.isSafeInteger(fields.ownerUnit) && fields.ownerUnit > 0 ? fields.ownerUnit : null;
+
+  if (unit !== null) {
+    // A unit's supervisor: never a person's own name, and only from the unit's head or the administrator.
+    if (/^u\d+$/.test(named("name"))) throw fail(400, wording("agents.error.supervisor_add"));
+    if (!signed.administrator && !(await headsUnit(signed, unit))) throw fail(403, wording("agents.error.supervisor_unit_head_only"));
+  } else if (!signed.administrator && (signed.id === null || named("name") !== `u${signed.id}`)) {
+    throw fail(403, wording("agents.error.supervisor_own_only"));
+  }
 
   // A person's supervisor holds one session across its rooms; the console's own account keeps the agency's default.
   const sessionScope: AddSupervisor["sessionScope"] = signed.id === null ? undefined : "agent";
@@ -60,7 +73,8 @@ export default defineEventHandler(async (event): Promise<SupervisorAddedView> =>
     provider: road.provider,
     model: road.model,
     repository: named("repository") === "" ? null : named("repository"),
-    ownerAccount: signed.id,
+    ownerAccount: unit === null ? signed.id : null,
+    ...(unit === null ? {} : { ownerUnit: unit }),
     ...(sessionScope === undefined ? {} : { sessionScope })
   };
 
@@ -80,3 +94,21 @@ export default defineEventHandler(async (event): Promise<SupervisorAddedView> =>
 
   return { name: named("name"), roomId: added.room.id, takenBack: added.room.takenBack };
 });
+
+// The kind whose unit link the delegation chain answers its writers alone: a unit's heads, who change its resources
+// (the agency's `docs/api.md`, 「Who a caller acts for」).
+const UNIT_RESOURCES_KIND = "agency.unit-resources.manage";
+
+/** Whether the signed-in login heads the unit, as the chain answers the unit's link to its writers alone; a check that
+ * cannot be made answers no. */
+async function headsUnit(signed: SignedIn, unit: number): Promise<boolean> {
+  try {
+    await chainEntry(UNIT_RESOURCES_KIND, `unit:${unit}`, callerOf(signed));
+
+    return true;
+  } catch (error) {
+    if (error instanceof AccountRefusal) return false;
+
+    throw fail(503, wording("agents.error.agency_access_unchecked"));
+  }
+}

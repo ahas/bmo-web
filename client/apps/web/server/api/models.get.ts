@@ -7,7 +7,7 @@ export default defineEventHandler(async (event): Promise<ModelPage> => {
   await requireUserSession(event);
 
   // Where the address names a node, the agency answers the registrations that stand there and reach.
-  const scope = await ownerParamsOf(event, getQuery(event));
+  const scope = ownerParamsOf(getQuery(event));
   const page = await agencyCall(scope === undefined ? agency(event).GET("/models") : agency(event).GET("/models", { params: { query: scope } }));
 
   return {

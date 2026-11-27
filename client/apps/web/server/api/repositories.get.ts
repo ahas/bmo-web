@@ -8,7 +8,7 @@ export default defineEventHandler(async (event): Promise<RepositoryView[]> => {
   const signed = await signedInUser(event);
   // A scoped read asks the agency, which answers a node's repositories to its heads alone; unscoped, the
   // console keeps narrowing to the reader's own and the deployment's.
-  const scope = await ownerParamsOf(event, getQuery(event));
+  const scope = ownerParamsOf(getQuery(event));
 
   return await readRepositories(scope === undefined ? (rows) => listedRows(rows, signed.id) : (rows) => rows, event, scope);
 });

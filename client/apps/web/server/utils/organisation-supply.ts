@@ -2,7 +2,6 @@ import { wording } from "#shared/wording";
 
 import { AccountRefusal, chainEntry, keepUnitSecret, resolveChain, setChainDelegation, setChainRules, setChainValue } from "./account-service";
 import { agency, agencyCall, agencyRoute } from "./agency";
-import { syncAgency } from "./agency-sync";
 import { readProviderModels } from "./axes";
 import { fail } from "./fail";
 import { callerOf, organizationFailure } from "./organization";
@@ -267,12 +266,11 @@ export async function changeComposition(event: H3Event, unit: number, change: { 
 
     const value = Object.keys(roles).length === 0 ? null : { roles };
 
-    // The agency judges the value against the roles it holds; the console writes it on its own chain and tells the
-    // agency what now resolves (docs/web.md, 「The agency's organisation」).
+    // The agency judges the value against the roles it holds, and the console writes it on its own chain, which the
+    // agency asks again when it next reads the composition.
     const judged = await agencyRoute<{ value: unknown }>("POST", "/signup-composition/judge", { value }, { codes: CODES });
 
     await setChainValue(COMPOSITION_KIND, `unit:${unit}`, judged.value, callerOf(signed));
-    void syncAgency().catch(() => {});
   }
 
   if (change.delegation !== undefined) await setChainDelegation(COMPOSITION_KIND, `unit:${unit}`, change.delegation, callerOf(signed));

@@ -1,9 +1,6 @@
 import { wording } from "#shared/wording";
 
-import { unitSubtree } from "./account-service";
-import { signedInUser } from "./accounts";
 import { agency, agencyCall } from "./agency";
-import { callerOf } from "./organization";
 import { defaultAnswerer, ownerStanding } from "./owner";
 import { bundleWordOf, providerLabelOf, roadReasonOf } from "./agency-words";
 
@@ -158,27 +155,12 @@ export function supervisorViewOf(supervisor: Supervisor, answerer: string | null
 }
 
 /** The owner parameters an address may give a list of the agency's reached rows (the agency's `docs/api.md`,
- * 「Who a caller acts for」): one account, or one unit and — where asked — the ids of the units under it, which the
- * console resolves on its own organisation, the agency keeping none. */
-export type OwnerParams = { ownerAccount?: number; unit?: number; unitSubtree?: string };
+ * 「Who a caller acts for」): one account, or one unit and — where asked — the units under it. */
+export type OwnerParams = { ownerAccount?: number; unit?: number; unitSubtree?: boolean };
 
-/** The owner parameters of a route's query, read for shape: one not whole answers as none named, since an unscoped
- * list stands on the reader's own reach as it always did; a unit asked with the units under it carries their ids, as
- * the account service's subtree answers them to the reader. */
-export async function ownerParamsOf(event: H3Event, query: Record<string, unknown>): Promise<OwnerParams | undefined> {
-  const shaped = ownerShapeOf(query);
-
-  if (shaped?.unit === undefined || !shaped.below) return shaped === undefined ? undefined : { ...shaped.params };
-
-  const signed = await signedInUser(event);
-  const tree = await unitSubtree(shaped.unit, callerOf(signed));
-  const below = tree.units.map((one) => one.id).filter((id) => id !== shaped.unit);
-
-  return { ...shaped.params, ...(below.length === 0 ? {} : { unitSubtree: below.join(",") }) };
-}
-
-/** The owner parameters of a route's query as they read, and whether the units under the unit are asked for too. */
-export function ownerShapeOf(query: Record<string, unknown>): { params: OwnerParams; unit?: number; below: boolean } | undefined {
+/** The owner parameters of a route's query, read for shape alone: one not whole answers as none named, since an
+ * unscoped list stands on the reader's own reach as it always did. */
+export function ownerParamsOf(query: Record<string, unknown>): OwnerParams | undefined {
   const named = (value: unknown): number | undefined => (typeof value === "string" && /^[1-9][0-9]*$/.test(value) ? Number(value) : undefined);
   const ownerAccount = named(query.ownerAccount);
   const unit = named(query.unit);
@@ -186,9 +168,8 @@ export function ownerShapeOf(query: Record<string, unknown>): { params: OwnerPar
   if (ownerAccount === undefined && unit === undefined) return undefined;
 
   return {
-    params: { ...(ownerAccount === undefined ? {} : { ownerAccount }), ...(unit === undefined ? {} : { unit }) },
-    ...(unit === undefined ? {} : { unit }),
-    below: unit !== undefined && (query.unitSubtree === "true" || query.unitSubtree === true)
+    ...(ownerAccount === undefined ? {} : { ownerAccount }),
+    ...(unit === undefined ? {} : { unit, ...(query.unitSubtree === "true" || query.unitSubtree === true ? { unitSubtree: true } : {}) })
   };
 }
 

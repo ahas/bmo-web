@@ -352,13 +352,11 @@ The owner alone sees it. Without logging in, no screen and no API open. The agen
 conversation and the credentials handed to the seeker as they are, so the log stands behind
 this rule alone and goes nowhere else.
 
-- **The agency's organisation is the console's to write.** The agency keeps no organisation and no delegation
-  chain of its own and asks nobody, so the console, which stands in front of it, keeps it informed: it declares on
-  the chain the settings the agency lists (the agency's `GET /setting-kinds`), and writes the agency two tables
-  whole — the units each account heads, a head of a unit heading every unit under it as well, and each of those
-  settings resolved on the chain for every person and every unit, as the chain answers the resolution. It writes
-  them as it starts and every minute after, so a change made anywhere reaches the agency within that time; a run that
-  fails is said in the log and tried again at the next.
+- **The agency keeps no copy of the organisation.** What it needs of the organisation and the delegation chain — who
+  heads a unit, the units under it, a setting's value for a person or a unit — it asks the account service when a
+  judgement needs it, the account service being its authority in this deployment; the console writes nothing into
+  the agency for it. A value the agency judges but does not write — a sign-up composition, a person's own
+  instructions — the console writes on its chain once the agency's judging route has answered it.
 - **Who may reach agent management is the console's to judge, before a call goes out.** The console is the one way
   in for a person, and the agency answers whoever its token lets in, so every call the console makes on the agency
   for a signed-in person is judged here first, on the sections the account service grants that person

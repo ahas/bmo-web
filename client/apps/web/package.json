@@ -1,6 +1,6 @@
 {
   "name": "bmo-web",
-  "version": "0.1.0-rev.1",
+  "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",

@@ -6736,7 +6736,7 @@
   "info": {
     "description": "The web console's server: the account service on sumida, which holds the users, the senders linked to them, the grants they hold, the account model they stand in, the fixed lines a room says, the supply the agency asks who pays for — the sources, the policy layers, the reservations and the settled costs — and the secret store, which writes each person's secrets as files in a space of their own, the administrator's the folder every unit reads the deployment's secrets from, and answers no value, with the kinds its form asks a value in. Its own routes answer in the common wire format: camelCase keys, times as integers of epoch milliseconds, ids as signed 64-bit integers, and every failure as a non-2xx answer carrying code and error. sumida's session routes are mounted under /sumida and take the session cookie instead of the bearer token; their refusals are sumida's own shape. A user's id is answered as the digits of sumida's whole number, a string a caller hands on as it stands.",
     "title": "bmo-web-server",
-    "version": "0.1.0-rev.1"
+    "version": "0.0.0"
   },
   "openapi": "3.1.0",
   "paths": {

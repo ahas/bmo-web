@@ -21,7 +21,7 @@
     },
     "apps/web": {
       "name": "bmo-web",
-      "version": "0.1.0-rev.1",
+      "version": "0.0.0",
       "dependencies": {
         "@agency/client": "file:../../vendor/agency-client-0.1.0-rev.14-af11230e.tgz",
         "@bmo/receiver-client": "file:../../vendor/bmo-receiver-client-0.1.0-rev.1-a46d294.tgz",
@@ -65,7 +65,7 @@
     },
     "packages/server-client": {
       "name": "@web/server-client",
-      "version": "0.1.0-rev.1",
+      "version": "0.0.0",
       "dependencies": {
         "openapi-fetch": "0.17.0",
       },

@@ -505,8 +505,6 @@ room:
     received_instructions: "Received {instructions} quiet instructions"
     received_messages: "Received {messages} messages"
     records_loading: Loading records…
-    providers_loading: Loading chat services…
-    mode_saving: "Changing the room's mode"
     supervisors_loading: Loading supervisors…
     supervisors_saving: "Changing the room's supervisors"
     removal_loading: Loading the records to delete…
@@ -533,6 +531,7 @@ room:
     step_arrived: Checking arrived messages
     step_audit: Checking forms of address
   error:
+    supervisor_answering_failed: Could not turn the supervisor on or off.
     bad_typing: "The typing indicator isn't in a valid format."
     actions_read_failed: "Couldn't load the run records."
     attachment_empty: "{name}: the file is empty, so it wasn't attached."
@@ -605,9 +604,7 @@ room:
     removal_infrastructure: "This is an operations room named in the configuration, so it can't be deleted."
     removal_not_administrator: Only an administrator can delete a room registration.
     removal_owners_chat: "This is the administrator's own private chat, so it can't be deleted."
-    providers_read_failed: "Couldn't load chat services."
     mode_no_chat_service: "This room isn't connected to any chat service, so avatar mode can't be turned on."
-    mode_read_failed: "Couldn't load the room's mode."
     mode_save_failed: "Couldn't change the room's mode."
     supervisors_read_failed: "Couldn't load the room's supervisors."
     supervisors_save_failed: "Couldn't change the room's supervisors."
@@ -642,6 +639,7 @@ room:
     room_add_contacts_failed: "Couldn't load contacts."
     room_add_supervisor: "A group's supervisor can only be chosen from your own supervisors."
   action:
+    supervisor_remove: Remove
     room_open: Create
     new_chat_add: Add chat service room
     new_chat_open: Create console room
@@ -679,6 +677,9 @@ room:
     to_latest: Jump to latest
     unpin: Unpin
   label:
+    answers_by_bot: Answers as its bot
+    answers_by_owner: Answers as you
+    supervisor_add: Add a supervisor
     presence_away: Away
     presence_last_seen: "Last seen {ago} ago"
     presence_online: Online
@@ -750,8 +751,7 @@ room:
     background_shell: Shell command
     background_subagent: Subagent
     background_watch: Watch
-    mode_avatar: Avatar mode
-    supervisors: Supervisors to call
+    supervisors: Supervisors
     earlier_count: "{n} earlier"
     edited: Edited
     edited_at: "Edited at {time}"
@@ -951,6 +951,8 @@ room:
     draft_outcome_no_verdict: Passed without a reason
     draft_slow: Slow turn
   message:
+    supervisor_by_account: It answers because its own account is in the room. To remove it, take that account out in the messenger.
+    supervisors_room_rule: "This room's supervisors are the ones named here and the ones whose own accounts are in it. A messenger group room with neither is answered by nobody."
     delete_ask: Delete this message?
     delete_note: "The message's words are removed, and its place stays."
     forwarded: "Forwarded to the {room} room."
@@ -959,11 +961,6 @@ room:
     messages_copied: "Copied {n} messages."
     removal_done: The room registration and its records were deleted.
     removal_goes: "Deleting removes the records and files below with it, and they can't be restored."
-    providers_rule: "A room's chat service is chosen when the room is added, and can't be changed after that."
-    mode_avatar_on: "In this room, the supervisors answer for you as your account."
-    mode_avatar_off: "Only records, and doesn't answer."
-    supervisors_rule: "If none are chosen, the default supervisor answers this room."
-    supervisors_standing: "Supervisors already answering in this room are not among the choices."
     background_every_minutes: "Checks every {n} min"
     background_every_seconds: "Checks every {n}s"
     background_since: "Since {time}"
@@ -989,6 +986,7 @@ room:
     room_open: Create room
     new_chat: New chat
   aria:
+    supervisor_answering: "{name} answers in this room"
     avatar_enlarge: "Enlarge {name}'s profile photo"
     background_open: "View {n} in progress"
     brain_read_open: "Open {name}"
@@ -2352,7 +2350,6 @@ room_info:
     voice: Voice
     situation: Situation
     session: Session info
-    providers: Chat services
     media_none: No media
     files_none: No files
     links_none: No links

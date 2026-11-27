@@ -505,8 +505,6 @@ room:
     received_instructions: "サイレント指示{instructions}件を受信"
     received_messages: "メッセージ{messages}件を受信"
     records_loading: 記録を読み込み中…
-    providers_loading: チャットサービスを読み込み中…
-    mode_saving: ルームのモードを変更中
     supervisors_loading: スーパーバイザーを読み込み中…
     supervisors_saving: ルームのスーパーバイザーを変更中
     removal_loading: 削除する記録を読み込み中…
@@ -533,6 +531,7 @@ room:
     step_arrived: 届いたメッセージを確認中
     step_audit: 呼び方を確認中
   error:
+    supervisor_answering_failed: 監督者をオンまたはオフにできませんでした。
     bad_typing: 入力中表示の形式が正しくありません。
     actions_read_failed: 実行記録を読み込めませんでした。
     attachment_empty: "{name}: 空のファイルのため添付しませんでした。"
@@ -605,9 +604,7 @@ room:
     removal_infrastructure: 設定に記載された運用ルームのため削除できません。
     removal_not_administrator: ルームの登録を削除できるのは管理者だけです。
     removal_owners_chat: 管理者自身の個人チャットのため削除できません。
-    providers_read_failed: チャットサービスを読み込めませんでした。
     mode_no_chat_service: どのチャットサービスにもつながっていないルームのため、アバターモードをオンにできません。
-    mode_read_failed: ルームのモードを読み込めませんでした。
     mode_save_failed: ルームのモードを変更できませんでした。
     supervisors_read_failed: ルームのスーパーバイザーを読み込めませんでした。
     supervisors_save_failed: ルームのスーパーバイザーを変更できませんでした。
@@ -642,6 +639,7 @@ room:
     room_add_contacts_failed: 連絡先を読み込めませんでした。
     room_add_supervisor: グループのスーパーバイザーは自分のスーパーバイザーの中からのみ選べます。
   action:
+    supervisor_remove: 外す
     room_open: 作成
     new_chat_add: チャットサービスのルームを追加
     new_chat_open: コンソールのルームを作成
@@ -679,6 +677,9 @@ room:
     to_latest: 最新のメッセージへ
     unpin: 固定を解除
   label:
+    answers_by_bot: ボットで応答
+    answers_by_owner: 自分のアカウントで応答
+    supervisor_add: 監督者を追加
     presence_away: 離席中
     presence_last_seen: "最終アクセス {ago}前"
     presence_online: オンライン
@@ -750,8 +751,7 @@ room:
     background_shell: シェルコマンド
     background_subagent: サブエージェント
     background_watch: 監視
-    mode_avatar: アバターモード
-    supervisors: 呼び出せるスーパーバイザー
+    supervisors: 監督者
     earlier_count: "以前の{n}件"
     edited: 編集済み
     edited_at: "{time}に編集"
@@ -951,6 +951,8 @@ room:
     draft_outcome_no_verdict: 理由なしで見送り
     draft_slow: 時間のかかったターン
   message:
+    supervisor_by_account: 自分のアカウントがルームにいるため応答します。外すにはメッセンジャーでそのアカウントを退出させてください。
+    supervisors_room_rule: このルームの監督者は、ここで指定した監督者と、自分のアカウントがルームにいる監督者です。メッセンジャーのグループルームにどちらもいなければ、誰も応答しません。
     delete_ask: このメッセージを削除しますか？
     delete_note: メッセージの内容は消えますが、その場所は残ります。
     forwarded: "{room}ルームに転送しました。"
@@ -959,11 +961,6 @@ room:
     messages_copied: "メッセージ{n}件をコピーしました。"
     removal_done: ルームの登録とその記録を削除しました。
     removal_goes: 削除すると、以下の記録とファイルも一緒に削除され、復元できません。
-    providers_rule: チャットサービスはルームを追加するときに決まり、その後は変更できません。
-    mode_avatar_on: このルームでは、スーパーバイザーがあなたのアカウントで代わりに返信します。
-    mode_avatar_off: 記録だけして、返信しません。
-    supervisors_rule: 選択しない場合は、デフォルト応答スーパーバイザーがこのルームに返信します。
-    supervisors_standing: すでにこのルームで返信しているスーパーバイザーは選択肢にありません。
     background_every_minutes: "{n}分ごとに確認"
     background_every_seconds: "{n}秒ごとに確認"
     background_since: "{time}から"
@@ -989,6 +986,7 @@ room:
     room_open: ルームを作成
     new_chat: 新しいチャット
   aria:
+    supervisor_answering: "{name} がこのルームで応答する"
     avatar_enlarge: "{name}のプロフィール写真を拡大表示"
     background_open: "進行中の{n}件を表示"
     brain_read_open: "{name}を開く"
@@ -2368,7 +2366,6 @@ room_info:
     voice: 音声
     situation: 状況
     session: セッション情報
-    providers: チャットサービス
     media_none: メディアなし
     files_none: ファイルなし
     links_none: リンクなし

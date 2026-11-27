@@ -6,7 +6,7 @@ import { wording } from "../../../apps/web/shared/wording";
 import { asked, routeOf } from "../../support/nitro";
 import { answer, standIn } from "../../support/units";
 
-import type { RoomNamedSupervisors, RoomSupervisorsView } from "../../../apps/web/shared/types";
+import type { RoomNamedSupervisors, RoomSupervisorAnswering, RoomSupervisorsView } from "../../../apps/web/shared/types";
 
 // A room's supervisors: read off the room as the receiver holds it, with the ones it may still be told to call —
 // every supervisor the agency registers less the agents already standing in the room — and written whole as the
@@ -42,6 +42,23 @@ const receiver = standIn("RECEIVER", (one) => {
     return answer({ room: -7, mode: "avatar", providers: ["service-a"], chosen: true, answerers: {}, standingAgents: standing, readOnly: false, readOnlyBy: [] });
   }
 
+  // The supervisors standing in the room: the one it names, in the owner's account, and one by its own account, off.
+  if (path === "/rooms/-7/answerers") {
+    return answer({
+      default: "agent-a",
+      voice: "agent-a",
+      items: [
+        ...named.map((name) => ({ agentName: name, defaultAnswerer: name === "agent-a", named: true, byAccount: false, on: true, voice: "owner-account" })),
+        { agentName: "agent-d", defaultAnswerer: false, named: false, byAccount: true, on: false, voice: "own-account" }
+      ],
+      more: false
+    });
+  }
+
+  if (path === "/rooms/-7/supervisors/agent-d/answering" && one.method === "PUT") {
+    return answer({ agentName: "agent-d", on: one.body?.on === true });
+  }
+
   if (path === "/rooms/-7/supervisors" && one.method === "PUT") {
     const names = (one.body?.supervisors as string[]) ?? [];
 
@@ -57,6 +74,7 @@ const receiver = standIn("RECEIVER", (one) => {
 
 const read = await routeOf<RoomSupervisorsView>("../../apps/web/server/api/rooms/[chatId]/supervisors.get");
 const write = await routeOf<RoomNamedSupervisors>("../../apps/web/server/api/rooms/[chatId]/supervisors.put");
+const answering = await routeOf<RoomSupervisorAnswering>("../../apps/web/server/api/rooms/[chatId]/supervisors/[name]/answering.put");
 
 describe("a room's supervisors", () => {
   test("reads the list the room names off the room itself", async () => {
@@ -70,13 +88,36 @@ describe("a room's supervisors", () => {
     standing = ["agent-a", "agent-c"];
     agency.asked.length = 0;
 
-    // agent-c stands in the room and is named by nobody, so it is offered to none; agent-b carries no label and is
-    // offered by its name.
-    expect((await asked(read, { params: { chatId: "-7" } })).answer?.candidates).toEqual([
-      { name: "agent-b", label: "agent-b" },
-      { name: "agent-d", label: "Agent D" }
-    ]);
+    // agent-c stands in the room and is named by nobody, and agent-d stands by its own account, so neither is
+    // offered; agent-b carries no label and is offered by its name.
+    expect((await asked(read, { params: { chatId: "-7" } })).answer?.candidates).toEqual([{ name: "agent-b", label: "agent-b" }]);
     expect(agency.asked.map((one) => one.path)).toEqual(["/supervisors"]);
+  });
+
+  test("stands every supervisor in the room with how it stands and the account it answers in, each by its label", async () => {
+    named = ["agent-a"];
+
+    expect((await asked(read, { params: { chatId: "-7" } })).answer?.standing).toEqual([
+      { name: "agent-a", label: "Agent A", named: true, byAccount: false, on: true, voice: "owner-account" },
+      { name: "agent-d", label: "Agent D", named: false, byAccount: true, on: false, voice: "own-account" }
+    ]);
+  });
+
+  test("turns a supervisor on in the room as the administrator's account, answering as the receiver holds it", async () => {
+    receiver.asked.length = 0;
+
+    const turned = await asked(answering, { params: { chatId: "-7", name: "agent-d" }, body: { on: true } });
+
+    expect(turned.answer).toEqual({ name: "agent-d", on: true });
+    expect(receiver.asked.at(-1)?.path).toBe("/rooms/-7/supervisors/agent-d/answering?account=1");
+    expect(receiver.asked.at(-1)?.body).toEqual({ on: true });
+  });
+
+  test("refuses a switch that names no state and never reaches the receiver", async () => {
+    receiver.asked.length = 0;
+
+    expect((await asked(answering, { params: { chatId: "-7", name: "agent-d" }, body: {} })).status).toBe(400);
+    expect(receiver.asked).toEqual([]);
   });
 
   test("writes the whole list as the administrator's account, with no name asked on the road", async () => {

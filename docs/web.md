@@ -1749,7 +1749,7 @@ Four groups.
   room open beside it, whose own typing picture says so (「Presence and typing」).
   - **A room stands only once it carries a registration,** as the receiver's own record of the room says and never by
     which chat service it is on: it is his private chat (`ownerRoom`), which always stands; it carries a mode
-    (`mode`), an addition's from 추가 or one the administrator set on its 채팅 서비스 tab; the console made it for the supervisors it names — a supervisor's
+    (`mode`), an addition's from 추가; the console made it for the supervisors it names — a supervisor's
     private room, and a group room an account opened naming its own BMO — or a group was added naming one
     (`supervisors`); it is pinned (`pinned`); or he allowed it with his allow command and it
     stands on the receiver's listen list (`listened`). A room with none of these is left out of the one room list
@@ -1757,8 +1757,7 @@ Four groups.
     rooms and the room-list screen: one a chat service merely numbered and listed, and one his own words stand in
     without its carrying a registration, whichever service carried them. It stays in the receiver's record as it is, its
     registration and its messages with it, and opens by its address, `/rooms/` and its chat number, as any room
-    does. Adding it from 추가 and throwing its avatar mode both record a mode on the receiver's record, and it stands
-    at the next read of the
+    does. Adding it from 추가 records a mode on the receiver's record, and it stands at the next read of the
     list. Whether its registration stands decides nothing, since the receiver answers `registered` for every room
     its list holds.
   - **새 채팅 beside the group's name brings a room in,** one icon button, the heading's grey icon in the phone's drawer
@@ -6305,7 +6304,7 @@ Four bounds keep it from growing forever.
   last at the head's end, in the error colour, and opens the room's removal dialog over the view (「방 등록 삭제」); nobody else sees it.
 - **Its tabs stand on one row of the component library's tabs under the head,** the row scrolling sideways where it
   is narrower than its tabs, in this order: 대화상대, 미디어, 파일, 링크, 음악, 음성, 상황, then for the
-  owner 세션 정보, and for the owner in a room he may change 채팅 서비스. The view opens on 대화상대, and on the tab it
+  owner 세션 정보. The view opens on 대화상대, and on the tab it
   last showed while the room's screen stands; changing tabs adds no step to the history.
 - **A tab reads what it shows the first time it is shown in an opening,** with its skeleton while the read runs, and
   keeps it while the view stays open, so a tab gone back to stands as it was left; each opening reads afresh. A
@@ -6335,8 +6334,11 @@ Four bounds keep it from growing forever.
     message into view, marked as a pressed quote's is.
   - A tab with nothing to show says so in one line: 미디어 없음, 파일 없음, 링크 없음, 음악 없음 or 음성 메시지 없음.
 - **The other tabs are the room's own sections:** 대화상대 (「대화상대」), 상황, the room's situation note as it stands
-  (the room's situation as it stands now, above), 세션 정보 (「세션 정보」) and
-  채팅 서비스 (「채팅 서비스」).
+  (the room's situation as it stands now, above), and 세션 정보 (「세션 정보」).
+- **Which chat services carry the room stands in its head, for the owner,** as one small label beside its name for
+  each, by the road's word in the pack (「A chat road's name」): 텔레그램, 카카오톡. A room on the record alone carries
+  none. The labels name and change nothing: a room's chat service is chosen as the room is added (채팅 서비스 방
+  추가) or opened (방 만들기), and stays.
 
 #### 대화에서 찾기
 
@@ -6367,58 +6369,12 @@ Four bounds keep it from growing forever.
 - **A refused pin is said by the pack's sentence for the receiver's code,** as a notice, and the list stands as
   it was.
 
-#### 채팅 서비스
-
-- **방 정보 carries 채팅 서비스 for the owner alone,** after 세션 정보 (「방 정보」). Which providers a room is on
-  is one setting of its registration, which the receiver keeps (its `docs/receiver.md`, 「A room's chat
-  providers」), so nobody else signed in sees it, and the console's server refuses its routes for anyone but the
-  administrator.
-- **The tab shows which chat services carry the room, and changes none of them.** Each provider the room stands on
-  now is a row with its name, in the receiver's order, with nothing to turn. A line under them says the rule: a
-  room's chat service is chosen as the room is added (채팅 서비스 방 추가) or opened (방 만들기), and stays. The
-  receiver refuses a change of a room whose providers an addition set (its `providers-fixed`), and the console
-  offers none.
-- **A road is named by its key, in the pack's words (「A chat road's name」).**
-- **아바타 모드 stands above the providers only where it can apply:** a room the receiver holds on a chat service
-  whose `roomModes` offer `avatar`, or a room the receiver already holds in `avatar`. Whether an
-  addition ever recorded a mode for it is nothing to it: a room the receiver came to know by hearing its lines takes
-  its mode here, where the receiver writes one on the spot (the receiver's `docs/receiver.md`, 「Reading and
-  changing a room's mode」). Anywhere else the tab shows no switch and no line about it. The switch stands on where the
-  receiver holds the room in `avatar` and off in `record-only`, standing off where no one has set a mode for it, with
-  one line under it for each: 이 방에서
-  감독관이 내 계정으로 대신 답합니다 when on, 기록만 하고 답하지 않습니다 when off — the supervisors the room may call
-  answer there, not one BMO. Turning it sets the mode at once as the
-  administrator (the receiver's `PUT /rooms/{roomId}/registration`), the switch waiting while it is written and
-  standing as the receiver answers, and writes nothing else: the room's list of supervisors is written only when the
-  administrator chooses names; a refusal — a chat service that does not offer the mode, a room on none, a
-  room whose service is never answered in — is said in the tab by the pack's sentence for the receiver's code.
-- **The console names no provider apart from the others,** in its code or in what it sends: whether the switch
-  stands turns on what the receiver says of the room and of each provider alone.
-- **Under the switch stands the room's list of supervisors,** wherever the switch does. The list is the room's own
-  answerers and, in a room whose mode is avatar, the whole of who its words may call there (the receiver's
-  `docs/api.md`, 「Supervisors」). It is a select of several, standing on the row under its
-  own label: the choices are the supervisors the agency registers less the agents already standing in the room, which
-  is the receiver's own test of who stands there — its record holds their lines, answered as `standingAgents` of the
-  room's registration — since an agent answering in the room already is no choice to make, and the room is never
-  refused for one; the tab opens for the administrator alone, who is shown that whole reduced list, each choice by its
-  label with its name under it. A name the room already carries that the choices would leave out stays among them,
-  by that name alone, so an edit never drops it unseen. A line under the row says what naming none does: the room
-  goes to the default answerer, and a second says that the agents already answering in the room are not among the
-  choices. The read is asked once the row first stands, its place kept by a skeleton while it
-  runs.
-- **A choice is written whole at once,** as the administrator and as his account (the receiver's
-  `PUT /rooms/{roomId}/supervisors`, which declares `account` and reads no `by`): every name the select holds goes,
-  the row waiting while it is written and standing as the receiver answers the list now held, in its name order;
-  un-taking every name is that write too, an empty list leaving the setting unset. A refusal — a name the agency
-  does not register, another account's private room — is said in the tab by the pack's sentence for the receiver's
-  code, and the row stands as the receiver last answered it.
-
 #### A chat road's name
 
 - **Every chat road the receiver names is called by its key, in the reader's language pack.** The receiver gives
   each road a label of its own, which is English and is never shown; the console keeps one word per road key the
   receiver declares — its own record (대화 기록) and each chat service a receiver configuration names a road for —
-  in all four packs, and says it wherever a road is named: the 채팅 서비스 tab's rows, the chat services
+  in all four packs, and says it wherever a road is named: the labels in a room's information head, the chat services
   채팅 서비스 방 추가 offers, the line where a room's past begins and the chat service a file past its limit names.
 - **A road the pack holds no word for is called by the pack's word for a messenger with its key beside it**
   (「메신저 (key)」), so two such roads stay apart and the receiver's English still never shows. A road key the
@@ -6490,9 +6446,28 @@ Four bounds keep it from growing forever.
   sender is linked to an account — calls their own BMO into the room by its name, though the room does not name it
   (the receiver's `docs/wake.md`, 「Who reaches the session」; the account service's `docs/accounts.md`, 「A room's
   callers」). No screen lists who may call or changes it: letting a person in gives the right, and leaving or being
-  taken out ends it. A room whose mode is avatar narrows which agents its own words may call, and 채팅 서비스 stands
-  that list out (「Under the switch stands the room's list of supervisors」); it names supervisors the room calls,
-  never a person's right, and no screen words it as one.
+  taken out ends it.
+- **The supervisors that answer the room stand at the head of 대화상대, for the owner in a room he may change,** under
+  the word 감독관, each a row with its face and label: every supervisor standing in the room, named by the room or
+  called in by its own account being one of the room's members (the receiver's `docs/wake.md`, 「Who reaches the
+  session」), as the receiver answers them (`GET /rooms/{roomId}/answerers`).
+  - **Each row says the account it answers in:** 봇으로 답함 where its own account is in the room, 내 계정으로 답함
+    where it is named and answers in the owner's own account behind its name tag.
+  - **Each row carries its switch,** on while the supervisor answers there, and turning it off has it answer
+    nothing in the room while it stays, its account a member still (the receiver's
+    `PUT /rooms/{roomId}/supervisors/{supervisorName}/answering`); the switch waits while it is written and stands
+    as the receiver answers.
+  - **A named supervisor's row carries 빼기,** which writes the room's names without it (the receiver's
+    `PUT /rooms/{roomId}/supervisors`). A supervisor standing by its account has none: it leaves when its account is
+    taken out of the room on its chat service, and a line under its row says so.
+  - **감독관 추가 under the rows names one more,** a select of the supervisors the agency registers less the ones
+    standing in the room, each by its label with its name under it; choosing one writes the room's names with it.
+    In a room a chat service carries, where the owner's account can invite a supervisor's own account, the
+    supervisor answers through it once invited there; otherwise it answers in the owner's own account.
+  - **A line under the section says the rule:** a room's supervisors are the ones named here and the ones whose own
+    accounts are in it, and a chat service's group room with neither is answered by nobody.
+  - A refusal is said under the section by the pack's sentence for the receiver's code, and every row stands as the
+    receiver last answered.
 - **A room's members are accounts, by either road** (`STRUCTURE.md`, 「Accounts, companies and units」): the
   accounts let into the room in the console, as the receiver answers them (`GET /rooms/{roomId}/accounts`), and the
   people the chat service carrying the room read as its members (`GET /rooms/{roomId}/members`), each read every time

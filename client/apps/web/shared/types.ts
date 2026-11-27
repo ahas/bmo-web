@@ -2840,6 +2840,26 @@ export interface RoomSupervisorOption {
 export interface RoomSupervisorsView {
   supervisors: string[];
   candidates: RoomSupervisorOption[];
+  // Every supervisor standing in the room, named or by its own account, the ones turned off among them.
+  standing: RoomSupervisorStanding[];
+}
+
+// A supervisor standing in a room (the receiver's `docs/wake.md`, 「Who reaches the session」): its name and label,
+// whether the room names it, whether its own account is one of the room's members, whether it answers there, and
+// the account its words go out in.
+export interface RoomSupervisorStanding {
+  name: string;
+  label: string;
+  named: boolean;
+  byAccount: boolean;
+  on: boolean;
+  voice: "own-account" | "owner-account";
+}
+
+// A supervisor turned off or on in a room, as the receiver now holds it.
+export interface RoomSupervisorAnswering {
+  name: string;
+  on: boolean;
 }
 
 // A room's list of supervisors as its write answers it: the names the receiver now holds, in its order.

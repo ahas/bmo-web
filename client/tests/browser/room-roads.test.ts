@@ -43,7 +43,7 @@ afterAll(async () => {
   await browser?.close();
 }, BROWSER_HOOK_MS);
 
-describe.skipIf(!origin || !touchReady())("the room's chat services tab", () => {
+describe.skipIf(!origin || !touchReady())("the room's chat service labels", () => {
   for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
     test(`names every road in the pack's words and never the receiver's label, ${width}px wide`, async () => {
       const context = await browser!.newContext({ viewport: { width, height }, isMobile: phone, hasTouch: phone, locale: "ko-KR", serviceWorkers: "block", reducedMotion: "reduce" });
@@ -57,21 +57,15 @@ describe.skipIf(!origin || !touchReady())("the room's chat services tab", () => 
         await page.goto(`${origin}/rooms/${RECORD_CHAT}`, { waitUntil: "load" });
         await page.locator("[data-message-id]").last().waitFor({ timeout: 30_000 });
 
-        const sheet = await openRoomInfo(page, wording("room_info.label.providers"));
-        const roads = sheet.locator("[data-room-providers]");
+        const sheet = await openRoomInfo(page, wording("room_info.label.members"));
+        const roads = sheet.locator("[data-room-road-label]");
 
-        await roads.waitFor({ timeout: 10_000 });
+        // One label per road the room stands on, in the receiver's order, each called by the console's word for its key.
+        await roads.first().waitFor({ timeout: 10_000 });
+        expect((await roads.allInnerTexts()).map((one) => one.trim())).toEqual(NAMES);
+        for (const label of RECEIVER_LABELS) expect(await sheet.innerText()).not.toContain(label);
 
-        // One row per road the room stands on, in the receiver's order, each called by the console's word for its key.
-        const shown = (await roads.innerText())
-          .split("\n")
-          .map((one) => one.trim())
-          .filter((one) => one !== "");
-
-        expect(shown).toEqual(NAMES);
-        for (const label of RECEIVER_LABELS) expect(await sheet.locator("[data-room-info-body]").innerText()).not.toContain(label);
-
-        // Nothing of the tab reaches past the screen's width.
+        // Nothing of the head reaches past the screen's width.
         const wide = await page.evaluate(() => document.documentElement.scrollWidth > innerWidth);
 
         expect(wide).toBe(false);

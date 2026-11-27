@@ -4,4 +4,4 @@
 
 import type { RoomHolding } from "#shared/types";
 
-export type RoomInfoTab = "members" | RoomHolding | "situation" | "session" | "providers";
+export type RoomInfoTab = "members" | RoomHolding | "situation" | "session";

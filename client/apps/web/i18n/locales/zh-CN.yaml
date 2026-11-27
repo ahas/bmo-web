@@ -505,8 +505,6 @@ room:
     received_instructions: "收到{instructions}条静默指令"
     received_messages: "收到{messages}条消息"
     records_loading: 正在加载记录…
-    providers_loading: 正在加载聊天服务…
-    mode_saving: 正在更改房间模式
     supervisors_loading: 正在加载主管…
     supervisors_saving: 正在更改房间主管
     removal_loading: 正在加载要删除的记录…
@@ -533,6 +531,7 @@ room:
     step_arrived: 正在检查收到的消息
     step_audit: 正在检查称呼
   error:
+    supervisor_answering_failed: 无法打开或关闭主管。
     bad_typing: 正在输入提示的格式无效。
     actions_read_failed: 无法加载运行记录。
     attachment_empty: "{name}：文件为空，未添加附件。"
@@ -605,9 +604,7 @@ room:
     removal_infrastructure: 这是配置中写明的运维房间，无法删除。
     removal_not_administrator: 仅管理员可以删除房间登记。
     removal_owners_chat: 这是管理员自己的私人聊天，无法删除。
-    providers_read_failed: 无法加载聊天服务。
     mode_no_chat_service: 此房间未连接任何聊天服务，无法开启代答模式。
-    mode_read_failed: 无法加载房间模式。
     mode_save_failed: 无法更改房间模式。
     supervisors_read_failed: 无法加载房间主管。
     supervisors_save_failed: 无法更改房间主管。
@@ -642,6 +639,7 @@ room:
     room_add_contacts_failed: 无法加载联系人。
     room_add_supervisor: 群组的主管只能从你自己的主管中选择。
   action:
+    supervisor_remove: 移除
     room_open: 创建
     new_chat_add: 添加聊天服务房间
     new_chat_open: 创建控制台房间
@@ -679,6 +677,9 @@ room:
     to_latest: 跳到最新消息
     unpin: 取消置顶
   label:
+    answers_by_bot: 用其机器人回复
+    answers_by_owner: 用我的账号回复
+    supervisor_add: 添加主管
     presence_away: 离开
     presence_last_seen: "最近在线 {ago}前"
     presence_online: 在线
@@ -750,8 +751,7 @@ room:
     background_shell: Shell 命令
     background_subagent: 子智能体
     background_watch: 监视
-    mode_avatar: 代答模式
-    supervisors: 可呼叫的主管
+    supervisors: 主管
     earlier_count: "更早{n}条"
     edited: 已编辑
     edited_at: "编辑于{time}"
@@ -951,6 +951,8 @@ room:
     draft_outcome_no_verdict: 无理由跳过
     draft_slow: 耗时较长的轮次
   message:
+    supervisor_by_account: 它因自己的账号在房间里而回复。要移除它，请在聊天软件中将该账号移出。
+    supervisors_room_rule: 此房间的主管是这里指定的主管，以及自己的账号在房间里的主管。聊天软件的群聊房间若两者都没有，则无人回复。
     delete_ask: 要删除此消息吗？
     delete_note: 消息内容会被删除，但其位置会保留。
     forwarded: "已转发到{room}房间。"
@@ -959,11 +961,6 @@ room:
     messages_copied: "已复制{n}条消息。"
     removal_done: 已删除房间登记及其记录。
     removal_goes: 删除后，下列记录和文件将一并删除，且无法恢复。
-    providers_rule: 聊天服务在添加房间时确定，之后无法更改。
-    mode_avatar_on: 在此房间中，主管以你的账号代你回复。
-    mode_avatar_off: 只记录，不回复。
-    supervisors_rule: 不选择时，由默认回复主管回复此房间。
-    supervisors_standing: 已在此房间回复的主管不在候选之中。
     background_every_minutes: "每{n}分钟检查一次"
     background_every_seconds: "每{n}秒检查一次"
     background_since: "自{time}起"
@@ -989,6 +986,7 @@ room:
     room_open: 创建房间
     new_chat: 新聊天
   aria:
+    supervisor_answering: "{name} 在此房间回复"
     avatar_enlarge: "放大查看{name}的头像"
     background_open: "查看进行中的{n}项"
     brain_read_open: "打开{name}"
@@ -2368,7 +2366,6 @@ room_info:
     voice: 语音
     situation: 情况
     session: 会话信息
-    providers: 聊天服务
     media_none: 无媒体
     files_none: 无文件
     links_none: 无链接

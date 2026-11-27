@@ -11,6 +11,7 @@ const read = async (path: string): Promise<string> => Bun.file(new URL(`../../..
 const page = await read("app/pages/rooms/[chatId].vue");
 const message = await read("app/components/RoomMessage.vue");
 const info = await read("app/components/RoomInfoSheet.vue");
+const members = await read("app/components/RoomMembersPanel.vue");
 const template = page.slice(0, page.indexOf("<script"));
 const script = page.slice(page.indexOf("<script"));
 
@@ -30,7 +31,7 @@ describe("the room screen's write controls", () => {
     // The room's own picture is his only where he manages the room and it stands as no agent (docs/web.md, the room information).
     expect(template).toContain(':picture-settable="manages && roomAgent === null"');
     expect(info).toContain('<PictureDialog\n    v-if="props.pictureSettable"');
-    expect(info).toContain('<RoomProvidersPanel v-if="props.manages');
+    expect(info).toContain(':manages="props.manages"');
 
     expect(script).toContain("room.chatId !== chatId && room.writable !== false");
   });
@@ -56,7 +57,7 @@ describe("the room screen's write controls", () => {
 
   test("keep the session information the administrator's, and the room's own settings his where he may change it", () => {
     expect(info).toContain('...(props.administrator ? ["session" as const] : [])');
-    expect(info).toContain('...(props.manages ? ["providers" as const] : [])');
+    expect(members).toContain('<RoomSupervisorsSection v-if="props.manages"');
     expect(script).toContain('...(manages.value ? [[{ label: t("room.action.remove_registration")');
   });
 });

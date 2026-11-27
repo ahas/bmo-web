@@ -1,7 +1,7 @@
 import { agency, agencyCall } from "./agency";
 import { receiver, receiverCall, receiverRoute } from "./receiver";
 
-import type { RoomSupervisorOption, RoomSupervisorsView } from "#shared/types";
+import type { RoomSupervisorOption, RoomSupervisorStanding, RoomSupervisorsView } from "#shared/types";
 
 // The supervisors an avatar room may call (docs/web.md, the room screen's chat services): the list the room stands on
 // and the ones it may still be told to call. The candidates are the supervisors the agency registers less the agents
@@ -35,12 +35,23 @@ function names(held: unknown): string[] {
 
 /** The room's list of supervisors and the candidates to choose among, for the administrator who reads it. */
 export async function roomSupervisors(roomId: number, by: string): Promise<RoomSupervisorsView> {
-  const [room, registration, supervisors] = await Promise.all([
+  const [room, registration, supervisors, answerers] = await Promise.all([
     receiverCall(receiver().GET("/rooms/{roomId}", { params: { path: { roomId } } })),
     receiverRoute<StandingRegistration>(`/rooms/${roomId}/registration?${new URLSearchParams({ by })}`),
-    agencyCall(agency().GET("/supervisors"))
+    agencyCall(agency().GET("/supervisors")),
+    receiverCall(receiver().GET("/rooms/{roomId}/answerers", { params: { path: { roomId } } }))
   ]);
-  const standing = new Set(names(registration.standingAgents));
+  const labelOf = (name: string): string => supervisors.items.find((one) => one.name === name)?.label?.trim() || name;
+  // The supervisors standing in the room, named or by their own accounts, as the receiver answers them.
+  const standingSupervisors: RoomSupervisorStanding[] = answerers.items.map((answerer) => ({
+    name: answerer.agentName,
+    label: labelOf(answerer.agentName),
+    named: answerer.named,
+    byAccount: answerer.byAccount,
+    on: answerer.on,
+    voice: answerer.voice === "own-account" ? "own-account" : "owner-account"
+  }));
+  const standing = new Set([...names(registration.standingAgents), ...standingSupervisors.map((one) => one.name)]);
   const candidates: RoomSupervisorOption[] = [];
 
   for (const supervisor of supervisors.items) {
@@ -51,5 +62,5 @@ export async function roomSupervisors(roomId: number, by: string): Promise<RoomS
     candidates.push({ name, label: supervisor.label?.trim() || name });
   }
 
-  return { supervisors: names(room.supervisors), candidates };
+  return { supervisors: names(room.supervisors), candidates, standing: standingSupervisors };
 }

@@ -27,6 +27,8 @@
         </button>
         <UAvatar v-else v-bind="props.avatar" size="md" />
         <span class="min-w-0 truncate">{{ props.title }}</span>
+        <!-- The chat services carrying the room, for the owner, each one small label by the road's word. -->
+        <UBadge v-for="road in roads" :key="road.key" :label="road.label" color="neutral" variant="subtle" class="shrink-0" data-room-road-label />
       </span>
     </template>
 
@@ -75,6 +77,7 @@
           :avatars="props.avatars"
           v-model:let-in="letIn"
           :administrator="props.administrator"
+          :manages="props.manages"
           @left="emit('left')"
         />
         <template v-for="holding in ROOM_HOLDINGS" :key="holding">
@@ -82,7 +85,6 @@
         </template>
         <RoomSituationPanel v-if="shown.has('situation')" v-show="tab === 'situation'" :chat-id="props.chatId" />
         <RoomSessionPanel v-if="props.administrator && shown.has('session')" v-show="tab === 'session'" :chat-id="props.chatId" />
-        <RoomProvidersPanel v-if="props.manages && shown.has('providers')" v-show="tab === 'providers'" :chat-id="props.chatId" />
       </div>
     </template>
   </component>
@@ -110,7 +112,7 @@ import { ROOM_HOLDINGS } from "#shared/types";
 import type { AvatarIndex } from "~/domain/avatars";
 import type { RoomInfoTab } from "~/domain/room-info";
 import type { AvatarProps, TabsItem } from "@nuxt/ui";
-import type { ExactMessageId } from "#shared/types";
+import type { ExactMessageId, RoomProvidersView } from "#shared/types";
 
 interface Props {
   chatId: number;
@@ -120,8 +122,8 @@ interface Props {
   avatars: AvatarIndex;
   // Whether the reader is the administrator, who reads the room's figures.
   administrator: boolean;
-  // Whether the reader is the administrator in a room he may change, who sets its avatar mode and reads its chat
-  // services.
+  // Whether the reader is the administrator in a room he may change, who reads its chat services and sets the
+  // supervisors that answer it.
   manages: boolean;
   // Whether the room's own picture is his to set here: a room he manages that stands as no agent, since an agent's
   // private room wears its agent's picture, set on the agent's page.
@@ -148,8 +150,7 @@ const TAB_LABELS: Record<RoomInfoTab, string> = {
   music: "room_info.label.music",
   voice: "room_info.label.voice",
   situation: "room_info.label.situation",
-  session: "room_info.label.session",
-  providers: "room_info.label.providers"
+  session: "room_info.label.session"
 };
 
 const props = defineProps<Props>();
@@ -168,9 +169,26 @@ const tabs = computed<TabsItem[]>(() =>
     "members" as const,
     ...ROOM_HOLDINGS,
     "situation" as const,
-    ...(props.administrator ? ["session" as const] : []),
-    ...(props.manages ? ["providers" as const] : [])
+    ...(props.administrator ? ["session" as const] : [])
   ].map((value) => ({ value, label: t(TAB_LABELS[value]) }))
+);
+
+// The chat services carrying the room, read for the owner as the view opens; none where the read fails, since the
+// labels only name what carries the room.
+const roads = ref<RoomProvidersView["on"]>([]);
+
+watch(
+  open,
+  async (standing) => {
+    if (!standing || !props.manages) return;
+
+    try {
+      roads.value = (await $fetch<RoomProvidersView>(`/api/rooms/${props.chatId}/providers`)).on;
+    } catch {
+      roads.value = [];
+    }
+  },
+  { immediate: true }
 );
 
 // The tabs shown since the view opened, each keeping what it read while the view stands.

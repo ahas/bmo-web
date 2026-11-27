@@ -8,6 +8,7 @@
        what that member may do to the room's people besides being one, which a reader the receiver would take such a
        writing from sets there, and nobody else sees. -->
   <div class="flex min-w-0 flex-col">
+    <RoomSupervisorsSection v-if="props.manages" :chat-id="props.chatId" />
     <!-- A room a messenger carries takes its people from the messenger, which this line says in place of the add. -->
     <p v-if="loaded && entry.messenger" class="mb-2 text-sm text-muted" data-room-messenger-members>{{ $t("members.label.messenger_room") }}</p>
     <div v-else-if="loaded && entry.letIn" class="mb-2 flex justify-end">
@@ -131,6 +132,8 @@ interface Props {
   title: string;
   avatars: AvatarIndex;
   administrator: boolean;
+  // Whether the reader is the owner in a room he may change, who sees and sets the supervisors that answer it.
+  manages?: boolean;
 }
 
 // The list and each row share one shape, so the skeleton's rows stand where the members land. A row holds its picture

@@ -1536,6 +1536,17 @@ export async function chainKinds(options: ServiceOptions = {}): Promise<ChainKin
   return answered(await sent(options, clientOf(options).GET("/chain/kinds"))).kinds;
 }
 
+/** A kind declared on the chain as its consumer states it, as the deployment's own; a kind declared again is replaced
+ * by the declaration given. */
+export async function declareChainKind(key: string, declaration: unknown, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/chain/kinds/{key}", { params: { path: { key } }, body: declaration as never })
+  );
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}
+
 /** A kind resolved for a person or a unit, with the standing of one link asked after where `link` names it. */
 export async function resolveChain(key: string, subject: { person: string } | { unit: number }, link?: string, options: ServiceOptions = {}): Promise<ChainResolutionView> {
   const query = { ...subject, ...(link === undefined ? {} : { link }) };

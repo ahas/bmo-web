@@ -575,3 +575,7 @@ export type RemoteDesktopQuality = (typeof REMOTE_DESKTOP_QUALITIES)[number];
 export function isRemoteDesktopQuality(value: unknown): value is RemoteDesktopQuality {
   return typeof value === "string" && (REMOTE_DESKTOP_QUALITIES as readonly string[]).includes(value);
 }
+
+// How often the console writes the agency its view of the organisation whole, so a change made outside the console
+// reaches the agency within this time (docs/web.md, 「The agency's organisation」).
+export const AGENCY_SYNC_MS = 60_000;

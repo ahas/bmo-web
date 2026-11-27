@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { guardAgencyCall } from "../../../apps/web/server/utils/agency-guard";
 
-import type { GuardReads } from "../../../apps/web/server/utils/agency-guard";
+import type { GuardReads, GuardedOwner } from "../../../apps/web/server/utils/agency-guard";
 import type { SectionRow } from "../../../apps/web/shared/sections";
 
 // What a person may reach of agent management in the agency, judged by the console before a call goes out
@@ -27,7 +27,7 @@ const failing: GuardReads = {
   rowIsUnits: async () => false
 };
 
-async function judged(method: string, path: string, given: GuardReads, owner = MEMBER, body: Record<string, unknown> | null = null) {
+async function judged(method: string, path: string, given: GuardReads, owner: GuardedOwner = MEMBER, body: Record<string, unknown> | null = null) {
   return await guardAgencyCall({ method, path, body }, owner, given);
 }
 

@@ -1,6 +1,6 @@
 //! Whether a person's node holds what a chat service reads their account through there (docs/accounts.md, 「A
 //! person's messenger accounts」), asked as a run of the node service's on that node: the probe command the chat
-//! service declares, exiting 0 where the node holds it. A service that names no node service knows nothing, and
+//! service declares, exiting 0 where the node holds it and 1 where it does not. A service that names no node service knows nothing, and
 //! refuses nothing for it.
 
 use std::time::Duration;
@@ -73,6 +73,11 @@ impl NodeProbe for NodeService {
 
     let ran: serde_json::Value = answer.json().await.ok()?;
 
-    ran["exitCode"].as_i64().map(|code| code == 0)
+    // 0 holds it and 1 lacks it; any other end, a shell the node takes no command in among them, tells nothing.
+    match ran["exitCode"].as_i64() {
+      Some(0) => Some(true),
+      Some(1) => Some(false),
+      _ => None,
+    }
   }
 }

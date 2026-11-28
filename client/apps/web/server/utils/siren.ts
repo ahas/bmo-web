@@ -5,7 +5,7 @@ import { unitFetch } from "./units";
 
 import type { AgentMode, SirenEvent, SirenWatch } from "#shared/types";
 
-// The cache siren as the console reads it (the cache siren's `docs/api.md`, 0.1.0-rev.3): its sums by session and
+// The cache siren as the console reads it (the cache siren's `docs/api.md`): its sums by session and
 // its siren count, its settings, and the newest of its events, at the address `CACHE_SIREN_ADDRESS` names. The
 // daemon keeps a window of events, a siren count and three settings; it keeps no quota source and no figure for
 // the files it reads, so the screen shows neither. Which agent holds a session and what moved a cache prefix are

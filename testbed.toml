@@ -74,6 +74,13 @@ dir = "client/apps/web"
 lane = "wide"
 command = "set -a && . ~/.local/share/bmo/data/env/web-console.env && set +a && BMO_WEB_OUTPUT_DIR=\"$(git rev-parse --show-toplevel)/../deploy-releases/$(git rev-parse HEAD | cut -c1-12)/client/apps/web/.output\" bun run build"
 
+# The account script bundled whole with what it imports, into the release's user/, so the first account is made on a
+# machine that holds no packages of the console's own (docs/web.md, 「The first account」).
+[[build.step]]
+id = "account-script"
+dir = "client/apps/web"
+command = "bun build scripts/user.ts --target bun --outfile \"$(git rev-parse --show-toplevel)/../deploy-releases/$(git rev-parse HEAD | cut -c1-12)/user/user.js\""
+
 # The repository's own deploy tree, and the data root it shares with the services that read its files. The
 # server's settings stand under the data root as env/web.toml, which each release links to as the server's
 # settings.local.toml, and the console's environment as env/web-console.env, which each release links to beside the
@@ -115,3 +122,10 @@ command = "bin/bmo-web-server wording ."
 id = "migrate"
 phase = "before-flip"
 command = "cd server && ../bin/bmo-web-server migrate"
+
+# The release a person's machine runs, packed as an artifact (bmo-testbed's docs/artifacts.md): the server's folder,
+# the console the build wrote, the bundled account script and the wording documents, with Bun to run the console.
+[artifact]
+keep = ["server", "client/apps/web/.output", "user", "documents.en.yaml", "documents.ja.yaml", "documents.ko.yaml", "documents.zh-CN.yaml"]
+drop = ["server/src", "server/tests", "server/client"]
+runtimes = ["bun"]

@@ -11405,6 +11405,12 @@ cd <checkout>/client/apps/web
 bun scripts/user.ts set <id> <password>
 ```
 
+Every release carries the same script bundled whole with what it imports, as `user/user.js`, which the build writes
+there, so a machine that installed the console from an artifact, holding no packages of the console's own, runs it
+as `bun user.js set <id> <password>` from the deploy tree's `user/` folder, with the Bun the release carries in
+`runtime/bun` or the account's own. The install makes the first account that way (「The first account」 is the
+install's after-step `first-account`). The console's unit runs on that Bun too, the release's before the account's.
+
 An id is a login as every login is read (`docs/accounts.md`, 「Users and senders」): one line of 1 to 254 characters
 with no control character, an email address among them. A password is 8 characters or more. A password is
 hashed with argon2id so the original stays nowhere.

@@ -12,18 +12,22 @@ restart = "systemctl --user restart bmo-web-server.service bmo-web.service"
 report = "{{input.web.public-address}}"
 
 [[needs]]
+build = true
 program = "cargo"
 what = "Rust's Cargo, which a deployment builds the server with: `curl https://sh.rustup.rs -sSf | sh`."
 
 [[needs]]
+build = true
 program = "cc"
 what = "A C toolchain, whose linker Cargo links the server with: the `build-essential` package."
 
 [[needs]]
+build = true
 check = 'test -x "$HOME/.bun/bin/bun"'
 what = "Bun at ~/.bun/bin/bun, which builds the console, runs it as a service and runs its account script: `curl -fsSL https://bun.sh/install | bash`."
 
 [[needs]]
+build = true
 program = "git"
 what = "git, which the console's build step names its release by: the `git` package."
 
@@ -191,11 +195,12 @@ while IFS= read -r line; do
     *) export "$line" ;;
   esac
 done < "$BMO_DATA_DIR/env/web-console.env"
-cd "$BMO_INSTALL_PREFIX/bmo-web/deploy-expand/client/apps/web"
-"$HOME/.bun/bin/bun" -e '
+cd "$BMO_INSTALL_PREFIX/bmo-web/deploy/user"
+PATH="$BMO_INSTALL_PREFIX/bmo-web/deploy/runtime/bun:$HOME/.bun/bin:$PATH"
+bun -e '
 const read = (name) => require("node:fs").readFileSync(process.env[name], "utf8").replace(/\r?\n$/, "");
-process.argv.splice(1, process.argv.length - 1, "scripts/user.ts", "set", read("BMO_INPUT_WEB_OWNER_NAME"), read("BMO_INPUT_WEB_OWNER_PASSWORD"), "--administrator");
-await import("./scripts/user.ts");
+process.argv.splice(1, process.argv.length - 1, "user.js", "set", read("BMO_INPUT_WEB_OWNER_NAME"), read("BMO_INPUT_WEB_OWNER_PASSWORD"), "--administrator");
+await import("./user.js");
 '
 '''
 done = '''psql --dbname=bmo_web --no-psqlrc --tuples-only --no-align --command "select 1 from web_users limit 1" | grep -qx 1'''

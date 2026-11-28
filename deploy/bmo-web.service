@@ -13,12 +13,13 @@ StartLimitBurst=5
 [Service]
 WorkingDirectory=%h/.local/share/bmo-web/deploy/client/apps/web
 EnvironmentFile=%h/.local/share/bmo-web/deploy/client/apps/web/console.env
-ExecStart=%h/.bun/bin/bun .output/server/index.mjs
+# Bun is the one the release carries where it carries one (an artifact's runtime/bun), else the account's own.
+ExecStart=/bin/sh -c 'exec bun .output/server/index.mjs'
 Restart=on-failure
 RestartSec=5
 # The console ends on SIGTERM once its relays are told and its close hooks have run; a stop waits for that end.
 TimeoutStopSec=infinity
-Environment=PATH=%h/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PATH=%h/.local/share/bmo-web/deploy/runtime/bun:%h/.bun/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
 [Install]
 WantedBy=default.target

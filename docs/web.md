@@ -10889,8 +10889,10 @@ title bar」), its people directory and the members of the reader's company.
   shared versions pin, vendored under `client/vendor/` as it stands. It attaches a bundle built on any release
   inside that release's range, from the bound bmo-ui's `LAYER_BOUND` answers up to its own, `LAYER_VERSION`, both
   included, as bmo-ui's `onThisLayer` reads the list `LAYER_RANGE` names (the contract's 「The layer a bundle is
-  built on」); a bundle built on a release older than the bound, newer than the console's or one the layer's ledger
-  does not hold, a layer taken from its source among them, is left out. The libraries a bundle
+  built on」), and a bundle built on any other release whose manifest says what of the layer it uses, `layerUses`, every
+  piece of which the console's release offers, `LAYER_OFFERS` (the contract's 「A console attaches a bundle it can
+  run」); any other, one that says nothing of what it uses or reaches for a piece the console's release lacks, a layer
+  taken from its source among them, is left out. The libraries a bundle
   shares with it are the ones bmo-ui's `CONSOLE_SHARED_LIBRARIES` lists, and the console's build stops where that
   list names one it does not know how to hand a bundle. Of `@nuxt/ui` it hands every component and composable it
   can load: a component that imports one of Nuxt UI's optional peers the console has not installed, its chart on
@@ -10914,7 +10916,8 @@ title bar」), its people directory and the members of the reader's company.
   `consoleManifest`, one built on a layer outside the console's range, one whose words do not answer, one whose
   service bears the name the console answers its company's members under (below), and two that clash are each
   left out with a line in the server's log naming the unit and the reason: for a layer outside the range, the
-  manifest's layer, the console's own and the bound it attaches from, so a screen missing from the sidebar after a
+  manifest's layer and the console's own, and either the bound it attaches from or each piece the bundle uses that
+  the console's release does not offer, so a screen missing from the sidebar after a
   release of bmo-ui is explained there by the bound. A line is written as a reason first stands and again where it
   changes, never once a minute for a reason that stands, and a unit whose manifest reads again is attached again
   with no further line.

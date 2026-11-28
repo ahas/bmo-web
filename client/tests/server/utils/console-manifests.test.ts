@@ -79,7 +79,7 @@ async function logged(run: () => Promise<void>): Promise<string[]> {
 
 // The line the log holds for a bundle built on a layer outside the console's range.
 function outsideRange(name: string, layer: string): string {
-  return `console bundles: ${name}'s bundle is left out: it is built on bmo-ui ${layer}, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`;
+  return `console bundles: ${name}'s bundle is left out: it is built on bmo-ui ${layer} and says nothing of what it uses of it, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`;
 }
 
 test("a manifest built on any release from the console's bound up to its own brings its bundle, the bound's included, and the log says nothing", async () => {

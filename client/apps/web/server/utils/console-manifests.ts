@@ -1,4 +1,4 @@
-import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor, titleFor } from "bmo-ui/shared/console-manifest";
+import { CONSOLE_MANIFEST_ROUTE, LAYER_BOUND, LAYER_VERSION, consoleManifest, missingUses, movedScreenAddress, onThisLayer, relaysRoute, roleAllows, screensCall, sectionFor, titleFor } from "bmo-ui/shared/console-manifest";
 
 import { ownerKeyOf, ownerRoleOf } from "./owner-key";
 import { personalName, personalPath } from "./personal-screens";
@@ -136,7 +136,9 @@ export async function askedBundle(name: string, unit: UnitAddress): Promise<Atta
   if (!onThisLayer(manifest)) {
     recordLeftOut(
       subject,
-      `it is built on bmo-ui ${manifest.layer}, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`
+      manifest.layerUses === undefined
+        ? `it is built on bmo-ui ${manifest.layer} and says nothing of what it uses of it, and the console runs bmo-ui ${LAYER_VERSION}, which attaches bundles built on bmo-ui ${LAYER_BOUND} up to its own`
+        : `it is built on bmo-ui ${manifest.layer} and uses what the console's bmo-ui ${LAYER_VERSION} does not offer: ${missingUses(manifest).join(", ")}`
     );
 
     return null;

@@ -912,3 +912,96 @@ async fn rules_name_people_groups_and_units_and_a_group_is_kept_by_its_unit() {
     tree.ask(Method::DELETE, &format!("/chain/groups/{group_id}"), None, company_head).await;
   assert_eq!(status, StatusCode::NO_CONTENT);
 }
+
+// A person's messenger accounts (docs/accounts.md, 「A person's messenger accounts」): every chat service the
+// receiver lists is let to everyone until a link narrows it, a person sets their own account on a service they are
+// let use and is refused one they are not, and no one else reads or sets them.
+#[tokio::test]
+async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisation_lets_them_use() {
+  let tree = tree().await;
+  let person = tree.person;
+  let path = format!("/users/{}/messengers", person.0);
+
+  *tree._scratch.rooms.chat_services.lock().unwrap() = vec!["telegram".to_owned(), "teams".to_owned()];
+
+  let (status, listed) = asked(&tree.app, Method::GET, &path, None, person).await;
+
+  assert_eq!(status, StatusCode::OK, "{listed}");
+  assert_eq!(
+    listed["items"],
+    json!([
+      { "service": "telegram", "offered": true, "account": null },
+      { "service": "teams", "offered": true, "account": null },
+    ])
+  );
+
+  // The company's head lets its people use Teams alone.
+  let (status, said) = asked(
+    &tree.app,
+    Method::PUT,
+    &format!("/chain/kinds/chat.services/links/unit:{}/value", tree.company),
+    Some(json!({ "value": ["teams"] })),
+    tree.company_head,
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let (status, refused) = asked(
+    &tree.app,
+    Method::PUT,
+    &format!("{path}/telegram"),
+    Some(json!({ "mode": "own" })),
+    person,
+  )
+  .await;
+
+  assert_eq!((status, &refused["code"]), (StatusCode::FORBIDDEN, &json!("not-offered")), "{refused}");
+
+  let (status, said) = asked(
+    &tree.app,
+    Method::PUT,
+    &format!("{path}/teams"),
+    Some(json!({ "mode": "node" })),
+    person,
+  )
+  .await;
+
+  assert_eq!(status, StatusCode::OK, "{said}");
+
+  let (_, listed) = asked(&tree.app, Method::GET, &path, None, person).await;
+
+  assert_eq!(
+    listed["items"],
+    json!([
+      { "service": "telegram", "offered": false, "account": null },
+      { "service": "teams", "offered": true, "account": { "mode": "node" } },
+    ])
+  );
+
+  // Nobody else reads or sets them; the administrator does.
+  let (status, _) = asked(&tree.app, Method::GET, &path, None, tree.outsider).await;
+
+  assert_eq!(status, StatusCode::FORBIDDEN);
+
+  let (status, _) = asked(&tree.app, Method::GET, &path, None, tree.admin).await;
+
+  assert_eq!(status, StatusCode::OK);
+
+  let (status, refused) =
+    asked(&tree.app, Method::PUT, &format!("{path}/kakao"), Some(json!({ "mode": "own" })), person).await;
+
+  assert_eq!(
+    (status, &refused["code"]),
+    (StatusCode::BAD_REQUEST, &json!("unknown-service")),
+    "{refused}"
+  );
+
+  let (status, _) = asked(&tree.app, Method::DELETE, &format!("{path}/teams"), None, person).await;
+
+  assert_eq!(status, StatusCode::NO_CONTENT);
+
+  let (_, listed) = asked(&tree.app, Method::GET, &path, None, person).await;
+
+  assert_eq!(listed["items"][1]["account"], json!(null));
+}

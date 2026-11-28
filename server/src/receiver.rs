@@ -27,6 +27,11 @@ pub trait Receiver: Send + Sync {
   /// route, no row or no reply, and leaves the entry check on its baseline, as the console reads them too
   /// (`docs/boundary.md`, 「Gaps the console meets」).
   async fn member_rights(&self, room: i64, account: i32) -> MemberRights;
+
+  /// The chat services a room may be on, by key, as the receiver lists its providers.
+  async fn chat_services(&self) -> Result<Vec<String>, Refusal> {
+    Ok(vec![])
+  }
 }
 
 /// The receiver over HTTP, at its base address with its token.
@@ -126,6 +131,23 @@ impl Receiver for ReceiverClient {
       // No route for rights, no row, or no reply: the member holds nothing, and the baseline stands alone.
       Err(_) => MemberRights::default(),
     }
+  }
+
+  async fn chat_services(&self) -> Result<Vec<String>, Refusal> {
+    #[derive(Deserialize)]
+    struct Provider {
+      key: String,
+    }
+
+    #[derive(Deserialize)]
+    struct Providers {
+      #[serde(default)]
+      items: Vec<Provider>,
+    }
+
+    let listed = self.read::<Providers>("/providers", "the chat services").await?;
+
+    Ok(listed.items.into_iter().map(|provider| provider.key).collect())
   }
 }
 

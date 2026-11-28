@@ -190,10 +190,16 @@ pub struct Rooms {
   pub members: Arc<Mutex<HashMap<i64, Vec<i32>>>>,
   /// A member's rights over a room's people, keyed by the room and the account; absent stands for none granted.
   pub grants: Arc<Mutex<HashMap<(i64, i32), MemberRights>>>,
+  /// The chat services the receiver lists, by key.
+  pub chat_services: Arc<Mutex<Vec<String>>>,
 }
 
 #[async_trait::async_trait]
 impl Receiver for Rooms {
+  async fn chat_services(&self) -> Result<Vec<String>, Refusal> {
+    Ok(self.chat_services.lock().expect("the chat services are readable").clone())
+  }
+
   async fn leaders_of(&self, room: i64) -> Result<Vec<i32>, Refusal> {
     Ok(
       self

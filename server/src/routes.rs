@@ -248,6 +248,7 @@ fn own() -> Router<Service> {
     .merge(crate::units::routes())
     .merge(crate::catalogue::routes())
     .merge(crate::acting::routes())
+    .merge(crate::messengers::routes())
     .merge(crate::posts::routes())
     .merge(crate::lines::routes())
     .merge(crate::subtree::routes())

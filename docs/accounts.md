@@ -1031,6 +1031,22 @@ section states what each does.
   user, written over at each sign-in. What else a sign-in keeps is its person's own record of tries
   (「Signing in」).
 
+### A person's messenger accounts
+
+- **An organisation names the chat services its people may use** on the chain's `chat.services`: the platform's
+  link keeps every chat service the receiver lists (its `GET /providers`), a unit's head narrows them for the unit
+  and the units below it, and a rule sets them apart for a person or a group. Until a link narrows them, every
+  chat service stands for everyone, so nothing changes for anyone until a value is set.
+- **A person sets, for each chat service they may use, the messenger account they use there:** `own`, their own
+  login on the service, with `handle` naming it where the service shows one, or `node`, the account already signed
+  in on their own node, as Teams is used today. It is kept at their own link of `chat.<service>.account`, which this
+  service judges and writes alone: an account for a service the chain does not let the person use is refused
+  `not-offered`, naming who lets it, and one for a service the receiver does not list `unknown-service`.
+- **A person's messenger accounts are their own:** the person reads and sets them, and the administrator does for
+  anyone; anyone else is refused. Each chat service the receiver lists is answered with whether the person may use
+  it and the account they set there, each kind declared afresh as it is read, so a service the receiver comes to
+  list stands at once.
+
 ### Phones
 
 - **`POST /phones`** — a user; answers a new secured key of theirs, once, and the hash sumida keeps it by.
@@ -1291,6 +1307,8 @@ Each is declared by the module that uses it, as the service stands, under the un
 | `agent-profile.picture` | whether the link's own kept picture stands as theirs | a flag, `nearest` | the platform and units; `manage` |
 | `secret.kinds` | which secret kinds the links below may keep (「Secret kinds」) | keys, `narrowing`, every registered kind by default, with rules | the platform and units; `manage` |
 | `mail.system` | a link's system outgoing mail (「The platform's own mail」) | `json`, `nearest`, judged and written by this service | the platform and units; `manage` |
+| `chat.services` | which chat services the links below may use (「A person's messenger accounts」) | keys, `narrowing`, every chat service the receiver lists by default, with rules | the platform and units; `manage` |
+| `chat.<service>.account` | a person's messenger account on one chat service | `json`, `nearest`, judged and written by this service | people; `heads` and `self` |
 
 - **The org memory's lock stands in the brain,** as a mark on each memory of an org brain, and the brain resolves a
   topic by the same rule a lock follows here: the farthest unit on the path holding a locked memory of it, else the

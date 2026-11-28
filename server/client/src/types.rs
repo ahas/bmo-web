@@ -365,7 +365,8 @@ pub struct CompanyAgentAsk {
   pub call_names: Vec<String>,
 }
 
-/// A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none.
+/// A person's own name and call names for their BMO, replaced whole; an empty name is none. Its persona is the
+/// supervisor's own, set on the agency.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(rename_all = "camelCase")]
 pub struct OwnAgentAsk {
@@ -373,8 +374,6 @@ pub struct OwnAgentAsk {
   pub name: Option<String>,
   #[serde(default)]
   pub call_names: Vec<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub persona: Option<String>,
 }
 
 /// Where a part of a person's BMO profile came from: their own, their company's default, or the deployment's.
@@ -403,14 +402,6 @@ pub struct AgentCallNames {
   pub call_names: Vec<String>,
 }
 
-/// The persona standing for a person's BMO and where it came from; absent where the deployment's stands.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-pub struct AgentPersona {
-  pub from: AgentSource,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub persona: Option<String>,
-}
-
 /// Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct AgentPicture {
@@ -424,8 +415,6 @@ pub struct OwnAgent {
   #[serde(default, skip_serializing_if = "Option::is_none")]
   pub name: Option<String>,
   pub call_names: Vec<String>,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub persona: Option<String>,
   pub picture: bool,
 }
 
@@ -439,7 +428,6 @@ pub struct AgentProfile {
   pub company: Option<UnitRef>,
   pub name: AgentName,
   pub call_names: AgentCallNames,
-  pub persona: AgentPersona,
   pub picture: AgentPicture,
   pub own: OwnAgent,
 }

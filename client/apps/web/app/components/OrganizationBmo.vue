@@ -27,8 +27,7 @@
         v-if="companyDefault !== null"
         v-model:open="editing"
         :title="$t('bmo_profile.label.platform_default')"
-        :parts="{ name: companyDefault.name, callNames: companyDefault.callNames, persona: null }"
-        :persona="false"
+        :parts="{ name: companyDefault.name, callNames: companyDefault.callNames }"
         :save="saveDefault"
       />
     </template>
@@ -109,8 +108,7 @@
         v-if="companyDefault !== null && !platform"
         v-model:open="editing"
         :title="$t('bmo_profile.label.company_default')"
-        :parts="{ name: companyDefault.name, callNames: companyDefault.callNames, persona: null }"
-        :persona="false"
+        :parts="{ name: companyDefault.name, callNames: companyDefault.callNames }"
         :save="saveDefault"
       />
     </template>

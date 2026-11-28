@@ -1926,7 +1926,6 @@ roster:
     left_by: "{time} · {name}が処理"
     choose: ユーザーを選択してください。
     no_bmo: スーパーバイザーなし
-    persona_length: "{count}文字"
     runs: 最近のアクティビティ
     activity: アクティビティ
     belonging: 所属
@@ -4446,7 +4445,6 @@ bmo_profile:
     call_names: 呼び名
     call_name_new: 追加する名前
     picture: プロフィール写真
-    persona: ペルソナ
     permission: スーパーバイザー設定権限
     default_value: "{value}（デフォルト）"
     from_own: 自分で設定
@@ -4456,7 +4454,6 @@ bmo_profile:
     inherit: 上位組織に従う
     follows_allowed: 上位組織に従い許可
     follows_denied: 上位組織に従いブロック
-    persona_count: "{count}/{max}文字"
     no_call_names: 呼び名なし
     company_picture_note: 保存すると、この写真が会社のメンバーのスーパーバイザーの写真になります。
     own_picture_note: 保存すると、この写真があなたのスーパーバイザーの写真になります。

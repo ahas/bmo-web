@@ -8,7 +8,7 @@ import { callerOf } from "../../utils/organization";
 
 import type { OwnBmoParts, OwnBmoView } from "#shared/bmo-profile";
 
-// The signed-in person's own name, call names and persona for their BMO saved, then applied to it (docs/web.md,
+// The signed-in person's own name and call names for their BMO saved, then applied to it (docs/web.md,
 // 「Settings」, the own-BMO section); the account service refuses a person who may not personalise their BMO.
 export default defineEventHandler(async (event): Promise<OwnBmoView> => {
   const signed = await signedInUser(event);
@@ -19,8 +19,7 @@ export default defineEventHandler(async (event): Promise<OwnBmoView> => {
 
   const parts: OwnBmoParts = {
     name: typeof body.name === "string" && body.name.trim() !== "" ? body.name.trim() : null,
-    callNames: body.callNames.filter((name): name is string => typeof name === "string"),
-    persona: typeof body.persona === "string" && body.persona.trim() !== "" ? body.persona : null
+    callNames: body.callNames.filter((name): name is string => typeof name === "string")
   };
 
   try {

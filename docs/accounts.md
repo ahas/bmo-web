@@ -562,12 +562,13 @@ section states what each does.
 ### A person's BMO profile
 
 - **Every account's own BMO stands under a profile:** the name it is called, the names that call it in a room, its
-  picture and its persona. The account's own BMO is the supervisor the account owns (「Whose BMO a supervisor is」),
+  and its picture; its persona is its supervisor's own, set on the supervisor's pieces on the agency and on no profile
+  here. The account's own BMO is the supervisor the account owns (「Whose BMO a supervisor is」),
   the one a person calls 내 BMO. The owner's own BMO, the supervisor that answers rooms naming none and every
-  supervisor of no account hold no profile here and keep the name, picture and persona they stand with.
+  supervisor of no account hold no profile here and keep the name and picture they stand with.
 - **The service is where the profile is decided.** It keeps a company's default, each person's own choice and who
-  may make one, and answers the profile that stands for a person. The agency keeps the supervisor's label, call
-  names and persona, and the receiver its picture, as the console applies them from this answer (`docs/web.md`,
+  may make one, and answers the profile that stands for a person. The agency keeps the supervisor's label and call
+  names, and the receiver its picture, as the console applies them from this answer (`docs/web.md`,
   「A person's BMO profile on the agency and the receiver」); neither decides one.
 - **An organisation sets a default for its people's BMOs:** a name, the names that call it, and a picture, each a
   setting of the delegation chain (「The delegation chain」): `agent-profile.name`, a text; `agent-profile.call-names`,
@@ -580,15 +581,14 @@ section states what each does.
   the unit whose link holds the flag. The platform's own name and call names, the default of every company that sets
   none, are the platform administrator's, on the platform's route below; a picture stands at a unit alone, since its
   bytes are kept under the unit.
-- **A person may set their own,** where they may personalise their BMO: a name, the names that call it, a picture and
-  a persona. Each part may stand empty. What they set is kept whether or not they may use it, so a permission taken
+- **A person may set their own,** where they may personalise their BMO: a name, the names that call it and a
+  picture. Each part may stand empty. What they set is kept whether or not they may use it, so a permission taken
   away and given back finds it as it was.
 - **Each part of the profile stands by one order:**
   1. the person's own part, where they may personalise their BMO and the part is set;
   2. the organisation's default part, the nearest unit's of the person's path that sets it;
   3. the deployment's own: the name the language pack gives a BMO, the label alone and no further names to call it by, no
-     picture of the console's (the receiver's own or the initials stand), and no persona of the person's (the
-     agency's own composition stands).
+     picture of the console's (the receiver's own or the initials stand).
   The account's administrators are no exception for their own BMO, and nothing of one person's profile reaches another.
 - **Whether a person may personalise their BMO is set as 허용 or 막음 on a person, on a unit or for the platform.** It
   is the delegation chain's `agent-profile.personalize` (「The delegation chain」), a flag resolved nearest first: the
@@ -613,13 +613,13 @@ section states what each does.
     bytes as they are, and taken away by the callers of its `PUT`, both answering 204. Bytes that are no PNG, JPEG, WebP or GIF are
     refused 400 `not-a-picture`, and more than 10 MB 413 `picture-too-large`.
   - **`GET /users/{user}/agent`** answers the profile standing for the user: `personalize`, whether they may
-    personalise their BMO; `company?`, their company as a unit reference; `name`, `callNames`, `persona` and `picture`, each with `from`,
-    `own`, `company` (the organisation's default, whichever unit of the person's path set it) or `deployment`, and the value where it is text (`name?`, `callNames`, `persona?`; the
+    personalise their BMO; `company?`, their company as a unit reference; `name`, `callNames` and `picture`, each with `from`,
+    `own`, `company` (the organisation's default, whichever unit of the person's path set it) or `deployment`, and the value where it is text (`name?`, `callNames`; the
     deployment's name is null, for the console's pack to say); and `own`, the person's own parts as kept, `name?`,
-    `callNames`, `persona?` and `picture`. For the user themselves, the administrator and a head of the user's unit.
+    `callNames` and `picture`. For the user themselves, the administrator and a head of the user's unit.
   - **`GET /users/{user}/agent/picture`** answers the bytes of the picture standing for the user, their own or their
     organisation's, 404 `not-found` where the deployment's stands, for the same callers.
-  - **`PUT /users/{user}/agent`** with `name?`, `callNames` and `persona?` replaces the person's own parts and answers
+  - **`PUT /users/{user}/agent`** with `name?` and `callNames` replaces the person's own parts and answers
     the profile as it stands; **`PUT` and `DELETE /users/{user}/agent/picture`** set and take away their own picture
     as the company's are. For the user themselves alone, 403 `personalize-withheld` where they may not personalise
     their BMO, so nothing is kept for a person who may not.

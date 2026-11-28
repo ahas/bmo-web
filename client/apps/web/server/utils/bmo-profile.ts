@@ -5,7 +5,6 @@ import { agency, agencyCall } from "./agency";
 import { supervisorOwner } from "./axes";
 import { OWNER_ROLE_HEADER } from "./owner-key";
 import { receiver, receiverCall, receiverRoute } from "./receiver";
-import { supervisorSettingsOf } from "./supervisor-settings";
 
 import type { OwnBmoView, ProfileSource } from "#shared/bmo-profile";
 import type { components } from "@agency/client/schema";
@@ -14,7 +13,7 @@ type Schemas = components["schemas"];
 
 // A person's BMO profile applied to that person's own BMO (docs/web.md, 「A person's BMO profile on the agency and the
 // receiver」): the account service decides what stands (docs/accounts.md, 「A person's BMO profile」), and this writes
-// it where the rooms read it, the label, the call names and the persona on the agency and the picture on the receiver.
+// it where the rooms read it, the label and the call names on the agency and the picture on the receiver.
 // The owner's own BMO and every supervisor of no account are never touched: only the supervisor the account owns is.
 
 /** A stand-in for the profile's name inside the label's words, which no person's name or profile's name holds. */
@@ -46,19 +45,6 @@ export function consoleMadeLabel(label: string, user: number, login: string, nam
 
       return label.length > head.length + tail.length && label.startsWith(head) && label.endsWith(tail);
     });
-}
-
-/** What the profile asks of the persona on the agency: the person's own where it stands, emptied where the persona
- * standing on the agency is the one this console put there from the person's own and it no longer stands, and
- * nothing to write otherwise, so a persona someone set on the agency by hand stays. */
-export function personaToWrite(standing: Pick<OwnBmoView, "persona" | "own">, onAgency: string | null): string | null | undefined {
-  const now = onAgency ?? "";
-
-  if (standing.persona.from === "own") return (standing.persona.value ?? "") === now ? undefined : standing.persona.value;
-
-  const kept = standing.own.persona ?? "";
-
-  return kept !== "" && kept === now ? null : undefined;
 }
 
 /** The call names the agency keeps for a supervisor, as its row carries them, one comma-separated text. */
@@ -96,7 +82,7 @@ async function logged(user: number, what: string, act: () => Promise<unknown>): 
 /**
  * The profile standing for a person applied to their own BMO. Always the label, the call names and the private room's
  * title, each only where it differs and the label and the title only where the console made them; with `profile`,
- * also the persona and the picture, which move only when the profile does. `before` is the person's name until now,
+ * also the picture, which moves only when the profile does. `before` is the person's name until now,
  * whose titles the console made. A part that cannot be set is written to the log and the rest goes on.
  */
 export async function standOwnBmo(user: number, options: { before?: string; profile?: boolean } = {}): Promise<void> {
@@ -136,15 +122,6 @@ export async function standOwnBmo(user: number, options: { before?: string; prof
   await logged(user, "room title", () => followRoomTitle(own.name, now.room, [name, person.name, options.before ?? "", `u${user}`]));
 
   if (options.profile !== true || standing === null) return;
-
-  await logged(user, "persona", async () => {
-    const settings = supervisorSettingsOf(await agencyCall(agency().GET("/supervisors/{supervisorName}/settings", { params: { path: { supervisorName: own.name } } })));
-    const persona = personaToWrite(standing, settings.persona);
-
-    if (persona === undefined) return;
-
-    await agencyCall(agency().PATCH("/supervisors/{supervisorName}/settings", { params: { path: { supervisorName: own.name } }, body: { by: "console", persona } }));
-  });
 
   await logged(user, "picture", async () => {
     const path = `/avatars/agent/${encodeURIComponent(own.name)}`;

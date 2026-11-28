@@ -8994,10 +8994,9 @@ Where a company's own words for its roles and its unit kinds are kept (`docs/acc
   as the account is made ready, at every sign-in and as the person's name is saved, and with the profile whenever it
   moves. Each is written only where it differs, and the label and the title only where the console made them (the
   titles' rule above, a label made from any of the person's names with any profile's name being one the console made).
-- **The persona and the picture follow the profile alone:** as the account is made ready, and as the person's own
-  profile, the company's default or a permission reaching them is saved. The persona is written where the person's own
-  stands, and emptied where the one the console put there from it no longer stands; a persona someone set on the
-  agency by hand otherwise stays. The picture is the profile's: set from the person's own or the company's, and taken
+- **The picture follows the profile alone:** as the account is made ready, and as the person's own profile, the
+  company's default or a permission reaching them is saved. The persona is no part of the profile: it is the
+  supervisor's own, set on its pieces, and the console writes none. The picture is the profile's: set from the person's own or the company's, and taken
   away where the deployment's stands, so a picture set on the agent's own page gives way to the profile's at the next
   of those moments.
 - **A part the agency or the receiver refuses is written to the console's log,** and the act that set it off goes on;

@@ -1926,7 +1926,6 @@ roster:
     left_by: "{time} · 由 {name} 办理"
     choose: 请选择用户。
     no_bmo: 无主管
-    persona_length: "{count} 字"
     runs: 最近活动
     activity: 活动
     belonging: 所属
@@ -4446,7 +4445,6 @@ bmo_profile:
     call_names: 称呼
     call_name_new: 要添加的称呼
     picture: 头像
-    persona: 人设
     permission: 主管设置权限
     default_value: "{value}（默认）"
     from_own: 自行设定
@@ -4456,7 +4454,6 @@ bmo_profile:
     inherit: 遵循上级组织
     follows_allowed: 遵循上级组织：允许
     follows_denied: 遵循上级组织：禁止
-    persona_count: "{count}/{max} 字"
     no_call_names: 无称呼
     company_picture_note: 保存后，此照片将成为公司成员的主管照片。
     own_picture_note: 保存后，此照片将成为我的主管照片。

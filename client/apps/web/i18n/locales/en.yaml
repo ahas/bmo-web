@@ -1922,7 +1922,6 @@ roster:
     left_by: "{time} · by {name}"
     choose: Select a user.
     no_bmo: No supervisor
-    persona_length: "{count} characters"
     runs: Recent activity
     activity: Activity
     belonging: Membership
@@ -4420,7 +4419,6 @@ bmo_profile:
     call_names: Call names
     call_name_new: Name to add
     picture: Profile photo
-    persona: Persona
     permission: Supervisor settings permission
     default_value: "{value} (default)"
     from_own: Set by you
@@ -4430,7 +4428,6 @@ bmo_profile:
     inherit: Follow parent organization
     follows_allowed: "Allowed, following parent organization"
     follows_denied: "Blocked, following parent organization"
-    persona_count: "{count}/{max} characters"
     no_call_names: No call names
     company_picture_note: "Once saved, this photo becomes the supervisor photo for people in the company."
     own_picture_note: "Once saved, this photo becomes your supervisor's photo."

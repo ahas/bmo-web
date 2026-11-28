@@ -295,24 +295,6 @@
         ],
         "type": "object"
       },
-      "AgentPersona": {
-        "description": "The persona standing for a person's BMO and where it came from; absent where the deployment's stands.",
-        "properties": {
-          "from": {
-            "$ref": "#/components/schemas/AgentSource"
-          },
-          "persona": {
-            "type": [
-              "string",
-              "null"
-            ]
-          }
-        },
-        "required": [
-          "from"
-        ],
-        "type": "object"
-      },
       "AgentPicture": {
         "description": "Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`.",
         "properties": {
@@ -347,9 +329,6 @@
           "own": {
             "$ref": "#/components/schemas/OwnAgent"
           },
-          "persona": {
-            "$ref": "#/components/schemas/AgentPersona"
-          },
           "personalize": {
             "type": "boolean"
           },
@@ -361,7 +340,6 @@
           "personalize",
           "name",
           "callNames",
-          "persona",
           "picture",
           "own"
         ],
@@ -2682,12 +2660,6 @@
               "null"
             ]
           },
-          "persona": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
           "picture": {
             "type": "boolean"
           }
@@ -2699,7 +2671,7 @@
         "type": "object"
       },
       "OwnAgentAsk": {
-        "description": "A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none.",
+        "description": "A person's own name and call names for their BMO, replaced whole; an empty name is none. Its persona is the\nsupervisor's own, set on the agency.",
         "properties": {
           "callNames": {
             "default": [],
@@ -2709,12 +2681,6 @@
             "type": "array"
           },
           "name": {
-            "type": [
-              "string",
-              "null"
-            ]
-          },
-          "persona": {
             "type": [
               "string",
               "null"

@@ -18,7 +18,7 @@ export default defineEventHandler(async (event): Promise<OwnBmoView> => {
   const caller = callerOf(signed);
 
   try {
-    await setOwnBmo(signed.id, { name: null, callNames: [], persona: null }, caller);
+    await setOwnBmo(signed.id, { name: null, callNames: [] }, caller);
     await dropOwnBmoPicture(signed.id, caller);
 
     const [standing, owned] = await Promise.all([standingBmoOf(signed.id, caller), supervisorsOwnedBy(signed.id)]);

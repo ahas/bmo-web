@@ -34,12 +34,6 @@
             <span v-if="sourceLine(t, profile.callNames.from) !== null" class="text-sm text-muted">{{ sourceLine(t, profile.callNames.from) }}</span>
           </template>
         </SettingsRow>
-        <SettingsRow :label="$t('bmo_profile.label.persona')" data-bmo-part="persona">
-          <template #description>
-            <span class="line-clamp-2 text-sm text-default whitespace-pre-wrap wrap-anywhere">{{ profile.persona.value ?? $t("common.label.none") }}</span>
-            <span v-if="sourceLine(t, profile.persona.from) !== null" class="text-sm text-muted">{{ sourceLine(t, profile.persona.from) }}</span>
-          </template>
-        </SettingsRow>
         <PersonaChoiceRow />
       </SettingsGroup>
 
@@ -56,7 +50,7 @@
         <UButton color="neutral" variant="ghost" icon="i-material-symbols-restart-alt" :label="$t('bmo_profile.action.reset')" :loading="resetting" :disabled="!ownStands" data-bmo-reset @click="reset" />
       </div>
 
-      <BmoProfileForm v-model:open="editing" :title="$t('settings.label.agent')" :parts="ownParts" :persona="true" :save="saveParts" />
+      <BmoProfileForm v-model:open="editing" :title="$t('settings.label.agent')" :parts="ownParts" :save="saveParts" />
     </template>
   </div>
 </template>
@@ -84,14 +78,13 @@ const resetFailure = ref("");
 
 const ownParts = computed<OwnBmoParts>(() => ({
   name: profile.value?.own.name ?? null,
-  callNames: profile.value?.own.callNames ?? [],
-  persona: profile.value?.own.persona ?? null
+  callNames: profile.value?.own.callNames ?? []
 }));
 // Whether anything of the reader's own stands, which the reset would empty.
 const ownStands = computed(() => {
   const own = profile.value?.own;
 
-  return own !== undefined && (own.name !== null || own.callNames.length > 0 || own.persona !== null || own.picture);
+  return own !== undefined && (own.name !== null || own.callNames.length > 0 || own.picture);
 });
 // The picture standing now, read again whenever the profile is, or the first letter of the name standing.
 const picture = computed<AvatarProps>(() => ({

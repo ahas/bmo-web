@@ -17,9 +17,9 @@ use axum::response::{IntoResponse, Response};
 use axum::routing::{get, put};
 use bmo_web_client::{
   AgentCallNames, AgentName, AgentPermissionAsk, AgentPermissionPerson, AgentPermissionUnit,
-  AgentPermissions, AgentPersona, AgentPicture, AgentProfile, AgentSetting, AgentSource, ChainKind,
-  ChainLevel, ChainMode, ChainPersonWriter, ChainShape, CompanyAgent, CompanyAgentAsk, OWNER_KEY,
-  OWNER_ROLE, OwnAgent, OwnAgentAsk, UnitRef,
+  AgentPermissions, AgentPicture, AgentProfile, AgentSetting, AgentSource, ChainKind, ChainLevel,
+  ChainMode, ChainPersonWriter, ChainShape, CompanyAgent, CompanyAgentAsk, OWNER_KEY, OWNER_ROLE, OwnAgent,
+  OwnAgentAsk, UnitRef,
 };
 use sea_orm::{ConnectionTrait, QueryResult, Value};
 use sumida::api::authz::Authz;
@@ -38,9 +38,6 @@ pub const PICTURE_MOST: usize = 10 * 1024 * 1024;
 pub const NAME_MOST: usize = 40;
 /// The most call names a profile may hold.
 pub const CALL_NAMES_MOST: usize = 10;
-/// The most characters a persona may hold: the agency's ceiling for a supervisor's persona.
-pub const PERSONA_MOST: usize = 100_000;
-
 /// The routes of this module.
 pub fn routes() -> Router<Service> {
   Router::new()
@@ -214,19 +211,6 @@ pub fn call_names_of(names: &[String]) -> Result<Vec<String>, Refusal> {
   }
 
   Ok(kept)
-}
-
-/// A persona as kept: an empty one none, and at most 100,000 characters.
-pub fn persona_of(persona: Option<&str>) -> Result<Option<String>, Refusal> {
-  let Some(persona) = persona.filter(|persona| !persona.trim().is_empty()) else {
-    return Ok(None);
-  };
-
-  if persona.chars().count() > PERSONA_MOST {
-    return Err(out_of_shape(format!("the persona is longer than {PERSONA_MOST} characters")));
-  }
-
-  Ok(Some(persona.to_owned()))
 }
 
 /// The type of a picture's bytes, read off their first bytes: a PNG, JPEG, WebP or GIF, or none.
@@ -445,7 +429,7 @@ const OWN_PICTURE: &str = r#"SELECT "picture", "picture_type" FROM "own_agents" 
 pub async fn own_agent<C: ConnectionTrait>(db: &C, user: i32) -> Result<OwnAgent, Refusal> {
   let row = one(
     db,
-    r#"SELECT "name", array_to_json("call_names")::text AS "call_names", "persona",
+    r#"SELECT "name", array_to_json("call_names")::text AS "call_names",
          "picture" IS NOT NULL AS "has_picture"
        FROM "own_agents" WHERE "user_id" = $1"#,
     vec![user.into()],
@@ -459,7 +443,6 @@ pub async fn own_agent<C: ConnectionTrait>(db: &C, user: i32) -> Result<OwnAgent
   Ok(OwnAgent {
     name: row.try_get("", "name")?,
     call_names: names_in(&row)?,
-    persona: row.try_get("", "persona")?,
     picture: row.try_get("", "has_picture")?,
   })
 }
@@ -467,17 +450,16 @@ pub async fn own_agent<C: ConnectionTrait>(db: &C, user: i32) -> Result<OwnAgent
 async fn set_own_agent<C: ConnectionTrait>(db: &C, user: i32, ask: &OwnAgentAsk) -> Result<(), Refusal> {
   let name = name_of(ask.name.as_deref())?;
   let call_names = call_names_of(&ask.call_names)?;
-  let persona = persona_of(ask.persona.as_deref())?;
 
   run(
     db,
     &format!(
       r#"INSERT INTO "own_agents" ("user_id", "name", "call_names", "persona", "set_at")
-         VALUES ($1, $2, {BOUND_NAMES}, $4, $5)
+         VALUES ($1, $2, {BOUND_NAMES}, NULL, $4)
          ON CONFLICT ("user_id") DO UPDATE SET
-           "name" = $2, "call_names" = EXCLUDED."call_names", "persona" = $4, "set_at" = $5"#
+           "name" = $2, "call_names" = EXCLUDED."call_names", "persona" = NULL, "set_at" = $4"#
     ),
-    vec![user.into(), name.into(), bound_names(&call_names), persona.into(), now_ms().into()],
+    vec![user.into(), name.into(), bound_names(&call_names), now_ms().into()],
   )
   .await?;
 
@@ -685,16 +667,6 @@ impl Standing {
         call_names: Vec::new(),
       }
     };
-    let persona = match (personalize, &own.persona) {
-      (true, Some(persona)) => AgentPersona {
-        from: AgentSource::Own,
-        persona: Some(persona.clone()),
-      },
-      _ => AgentPersona {
-        from: AgentSource::Deployment,
-        persona: None,
-      },
-    };
     let picture = AgentPicture {
       from: self.picture_from(),
     };
@@ -704,7 +676,6 @@ impl Standing {
       company: company.clone(),
       name,
       call_names,
-      persona,
       picture,
       own: own.clone(),
     }

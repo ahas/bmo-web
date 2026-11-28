@@ -9,8 +9,8 @@ export type ProfileSource = "own" | "company" | "deployment";
 /** The personalisation setting on a unit or a person; `inherit` follows the unit above. */
 export type PermissionSetting = "allow" | "deny" | "inherit";
 
-/** The longest a name or a call name may be, the most call names a profile keeps, and the longest persona. */
-export const PROFILE_LIMITS = { name: 40, callName: 40, callNames: 10, persona: 100_000 } as const;
+/** The longest a name or a call name may be, and the most call names a profile keeps. */
+export const PROFILE_LIMITS = { name: 40, callName: 40, callNames: 10 } as const;
 
 /** The profile standing for the signed-in person, as the own-BMO section reads it. */
 export interface OwnBmoView {
@@ -19,16 +19,15 @@ export interface OwnBmoView {
   hasBmo: boolean;
   name: { value: string | null; from: ProfileSource };
   callNames: { value: string[]; from: ProfileSource };
-  persona: { value: string | null; from: ProfileSource };
   picture: { from: ProfileSource };
-  own: { name: string | null; callNames: string[]; persona: string | null; picture: boolean };
+  own: { name: string | null; callNames: string[]; picture: boolean };
 }
 
-/** The person's own text parts as the own-BMO section saves them; an empty name or persona is none. */
+/** The person's own text parts as the own-BMO section saves them; an empty name is none. Their BMO's persona is the
+ * supervisor's own, set on its pieces. */
 export interface OwnBmoParts {
   name: string | null;
   callNames: string[];
-  persona: string | null;
 }
 
 /** A company's default as the BMO tab reads and saves it. */

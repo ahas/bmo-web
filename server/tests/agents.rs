@@ -193,7 +193,6 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
   assert_eq!(said["company"]["id"], tree.company, "{said}");
   assert_eq!(said["name"], json!({ "from": "deployment" }), "{said}");
   assert_eq!(said["callNames"], json!({ "from": "deployment", "callNames": [] }), "{said}");
-  assert_eq!(said["persona"], json!({ "from": "deployment" }), "{said}");
   assert_eq!(said["picture"], json!({ "from": "deployment" }), "{said}");
 
   // The company's default, where set.
@@ -218,12 +217,11 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
     json!({ "from": "company", "callNames": ["helper", "hey"] }),
     "{said}"
   );
-  assert_eq!(said["persona"], json!({ "from": "deployment" }), "{said}");
 
   // The person's own, once permitted, part by part: call names they left empty stay the company's.
   tree.permit(Some(tree.team), None, "allow").await;
 
-  let own = json!({ "name": "Mine", "callNames": [], "persona": "Patient and brief." });
+  let own = json!({ "name": "Mine", "callNames": [] });
   let (status, said) =
     asked(&tree.app, Method::PUT, &format!("/users/{}/agent", person.0), Some(own), person).await;
 
@@ -231,7 +229,6 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
   assert_eq!(said["personalize"], true, "{said}");
   assert_eq!(said["name"], json!({ "from": "own", "name": "Mine" }), "{said}");
   assert_eq!(said["callNames"]["from"], "company", "{said}");
-  assert_eq!(said["persona"], json!({ "from": "own", "persona": "Patient and brief." }), "{said}");
 
   // Withdrawn, the company's stands again and the person's own is kept as it was.
   tree.permit(Some(tree.team), None, "deny").await;
@@ -240,12 +237,7 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
 
   assert_eq!(said["personalize"], false, "{said}");
   assert_eq!(said["name"]["from"], "company", "{said}");
-  assert_eq!(said["persona"], json!({ "from": "deployment" }), "{said}");
-  assert_eq!(
-    said["own"],
-    json!({ "name": "Mine", "callNames": [], "persona": "Patient and brief.", "picture": false }),
-    "{said}"
-  );
+  assert_eq!(said["own"], json!({ "name": "Mine", "callNames": [], "picture": false }), "{said}");
 
   // Given back, it finds the person's own as it was.
   tree.permit(Some(tree.team), None, "allow").await;
@@ -253,7 +245,6 @@ async fn each_part_stands_from_the_persons_own_then_the_company_then_the_deploym
   let said = tree.profile(person).await;
 
   assert_eq!(said["name"], json!({ "from": "own", "name": "Mine" }), "{said}");
-  assert_eq!(said["persona"]["from"], "own", "{said}");
 }
 
 // "An organisation sets a default for its people's BMOs" on the delegation chain: a unit below the company names its
@@ -499,7 +490,6 @@ async fn who_may_set_what_and_what_is_refused() {
     json!({ "callNames": [long] }),
     json!({ "callNames": eleven }),
     json!({ "callNames": ["Helper", "helper"] }),
-    json!({ "persona": "x".repeat(100_001) }),
   ] {
     let (status, said) = asked(app, Method::PUT, &own, Some(body.clone()), person).await;
 

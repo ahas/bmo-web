@@ -1945,7 +1945,6 @@ roster:
     left_by: "{time} · {name} 처리"
     choose: 사용자를 선택해 주세요.
     no_bmo: 감독관 없음
-    persona_length: "{count}자"
     runs: 최근 활동
     activity: 활동
     belonging: 소속
@@ -4435,7 +4434,6 @@ bmo_profile:
     call_names: 부르는 이름
     call_name_new: 추가할 이름
     picture: 프로필 사진
-    persona: 페르소나
     permission: 감독관 설정 권한
     default_value: "{value} (기본값)"
     from_own: 직접 정함
@@ -4445,7 +4443,6 @@ bmo_profile:
     inherit: 상위 조직 따름
     follows_allowed: 상위 조직을 따라 허용
     follows_denied: 상위 조직을 따라 막음
-    persona_count: "{count}/{max}자"
     no_call_names: 부르는 이름 없음
     company_picture_note: 저장하면 이 사진이 회사 사람들의 감독관 사진이 됩니다.
     own_picture_note: 저장하면 이 사진이 내 감독관 사진이 됩니다.

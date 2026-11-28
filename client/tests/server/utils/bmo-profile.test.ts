@@ -3,13 +3,13 @@ import { describe, expect, test } from "bun:test";
 import { globalsRestoredAfter } from "../../support/globals";
 import { answer, standIn } from "../../support/units";
 
-import { callNamesOn, consoleMadeLabel, ownTitles, personaToWrite, standOwnBmo } from "../../../apps/web/server/utils/bmo-profile";
+import { callNamesOn, consoleMadeLabel, ownTitles, standOwnBmo } from "../../../apps/web/server/utils/bmo-profile";
 import { wording } from "../../../apps/web/shared/wording";
 
 import type { OwnBmoView } from "../../../apps/web/shared/bmo-profile";
 
 // A person's BMO profile applied to their own BMO (docs/web.md, 「A person's BMO profile on the agency and the
-// receiver」): the name into the label made with the person's name, the call names and the persona onto the agency, and
+// receiver」): the name into the label made with the person's name, the call names onto the agency, and
 // the picture onto the receiver, each only where it differs, a label chosen by hand left as it stands. The account
 // service, the agency and the receiver are stood in for; what stands is the service's to decide, so these tests hand
 // the profile in and read what the console wrote.
@@ -59,7 +59,6 @@ const standing = (over: Record<string, unknown> = {}) => ({
   company: { id: 1, name: "company-a" },
   name: { from: "company", name: "Dear" },
   callNames: { from: "company", callNames: ["Dear", "dear-b"] },
-  persona: { from: "deployment" },
   picture: { from: "company" },
   own: { callNames: [], picture: false },
   ...over
@@ -88,7 +87,7 @@ describe("a company's default applied to a person's BMO", () => {
     ]);
     expect(ownTitles("Person D", "Dear").label).toBe(wording("account.label.own_bmo", { name: "Person D", agent: "Dear" }));
     expect(receiver.asked.filter((one) => one.path === "/avatars/agent/u12").map((one) => one.method)).toEqual(["PUT"]);
-    // Nothing of a persona the person never set is written.
+    // No persona is written: it is the supervisor's own.
     expect(agency.asked.some((one) => one.method === "PATCH" && one.path.endsWith("/settings"))).toBe(false);
   });
 
@@ -114,23 +113,15 @@ describe("a company's default applied to a person's BMO", () => {
     expect(receiver.asked.filter((one) => one.path === "/avatars/agent/u12").map((one) => one.method)).toEqual(["DELETE"]);
   });
 
-  test("puts the person's own persona on the agency, and takes it back once it no longer stands", async () => {
+  test("writes no persona on the agency: the persona is the supervisor's own", async () => {
     fresh();
     supervisors = [own(ownTitles("Person D", "Dear").label, "Dear,dear-b")];
-    profile = standing({ personalize: true, persona: { from: "own", persona: "Speaks briefly." }, own: { callNames: [], persona: "Speaks briefly.", picture: false } });
-    persona = null;
+    profile = standing({ personalize: true });
+    persona = "Set on its pieces.";
 
     await standOwnBmo(12, { profile: true });
 
-    expect(writes(agency)).toEqual([["PATCH", "/supervisors/u12/settings", { by: "console", persona: "Speaks briefly." }]]);
-
-    fresh();
-    profile = standing({ persona: deployment, own: { callNames: [], persona: "Speaks briefly.", picture: false } });
-    persona = "Speaks briefly.";
-
-    await standOwnBmo(12, { profile: true });
-
-    expect(writes(agency)).toEqual([["PATCH", "/supervisors/u12/settings", { by: "console", persona: null }]]);
+    expect(writes(agency).filter(([, path]) => path === "/supervisors/u12/settings")).toEqual([]);
   });
 
   test("touches no supervisor of no account", async () => {
@@ -153,13 +144,6 @@ describe("the parts of the apply", () => {
     expect(consoleMadeLabel(ownTitles("Person D").label, 12, "member-d", ["Person D"])).toBe(true);
     expect(consoleMadeLabel("Doctor D", 12, "member-d", ["Person D"])).toBe(false);
     expect(consoleMadeLabel(ownTitles("Someone else", "Dear").label, 12, "member-d", ["Person D"])).toBe(false);
-  });
-
-  test("a persona someone set on the agency by hand stays where the person set none", () => {
-    const none: Pick<OwnBmoView, "persona" | "own"> = { persona: { value: null, from: "deployment" }, own: { name: null, callNames: [], persona: null, picture: false } };
-
-    expect(personaToWrite(none, "Set by hand.")).toBeUndefined();
-    expect(personaToWrite({ ...none, persona: { value: "Mine.", from: "own" } }, "Mine.")).toBeUndefined();
   });
 
   test("the agency's call names are read off its comma-separated text", () => {

@@ -2336,11 +2336,6 @@ export interface components {
             people: components["schemas"]["AgentPermissionPerson"][];
             units: components["schemas"]["AgentPermissionUnit"][];
         };
-        /** @description The persona standing for a person's BMO and where it came from; absent where the deployment's stands. */
-        AgentPersona: {
-            from: components["schemas"]["AgentSource"];
-            persona?: string | null;
-        };
         /** @description Where the picture standing for a person's BMO came from; its bytes are `GET /users/{user}/agent/picture`. */
         AgentPicture: {
             from: components["schemas"]["AgentSource"];
@@ -2354,7 +2349,6 @@ export interface components {
             company?: components["schemas"]["UnitRef"] | null;
             name: components["schemas"]["AgentName"];
             own: components["schemas"]["OwnAgent"];
-            persona: components["schemas"]["AgentPersona"];
             personalize: boolean;
             picture: components["schemas"]["AgentPicture"];
         };
@@ -3053,15 +3047,16 @@ export interface components {
         OwnAgent: {
             callNames: string[];
             name?: string | null;
-            persona?: string | null;
             picture: boolean;
         };
-        /** @description A person's own name, call names and persona for their BMO, replaced whole; an empty name or persona is none. */
+        /**
+         * @description A person's own name and call names for their BMO, replaced whole; an empty name is none. Its persona is the
+         *     supervisor's own, set on the agency.
+         */
         OwnAgentAsk: {
             /** @default [] */
             callNames: string[];
             name?: string | null;
-            persona?: string | null;
         };
         /** @description A desktop pairing approved: the machine it was bound to. */
         PairingApproved: {

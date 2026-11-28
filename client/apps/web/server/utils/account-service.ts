@@ -1272,9 +1272,8 @@ function standingOf(wire: Wire["AgentProfile"]): Omit<OwnBmoView, "hasBmo"> {
     personalize: wire.personalize,
     name: { value: wire.name.name ?? null, from: wire.name.from },
     callNames: { value: wire.callNames.callNames, from: wire.callNames.from },
-    persona: { value: wire.persona.persona ?? null, from: wire.persona.from },
     picture: { from: wire.picture.from },
-    own: { name: wire.own.name ?? null, callNames: wire.own.callNames, persona: wire.own.persona ?? null, picture: wire.own.picture }
+    own: { name: wire.own.name ?? null, callNames: wire.own.callNames, picture: wire.own.picture }
   };
 }
 

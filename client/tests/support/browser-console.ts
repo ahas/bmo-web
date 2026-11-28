@@ -1266,7 +1266,7 @@ async function ownAgentsAnswer(path: string, request: Request): Promise<Response
 
     return {
       name,
-      agent: held === undefined ? null : { name, role: held.role, ...(held.road ?? { provider: null, model: null, effort: null }), enabled: held.enabled, carries: false },
+      agent: held === undefined ? null : { name, role: held.role, ...(held.road ?? { provider: null, model: null, effort: null }), enabled: held.enabled, carries: false, fallbacks: [] },
       supplied: supplied === undefined ? null : { road: supplied.road, from: supplied.from },
       changed
     };

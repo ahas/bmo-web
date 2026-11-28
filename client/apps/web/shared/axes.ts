@@ -33,6 +33,10 @@ export interface ProviderView {
   foldRatioDefault: number | null;
   // The file under the data root's env/ the provider reads its own key from, or null for one that reads none.
   keyFile: string | null;
+  // Whether its requests name a workspace the owner chooses, and the one they name now, null for the key's default
+  // (the agency's `docs/provider-presence.md`, 「A provider's workspace」).
+  takesWorkspace: boolean;
+  workspace: string | null;
   // Whether its engine is the owner's own, as the provider declares it (the agency's `docs/supervisors.md`, 「What
   // confines a session allowed files」). A provider whose engine is not sends what a session reads to an outside party.
   ownersEngine: boolean;
@@ -156,6 +160,19 @@ export interface RoleAgentView {
   followsSupervisor: boolean;
   // Whether a run stands let in on it now.
   carries: boolean;
+  // Its fallback roads in order, each asked only where the road before it cannot answer for a clear reason (the
+  // agency's `docs/role-agents.md`, 「An agent's fallback roads」); empty where it holds none.
+  fallbacks: FallbackRoadView[];
+}
+
+// One fallback road of an agent: a road as its own is.
+export interface FallbackRoadView {
+  provider: string;
+  model: string;
+  effort: string | null;
+  thinking: string | null;
+  answerTokens: number | null;
+  advisor: string | null;
 }
 
 // Every role in the agency's order, every bundle a role may give, every skill a role or an agent may name and every

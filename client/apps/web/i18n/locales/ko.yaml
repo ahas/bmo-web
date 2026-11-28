@@ -197,6 +197,7 @@ common:
     member_permission: "{name} 권한"
     menu_of: "{name} 메뉴"
     more_notices: "알림 {n}건 더 있음"
+    move_named: "{name} 옮기기"
     open_list: 목록 열기
     opens_new_tab: (새 탭에서 열림)
     others_count: "외 {n}명"
@@ -214,6 +215,10 @@ common:
     bmo_answering: 채팅 에이전트가 답을 쓰는 중…
     brightness: "밝기 {n}%"
     copied: 복사됨
+    item_moved: "{name}, {count}개 중 {place}번째"
+    item_picked: "{name} 들어 올림"
+    item_put_back: "{name} 제자리로 돌려놓음"
+    item_set_down: "{name} {place}번째에 놓음"
     link_preview_loading: 링크 미리보기 불러오는 중…
     loading: 불러오는 중…
     loading_named: "{name} 불러오는 중…"
@@ -3009,6 +3014,7 @@ secrets:
     unreachable: 계정 서비스에 연결되지 않았습니다.
 agents:
   action:
+    fallback_add: "폴백 추가"
     rest_end: "휴식 끝내기"
     sign_in_again: 다시 로그인
     open_sign_in: 로그인 페이지 열기
@@ -3034,6 +3040,7 @@ agents:
     stage_add: 단계 추가
     stage_to_default: 기본 내용으로 되돌리기
   aria:
+    fallback_remove: "{road} 폴백 빼기"
     heal_of: "{name} 강등 복원"
     node_checkout_node: 노드 체크아웃을 둘 노드
     node_checkout_path: 노드 체크아웃 경로
@@ -3062,6 +3069,8 @@ agents:
     stage_out: "{name} 지시 단계에서 제거"
     stage_text_of: "{name} 내용"
   error:
+    fallback_failed: "폴백을 바꾸지 못했습니다."
+    provider_key_failed: "키를 저장하지 못했습니다."
     sleep_read_failed: "수면 설정을 읽지 못했어요."
     login_which: 다시 로그인할 계정이나 새 계정의 이름 중 하나만 정해 주세요.
     login_not_directory: 설정 디렉터리 계정만 여기서 로그인할 수 있습니다.
@@ -3156,7 +3165,11 @@ agents:
     stage_chain_refused: 수신 유닛이 이 지시 단계 순서를 받지 않았습니다. 이 감독관에게 없는 단계가 들어 있습니다.
     stage_name: "이름은 소문자로 시작하고 소문자·숫자·대시로 된 {max}자 이하의 한 단어입니다."
     stage_add_unfinished: 추가할 단계의 이름과 내용을 확인하거나 추가를 취소하세요.
+    workspace_failed: "워크스페이스를 저장하지 못했습니다."
   label:
+    fallback_new: "새 폴백"
+    fallbacks: "폴백"
+    provider_key: "API 키"
     sleep_on: "매일 밤 수면"
     sleep_hour: "수면 시각"
     agency: 플랫폼
@@ -3429,8 +3442,15 @@ agents:
     stages: 지시 단계
     stages_none: 지시 단계 없음
     stages_unused: 사용하지 않는 단계
+    workspace: "워크스페이스"
+    workspace_default: "기본 워크스페이스"
+    workspace_id: "워크스페이스 ID"
   message:
+    fallbacks_hint: "이 에이전트의 길을 명확히 쓸 수 없을 때만 위에서부터 차례로 씁니다. 공급자가 꺼졌거나 키·잔액·로그인이 없거나 접근·한도로 막힌 때이고, 에러가 났다고 넘어가지 않습니다."
+    fallbacks_none: "폴백이 없습니다."
     name_tag_hint: "내 계정으로 대신 답할 때 답 앞에 붙어요. 비워 두면 기본값을 써요."
+    provider_key_hint: "저장한 키는 다시 보여 주지 않습니다. 새로 저장하면 바뀝니다."
+    provider_key_saved: "키를 저장했습니다."
     rest_end_confirm: "휴식을 끝낼까요?"
     rest_end_takes: "플랫폼의 Claude 로그인이 바로 다시 답하고, 한도가 아직 찬 로그인은 다음 사용량 확인 때 다시 쉽니다."
     rest_still: "한도가 다시 가득 찬 로그인이 있어 휴식이 이어집니다."
@@ -3468,6 +3488,7 @@ agents:
     role_features: 비워 두면 이 역할의 모든 에이전트가 함께 쓰는 역할 설정을 따릅니다.
     road_outside_owner: "이 감독관은 이 기기에서 소유자의 시스템 사용자로 실행됩니다.\n도구 제한이 없거나 program.files, program.shell, room.tools 중 하나라도 허용하면 그 사용자가 읽을 수 있는 모든 것이 {provider}에 전달될 수 있습니다.\n데이터 루트와 env/ 아래 모든 유닛의 토큰과 설정 파일도 포함됩니다.\n등록 모델이나 소유자 계정의 Claude Code가 아닌 공급자는 소유자가 직접 정한 경우에만 쓰거나, 도구 제한에서 이 세 가지를 빼 주세요."
     repository_delete_confirm: 이 저장소를 삭제할까요?
+    workspace_hint: "조직 키는 어느 워크스페이스에도 묶이지 않아서 요청마다 워크스페이스를 정해야 합니다. 워크스페이스 안에서 만든 키라면 기본 워크스페이스를 고르세요."
   placeholder:
     sign_in_code: 코드 붙여 넣기
     account_name: claude-01

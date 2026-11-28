@@ -200,3 +200,71 @@ describe.skipIf(!origin || !touchReady())("what the platform's supply and the pr
     }
   }, TEST_MS);
 });
+
+// A provider that takes a workspace, its key and workspace under its row on the providers tab (docs/web.md, the
+// providers tab): the key typed once and sent to the platform's secret store under the file the provider reads, the field
+// emptied and nothing read back; the workspace chosen as an id, sent to the agency, and set back to the default; at a
+// desk's width and a phone's, each control reached and pressed as a finger does.
+describe.skipIf(!origin || !touchReady())("a provider's key and workspace on the providers tab", () => {
+  for (const viewport of [DESK, PHONE]) {
+    test(`are saved each on its own, ${viewport.width}px wide`, async () => {
+      const page = await opened(viewport);
+      const context = page.context();
+      const sent: { path: string; body: Record<string, unknown> }[] = [];
+      let workspace: string | null = null;
+      const anthropic = () => ({
+        name: "anthropic", label: "Anthropic API", enabled: true, registered: false, lines: ["worker"], reason: null, reasonEnglish: null,
+        foldRatioDefault: 0.5, keyFile: "anthropic-api-key", takesWorkspace: true, workspace, ownersEngine: false, takesAdvisor: true, advisorWords: []
+      });
+
+      await context.route(/\/api\/providers$/, (route) => route.fulfill({ json: [anthropic()] }));
+      await context.route(/\/api\/providers\/anthropic$/, async (route) => {
+        const body = route.request().postDataJSON() as Record<string, unknown>;
+
+        sent.push({ path: "provider", body });
+        workspace = (body.workspace as string | null) ?? null;
+
+        return await route.fulfill({ json: anthropic() });
+      });
+      await context.route(/\/api\/secrets$/, async (route) => {
+        if (route.request().method() !== "POST") return await route.fallback();
+
+        sent.push({ path: "secret", body: route.request().postDataJSON() as Record<string, unknown> });
+
+        return await route.fulfill({ json: { name: "anthropic-api-key" } });
+      });
+
+      try {
+        await page.goto(`${origin}/organization?company=platform&tab=providers`, { waitUntil: "load" });
+
+        const form = page.locator('[data-provider-workspace="anthropic"]');
+
+        await form.waitFor({ timeout: 30_000 });
+        await form.scrollIntoViewIfNeeded();
+
+        // The key, typed and saved, goes to the secret store under the provider's key file, and the field empties.
+        await form.locator("[data-provider-key-input]").fill("sk-ant-example");
+        await form.locator("[data-provider-key-save]").click();
+        await form.locator("[data-provider-key-saved]").waitFor({ timeout: 10_000 });
+        expect(sent[0]).toEqual({ path: "secret", body: { name: "anthropic-api-key", value: "sk-ant-example", replace: true } });
+        expect(await form.locator("[data-provider-key-input]").inputValue()).toBe("");
+
+        // A workspace's id chosen and saved goes to the agency; the default saved takes it away.
+        await form.getByRole("radio", { name: wording("agents.label.workspace_id") }).click();
+        await form.locator("[data-provider-workspace-id]").fill("wrkspc_01Example");
+        await form.locator("[data-provider-workspace-save]").click();
+        await page.waitForFunction(() => true);
+        await form.locator("[data-provider-workspace-save]").and(page.locator(":disabled")).waitFor({ timeout: 10_000 });
+        expect(sent[1]).toEqual({ path: "provider", body: { workspace: "wrkspc_01Example" } });
+
+        await form.getByRole("radio", { name: wording("agents.label.workspace_default") }).click();
+        await form.locator("[data-provider-workspace-save]").click();
+        await form.locator("[data-provider-workspace-save]").and(page.locator(":disabled")).waitFor({ timeout: 10_000 });
+        expect(sent[2]).toEqual({ path: "provider", body: { workspace: null } });
+        expect(await form.locator("[data-provider-workspace-id]").count()).toBe(0);
+      } finally {
+        await context.close();
+      }
+    }, TEST_MS);
+  }
+});

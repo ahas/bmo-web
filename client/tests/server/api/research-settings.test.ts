@@ -33,7 +33,7 @@ function role(name: string, enabled: boolean): Record<string, unknown> {
     // A branch is a run of its role, so a role carries one only through an agent switched on.
     agents: [{
       name: `${name}-01`, role: name, provider: null, model: null, effort: null, thinking: null, answerTokens: null, enabled, position: 1,
-      keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: true, carries: false
+      keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: true, carries: false, fallbacks: []
     }]
   };
 }

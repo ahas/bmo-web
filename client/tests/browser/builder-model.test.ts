@@ -20,7 +20,7 @@ const ITEM = 2926;
 const NOW = Math.floor(Date.now() / 1000);
 
 const provider = (name: string, label: string, lines: string[], enabled = true): ProviderView => ({
-  name, label, enabled, registered: false, lines, reason: null, reasonEnglish: null, foldRatioDefault: null, keyFile: null, ownersEngine: true,
+  name, label, enabled, registered: false, lines, reason: null, reasonEnglish: null, foldRatioDefault: null, keyFile: null, takesWorkspace: false, workspace: null, ownersEngine: true,
   takesAdvisor: false, advisorWords: []
 });
 // One provider on the job line, one turned off on it, and one whose program carries another line alone.

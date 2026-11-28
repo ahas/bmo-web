@@ -54,6 +54,8 @@
           :aria-label="$t('agents.aria.switch_on', { name: one.label })"
           @update:model-value="(on: boolean) => void throwSwitch(one, on)"
         />
+        <!-- A provider that takes a workspace holds its key and its workspace under its row. -->
+        <ProviderWorkspace v-if="one.takesWorkspace" :provider="one" class="basis-full" @changed="(answered: ProviderView) => void replaced(answered)" />
       </div>
       </template>
     </SettingsGroup>
@@ -147,6 +149,11 @@ function markOf(provider: ProviderView): { icon: string; tone: string } {
 const switching = ref("");
 
 // The owner's switch thrown at once; the agency refuses turning off the last one on, which a notice says.
+// A provider the agency answered after a change of its own, standing in the list in place of the one read.
+function replaced(answered: ProviderView): void {
+  providers.value = (providers.value ?? []).map((one) => (one.name === answered.name ? answered : one));
+}
+
 async function throwSwitch(provider: ProviderView, on: boolean): Promise<void> {
   switching.value = provider.name;
 

@@ -40,6 +40,8 @@
           <UFormField v-if="form.road.provider !== ''" :label="$t('agents.label.agent_follows')" name="followsAsker" :error="errorAt('followsAsker')">
             <ChoiceSelect v-model="form.follows" :items="followItems" value-key="value" class="w-full sm:w-48" :disabled="busy" :aria-label="$t('agents.label.agent_follows')" data-agent-follows />
           </UFormField>
+          <!-- Its fallback roads, which stand only behind a road of its own; each change is the agency's at once. -->
+          <AgentFallbacks v-if="agent.provider !== null" :agent="agent.name" :line="role.line" :fallbacks="agent.fallbacks" @changed="() => void refresh()" />
         </template>
 
         <template v-else-if="tab === 'sessions'">

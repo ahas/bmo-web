@@ -308,7 +308,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       sent.push({ method: request.method(), name, body });
 
       if (request.method() === "POST") {
-        const added = seat(agents.length + 1, { ...body, carries: false });
+        const added = seat(agents.length + 1, { ...body, carries: false, fallbacks: [] });
 
         agents = [...agents, added];
 
@@ -364,7 +364,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       const seat = (index: number, extra: Record<string, unknown> = {}) => ({
         name: `worker-0${index}`, role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, advisor: null,
         enabled: true, position: index, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
-        followsSupervisor: false, carries: false, ...extra
+        followsSupervisor: false, carries: false, fallbacks: [], ...extra
       });
       let agents = [
         seat(1),
@@ -621,7 +621,7 @@ describe.skipIf(!origin || !touchReady())("the agent management screen's tabs", 
       const seat = (index: number, extra: Record<string, unknown> = {}) => ({
         name: `voice-0${index}`, role: "voice", provider: "deepseek", model: "deepseek-v4-pro", effort: null, thinking: null, answerTokens: null, advisor: null,
         enabled: true, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
-        followsAsker: null, followsSupervisor: true, carries: false, ...extra
+        followsAsker: null, followsSupervisor: true, carries: false, fallbacks: [], ...extra
       });
       let agents = [seat(1), seat(2, { provider: null, model: null })];
       let followsAsker = true;
@@ -1034,5 +1034,121 @@ describe.skipIf(!origin || !touchReady())("an umbrella repository", () => {
         await context.close();
       }
     }, 60_000);
+  }
+});
+
+// An agent's fallback roads in its dialog (docs/web.md, 「Agent management screen」): listed in the order they are
+// asked, one carried by its drag handle to another place, one taken away by its remove button and one added from the
+// road field under them, each change sent to the agency at once and the list standing as it answers; worked with a
+// mouse at a desk's width and with a finger at a phone's.
+describe.skipIf(!origin || !touchReady())("an agent's fallback roads", () => {
+  for (const [width, height, phone] of [[1280, 900, false], [360, 780, true]] as const) {
+    test(`are added, carried to another place and removed, each sent at once, ${width}px wide`, async () => {
+      const context = phone
+        ? await browser!.newContext({ ...devices["Pixel 5"], serviceWorkers: "block" })
+        : await browser!.newContext({ viewport: { width, height }, serviceWorkers: "block" });
+      const at = cookie.indexOf("=");
+      const road = (provider: string, model: string) => ({ provider, model, effort: null, thinking: null, answerTokens: null, advisor: null });
+      let fallbacks = [road("deepseek", "deepseek-flash"), road("openrouter", "vendor/b-model")];
+      const agent = () => ({
+        name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "medium", thinking: null, answerTokens: null, advisor: null,
+        enabled: true, position: 1, keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null,
+        followsAsker: null, followsSupervisor: false, carries: false, fallbacks
+      });
+      const view = () => ({
+        roles: [{
+          name: "worker", label: "Worker", description: null, prompt: null, providerPrompts: {}, bundles: [], skills: null, line: "worker", agents: [agent()],
+          roads: [], maxConcurrent: 1, running: 0, waiting: 0, provider: "claude-code", waitingFor: null
+        }],
+        bundles: [],
+        skills: [],
+        lines: ["worker"]
+      });
+      const sent: { method: string; path: string; body: unknown }[] = [];
+
+      await context.addCookies([{ name: cookie.slice(0, at), value: cookie.slice(at + 1), url: origin! }]);
+      await context.route(/\/api\/roles$/, (route) => route.fulfill({ json: view() }));
+      await context.route(/\/api\/roles\/worker\/sessions/, (route) => route.fulfill({ json: { items: [], more: false } }));
+      await context.route(/\/api\/role-agents\/worker-01\/fallbacks/, async (route) => {
+        const request = route.request();
+        const path = new URL(request.url()).pathname.replace(/^.*\/fallbacks/, "");
+        const body = request.method() === "DELETE" ? null : (request.postDataJSON() as Record<string, unknown>);
+
+        sent.push({ method: request.method(), path, body });
+
+        if (request.method() === "POST" && path === "") fallbacks = [...fallbacks, road(body!.provider as string, body!.model as string)];
+        if (request.method() === "DELETE") fallbacks = fallbacks.filter((_, index) => `/${index}` !== path);
+
+        const moving = /^\/(\d+)\/move$/.exec(path);
+
+        if (moving) {
+          const next = [...fallbacks];
+          const [one] = next.splice(Number(moving[1]), 1);
+
+          next.splice((body as { to: number }).to, 0, one!);
+          fallbacks = next;
+        }
+
+        return await route.fulfill({ json: agent() });
+      });
+
+      try {
+        const page = await context.newPage();
+        const listed = async () => (await page.locator("[data-agent-fallback]").allInnerTexts()).map((one) => one.trim());
+
+        await page.goto(`${origin}/organization?company=platform&tab=supervisors`, { waitUntil: "load" });
+        await page.locator("[data-role-agents-table] tbody tr").filter({ hasText: "worker-01" }).locator("button", { hasText: "worker-01" }).click();
+        await page.locator("[data-agent-fallbacks]").waitFor({ timeout: 15_000 });
+
+        const section = page.locator("[data-agent-fallbacks]");
+
+        await section.scrollIntoViewIfNeeded();
+        expect(await listed()).toEqual(["deepseek · deepseek-flash", "openrouter · vendor/b-model"]);
+
+        // The second carried above the first by its handle: sent at once as one move, and the list stands so.
+        const handles = section.locator("[data-sortable-handle]");
+        const from = (await handles.nth(1).boundingBox())!;
+        const onto = (await section.locator("[data-sortable-item]").first().boundingBox())!;
+
+        if (phone) {
+          const finger = await fingerOn(page);
+
+          await finger.swipe({ x: from.x + from.width / 2, y: from.y + from.height / 2 }, { x: from.x + from.width / 2, y: onto.y + 4 }, { holdMs: 450, steps: 12, restMs: 250 });
+        } else {
+          await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+          await page.mouse.down();
+          await page.mouse.move(from.x + from.width / 2, onto.y + 4, { steps: 12 });
+          await page.mouse.up();
+        }
+
+        expect(await until(async () => sent.length, (count) => count === 1)).toBe(1);
+        expect(sent[0]).toEqual({ method: "POST", path: "/1/move", body: { to: 0 } });
+        expect(await until(listed, (now) => now[0] === "openrouter · vendor/b-model")).toEqual(["openrouter · vendor/b-model", "deepseek · deepseek-flash"]);
+
+        // The first taken away by its remove button, pressed where a finger reaches it.
+        await section.locator("[data-agent-fallback-remove]").first().click();
+        expect(await until(async () => sent.length, (count) => count === 2)).toBe(2);
+        expect(sent[1]).toEqual({ method: "DELETE", path: "/0", body: null });
+        expect(await until(listed, (now) => now.length === 1)).toEqual(["deepseek · deepseek-flash"]);
+
+        // A road chosen in the field under the list is added at its end, and the field empties.
+        const fresh = section.locator("[data-agent-fallback-new]");
+
+        await fresh.locator("[data-road-provider]").getByRole("button").click();
+        await page.getByRole("option").filter({ hasText: /Claude Code/ }).first().click();
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        await fresh.getByRole("button", { name: wording("common.label.model") }).click();
+        await page.getByRole("option").first().click();
+        await page.getByRole("listbox").waitFor({ state: "detached", timeout: 10_000 });
+        await section.locator("[data-agent-fallback-add]").click();
+        expect(await until(async () => sent.length, (count) => count === 3)).toBe(3);
+        expect(sent[2]!.method).toBe("POST");
+        expect(sent[2]!.path).toBe("");
+        expect((sent[2]!.body as { provider: string }).provider).toBe("claude-code");
+        expect(await until(listed, (now) => now.length === 2)).toHaveLength(2);
+      } finally {
+        await context.close();
+      }
+    }, 120_000);
   }
 });

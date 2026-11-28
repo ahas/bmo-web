@@ -3691,6 +3691,15 @@ at their own link; agents the node answers none of stand nowhere on it.
       that supervisor's road, the road it names standing where none asks or that road cannot answer (the agency's
       `docs/role-agents.md`, 「An agent that follows its asker」). The role's setting chosen is sent as none, so the
       agent goes by its role's from then on. An agent naming no road follows always, and the choice is not shown.
+      Under them, for an agent the agency holds with a road of its own, stands 폴백: its fallback roads in the order
+      they are asked, each as its provider, model and effort with its drag handle at the left and its remove button at
+      the right, the line under the heading saying they are used from the top only where the agent's road clearly
+      cannot answer, never for an error a run met (the agency's `docs/role-agents.md`, 「An agent's fallback roads」),
+      폴백이 없습니다 where it holds none, and under the list 새 폴백, a road field of its own with 폴백 추가. The order
+      is the shared sortable list's (bmo-ui's `docs/components.md`, 「Sortable lists」): carried by its handle, the road
+      lifts and follows the pointer, the others slide to make room, and a drop sends the one move. A road added, one
+      removed and one moved each go to the agency at once, one at a time, without the dialog's save, and the list
+      stands as the agency answers; a refusal stands under it.
     - **세션:** 세션, 유지 or 새로; 압축 기준, a whole percent from 1 to 100, empty for the one its provider declares,
       which its placeholder names with `(기본값)`; and 캐시 유지, the switch with the line saying what it does. They
       are the settings the table's cells hold.
@@ -9899,6 +9908,13 @@ a row shows of a key is the secret's name, and of a login the path it is reached
 
 #### 공급자
 
+- **A provider that takes a workspace** (the agency's `docs/provider-presence.md`, 「A provider's workspace」), the
+  Anthropic API, holds two forms under its row, each saved on its own. API 키, a password field with the line that a
+  saved key is never shown again: its save writes the key into the platform's secret store under the file the
+  provider reads, `keyFile`, replacing what stood, and says 키를 저장했습니다; nothing is read back. 워크스페이스, with
+  the line saying an organisation's key belongs to no one workspace and a key made inside one takes the default:
+  기본 워크스페이스 or 워크스페이스 ID, the second with its field, saved through the agency's `PATCH
+  /providers/{name}` as `workspace`, the id or null for the default, the row standing as the agency answers.
 - **공급자** — every provider the agency carries (its `docs/api.md`, 「providers, models and model files」), one row
   each in the order it lists them: the pack's word for its code with a status mark after it, under it a gateway
   road's 소유 where every member of the road is owned by one account or one unit — 개인 with that person's name, or

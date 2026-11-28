@@ -53,6 +53,8 @@ export function providerViewOf(provider: Provider): ProviderView {
     reasonEnglish: said.reasonEnglish,
     foldRatioDefault: number(held.foldRatioDefault),
     keyFile: text(held.keyFile),
+    takesWorkspace: held.takesWorkspace === true,
+    workspace: text(held.workspace),
     ownersEngine: provider.ownersEngine,
     takesAdvisor: provider.takesAdvisor,
     advisorWords: provider.takesAdvisor ? provider.advisorWords : []
@@ -69,6 +71,12 @@ export async function readProviders(): Promise<ProviderView[]> {
 /** The owner's switch thrown on one provider; the last one on is refused by the agency. */
 export async function switchProvider(name: string, enabled: boolean): Promise<ProviderView> {
   return providerViewOf(await agencyCall(agency().PATCH("/providers/{providerName}", { params: { path: { providerName: name } }, body: { enabled } })));
+}
+
+/** The workspace a provider's requests are spent in set, null for the key's default (the agency's
+ * `docs/provider-presence.md`, 「A provider's workspace」). */
+export async function setProviderWorkspace(name: string, workspace: string | null): Promise<ProviderView> {
+  return providerViewOf(await agencyCall(agency().PATCH("/providers/{providerName}", { params: { path: { providerName: name } }, body: { workspace } })));
 }
 
 function providerModelOf(value: unknown): ProviderModelView[] {
@@ -301,7 +309,15 @@ export function roleAgentViewOf(agent: Schemas["RoleAgent"] & Following): RoleAg
     skills: agent.skills ?? null,
     followsAsker: agent.followsAsker ?? null,
     followsSupervisor: agent.followsSupervisor ?? (agent.provider == null),
-    carries: agent.carries ?? false
+    carries: agent.carries ?? false,
+    fallbacks: (agent.fallbacks ?? []).map((road) => ({
+      provider: road.provider,
+      model: road.model,
+      effort: road.effort ?? null,
+      thinking: road.thinking ?? null,
+      answerTokens: road.answerTokens ?? null,
+      advisor: road.advisor ?? null
+    }))
   };
 }
 
@@ -576,6 +592,31 @@ export async function changeRoleAgent(name: string, change: Schemas["RoleAgentCh
   const { role: _role, name: _name, ...body } = change;
 
   return roleAgentViewOf(await agencyCall(agency(madeFor).PATCH("/role-agents/{agentName}", { params: { path: { agentName: name } }, body }), { codes: AGENT_CODES, refusal: agentRefusal }));
+}
+
+/** One fallback road added to an agent at `position`, last where none is named (the agency's `docs/role-agents.md`,
+ * 「An agent's fallback roads」). */
+export async function addRoleAgentFallback(name: string, road: Schemas["FallbackAdd"], madeFor?: H3Event): Promise<RoleAgentView> {
+  return roleAgentViewOf(
+    await agencyCall(agency(madeFor).POST("/role-agents/{agentName}/fallbacks", { params: { path: { agentName: name } }, body: road }), { codes: AGENT_CODES, refusal: agentRefusal })
+  );
+}
+
+/** The fallback road of an agent at `position` removed. */
+export async function removeRoleAgentFallback(name: string, position: number, madeFor?: H3Event): Promise<RoleAgentView> {
+  return roleAgentViewOf(
+    await agencyCall(agency(madeFor).DELETE("/role-agents/{agentName}/fallbacks/{position}", { params: { path: { agentName: name, position } } }), { codes: AGENT_CODES, refusal: agentRefusal })
+  );
+}
+
+/** The fallback road of an agent at `position` moved to `to`. */
+export async function moveRoleAgentFallback(name: string, position: number, to: number, madeFor?: H3Event): Promise<RoleAgentView> {
+  return roleAgentViewOf(
+    await agencyCall(agency(madeFor).POST("/role-agents/{agentName}/fallbacks/{position}/move", { params: { path: { agentName: name, position } }, body: { to } }), {
+      codes: AGENT_CODES,
+      refusal: agentRefusal
+    })
+  );
 }
 
 export async function removeRoleAgent(name: string, madeFor?: H3Event): Promise<void> {

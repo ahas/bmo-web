@@ -25,10 +25,10 @@ const ROLE = {
 // An agent of the role on a road, one switched off on the same road, and one that names no road.
 const AGENT = {
   name: "worker-01", role: "worker", provider: "claude-code", model: "claude-opus-5-5", effort: "high", thinking: null, answerTokens: null, enabled: true,
-  keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true
+  keepsCache: false, sessions: "keep", foldRatio: null, prompt: null, bundles: null, skills: null, followsSupervisor: false, carries: true, fallbacks: []
 };
-const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, carries: false };
-const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, followsSupervisor: true, carries: false };
+const AGENT_OFF = { ...AGENT, name: "worker-02", enabled: false, carries: false, fallbacks: [] };
+const AGENT_FOLLOWING = { ...AGENT, name: "worker-03", provider: null, model: null, effort: null, followsSupervisor: true, carries: false, fallbacks: [] };
 
 ROLE.agents = [AGENT, AGENT_OFF, AGENT_FOLLOWING];
 const REPOSITORY = {
@@ -79,7 +79,7 @@ const agency = standIn("AGENCY", (call) => {
   if (call.path === "/roles/worker" && call.method === "PATCH") return answer({ ...ROLE, ...call.body });
   if (call.path === "/roles" && call.method === "POST") return answer({ ...ROLE, ...call.body }, 201);
   if (call.path === "/roles") return answer({ roles: [ROLE, SEEKER, { ...OWN_ROLE, skills: ["skill-b"], providerPrompts: { codex: "text-a" } }], bundles: ROLE.bundles, skills: ["skill-a", "skill-b"], lines: ["worker"] });
-  if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", carries: false, ...call.body });
+  if (call.path === "/role-agents" && call.method === "POST") return answer({ ...AGENT, name: "worker-04", carries: false, fallbacks: [], ...call.body });
   if (call.path === "/role-agents/worker-01" && call.method === "PATCH") return answer({ ...AGENT, ...call.body });
   if (call.path === "/role-agents/worker-02" && call.method === "PATCH") return answer({ code: "unprocessable-entity", error: "advisor: it ranks below the model." }, 422);
   if (call.path === "/role-agents/worker-03" && call.method === "PATCH") return answer({ code: "unprocessable-entity", error: "model: no such model." }, 422);

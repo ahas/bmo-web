@@ -196,6 +196,7 @@ common:
     member_permission: "{name} permission"
     menu_of: "{name} menu"
     more_notices: "{n} more notifications"
+    move_named: Move {name}
     open_list: Open list
     opens_new_tab: (opens in a new tab)
     others_count: "and {n} others"
@@ -213,6 +214,10 @@ common:
     bmo_answering: The chat agent is writing a reply…
     brightness: "Brightness {n}%"
     copied: Copied
+    item_moved: "{name}, place {place} of {count}"
+    item_picked: "{name} picked up"
+    item_put_back: "{name} put back"
+    item_set_down: "{name} set down at place {place}"
     link_preview_loading: Loading link preview…
     loading: Loading…
     loading_named: "Loading {name}…"
@@ -2994,6 +2999,7 @@ secrets:
     unreachable: "Couldn't reach the account service."
 agents:
   action:
+    fallback_add: "Add fallback"
     rest_end: "End rest"
     sign_in_again: Sign in again
     open_sign_in: Open sign-in page
@@ -3019,6 +3025,7 @@ agents:
     stage_add: Add stage
     stage_to_default: Reset to default text
   aria:
+    fallback_remove: "Remove fallback {road}"
     heal_of: "Restore {name} from demotion"
     node_checkout_node: Node to hold the node checkout
     node_checkout_path: Node checkout path
@@ -3047,6 +3054,8 @@ agents:
     stage_out: "Remove {name} from instruction stages"
     stage_text_of: "{name} text"
   error:
+    fallback_failed: "The fallback could not be changed."
+    provider_key_failed: "The key could not be saved."
     sleep_read_failed: "The sleep setting could not be read."
     login_which: "Choose either an account to sign in again or a name for a new account, not both."
     login_not_directory: Only config directory accounts can sign in here.
@@ -3141,7 +3150,11 @@ agents:
     stage_chain_refused: "The receiver unit didn't accept this instruction stage order. It includes stages this supervisor doesn't have."
     stage_name: "The name is one word of up to {max} lowercase letters, digits and dashes, starting with a lowercase letter."
     stage_add_unfinished: "Check the new stage's name and text, or cancel adding it."
+    workspace_failed: "The workspace could not be saved."
   label:
+    fallback_new: "New fallback"
+    fallbacks: "Fallbacks"
+    provider_key: "API key"
     sleep_on: "Sleep every night"
     sleep_hour: "Sleep hour"
     agency: Platform
@@ -3416,8 +3429,15 @@ agents:
     stages: Instruction stages
     stages_none: No instruction stages
     stages_unused: Unused stages
+    workspace: "Workspace"
+    workspace_default: "Default workspace"
+    workspace_id: "Workspace ID"
   message:
+    fallbacks_hint: "Used from the top only where this agent's road clearly cannot answer: its provider off, no key, balance or login, or blocked for access or a limit. An error a run met never moves it."
+    fallbacks_none: "No fallbacks."
     name_tag_hint: "Goes before its answers when it replies from your own account. Leave it empty to use the default."
+    provider_key_hint: "A saved key is never shown again; saving a new one replaces it."
+    provider_key_saved: "The key is saved."
     rest_end_confirm: "End the rest?"
     rest_end_takes: "The platform's Claude logins answer again at once, and a login still at its limit rests again at the next usage check."
     rest_still: "A login reads full again, so the rest goes on."
@@ -3453,6 +3473,7 @@ agents:
     role_features: Leave empty to follow the role settings shared by every agent of this role.
     road_outside_owner: "This supervisor runs on this device as the owner's system user.\nIf it has no tool limit, or allows any of program.files, program.shell or room.tools, anything that user can read may be sent to {provider}.\nThat includes every unit's tokens and settings files under the data root and env/.\nUse a provider other than a registered model or Claude Code on the owner's account only when the owner chose it directly, or remove these three from the tool limit."
     repository_delete_confirm: Delete this repository?
+    workspace_hint: "An organisation's key belongs to no one workspace, so every request names one. For a key made inside a workspace, choose the default."
   placeholder:
     sign_in_code: Paste code
     account_name: claude-01

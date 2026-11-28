@@ -3294,6 +3294,7 @@ agents:
     pinned_provider: プロバイダー
     preamble: 前書き
     prefix_documents: プレフィックス文書
+    provider_anthropic: "Anthropic API"
     provider_claude_code: Claude Code
     provider_codex: Codex
     provider_deepseek: DeepSeek

@@ -3294,6 +3294,7 @@ agents:
     pinned_provider: 提供商
     preamble: 前言
     prefix_documents: 前缀文档
+    provider_anthropic: "Anthropic API"
     provider_claude_code: Claude Code
     provider_codex: Codex
     provider_deepseek: DeepSeek

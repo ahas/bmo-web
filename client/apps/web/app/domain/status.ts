@@ -30,7 +30,8 @@ const MODE_NAMES: Partial<Record<AgentMode, string>> = {
   "claude-code": "Claude Code",
   codex: "Codex",
   openrouter: "OpenRouter",
-  deepseek: "DeepSeek"
+  deepseek: "DeepSeek",
+  anthropic: "Anthropic API"
 };
 
 const MODE_KEYS: Partial<Record<AgentMode, string>> = {

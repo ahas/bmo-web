@@ -96,7 +96,7 @@ export interface TodoModelPlan {
 // The agency's shapes (the agency's `docs/api.md`).
 
 /** The providers an agent runs on, one name to each provider the agency carries. */
-export const agentProviderNames = ["claude-code", "codex", "openrouter", "registered", "deepseek"] as const;
+export const agentProviderNames = ["claude-code", "codex", "openrouter", "registered", "deepseek", "anthropic"] as const;
 
 export type AgentProviderName = (typeof agentProviderNames)[number];
 

@@ -63,5 +63,6 @@ test("a provider is named by its code, a product by its own name and the registr
   expect(providerLabelOf("claude-code", "claude-code")).toBe(wording("agents.label.provider_claude_code"));
   expect(providerLabelOf("registered", "registered")).toBe(wording("agents.label.provider_registered"));
   expect(providerLabelOf(undefined, "deepseek")).toBe(wording("agents.label.provider_deepseek"));
+  expect(providerLabelOf("anthropic", "anthropic")).toBe(wording("agents.label.provider_anthropic"));
   expect(providerLabelOf("brand-new", "brand-new")).toBe(wording("agents.label.unknown_code", { code: "brand-new" }));
 });

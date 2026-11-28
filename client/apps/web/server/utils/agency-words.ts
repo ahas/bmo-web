@@ -22,7 +22,8 @@ const PROVIDER_LABELS: Readonly<Record<string, string>> = {
   openrouter: "agents.label.provider_openrouter",
   deepseek: "agents.label.provider_deepseek",
   registered: "agents.label.provider_registered",
-  laya: "agents.label.provider_laya"
+  laya: "agents.label.provider_laya",
+  anthropic: "agents.label.provider_anthropic"
 };
 
 // The bundles a role may give, by code: every one the agency's policy declares (its `policy/roles.toml`, `[[bundles]]`)

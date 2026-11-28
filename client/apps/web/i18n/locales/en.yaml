@@ -3272,6 +3272,7 @@ agents:
     pinned_provider: Provider
     preamble: Preamble
     prefix_documents: Prefix documents
+    provider_anthropic: "Anthropic API"
     provider_claude_code: Claude Code
     provider_codex: Codex
     provider_deepseek: DeepSeek

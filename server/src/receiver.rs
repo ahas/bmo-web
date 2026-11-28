@@ -20,6 +20,8 @@ pub struct ChatService {
   pub key: String,
   #[serde(default)]
   pub registration: Option<bmo_web_client::MessengerRegistration>,
+  #[serde(default, rename = "nodeProbe")]
+  pub node_probe: Option<bmo_web_client::ChatNodeProbe>,
 }
 
 /// The receiver, as the service asks it.

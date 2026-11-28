@@ -929,10 +929,12 @@ async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisati
         url: "https://my.telegram.org".to_owned(),
         fields: vec!["api_id".to_owned(), "api_hash".to_owned()],
       }),
+      node_probe: None,
     },
     bmo_web_server::receiver::ChatService {
       key: "teams".to_owned(),
       registration: None,
+      node_probe: None,
     },
   ];
 
@@ -1022,4 +1024,57 @@ async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisati
   let (_, listed) = asked(&tree.app, Method::GET, &path, None, person).await;
 
   assert_eq!(listed["items"][1]["account"], json!(null));
+}
+
+// A node the probe finds without the service's app is refused, naming what to install; one that holds it is set.
+struct Holds(bool);
+
+#[async_trait::async_trait]
+impl bmo_web_server::node_probe::NodeProbe for Holds {
+  async fn holds(
+    &self,
+    _node: &str,
+    _account: i32,
+    _probe: &bmo_web_client::ChatNodeProbe,
+  ) -> Option<bool> {
+    Some(self.0)
+  }
+}
+
+#[tokio::test]
+async fn an_account_read_through_the_node_asks_that_the_node_holds_the_service_s_app() {
+  let tree = tree().await;
+  let person = tree.person;
+  let scratch = &tree._scratch;
+
+  *scratch.rooms.chat_services.lock().unwrap() = vec![bmo_web_server::receiver::ChatService {
+    key: "teams".to_owned(),
+    registration: None,
+    node_probe: Some(bmo_web_client::ChatNodeProbe {
+      powershell: Some("exit 0".to_owned()),
+      linux: None,
+      missing: "Microsoft Edge".to_owned(),
+    }),
+  }];
+  scratch
+    .run(
+      r#"INSERT INTO "user_nodes" ("user_id", "agent", "bound_at") VALUES ($1::bigint, 'pc-a', 1)"#,
+      vec![i64::from(person.0).into()],
+    )
+    .await;
+
+  let path = format!("/users/{}/messengers/teams", person.0);
+
+  for (held, status, code) in [
+    (false, StatusCode::CONFLICT, json!("not-installed")),
+    (true, StatusCode::OK, Value::Null),
+  ] {
+    let app =
+      in_force(scratch.service.clone().probing_nodes(std::sync::Arc::new(Holds(held))), TOKEN.into())
+        .await
+        .unwrap();
+    let (answered, said) = asked(&app, Method::PUT, &path, Some(json!({ "mode": "node" })), person).await;
+
+    assert_eq!((answered, said.get("code").cloned().unwrap_or(Value::Null)), (status, code), "{said}");
+  }
 }

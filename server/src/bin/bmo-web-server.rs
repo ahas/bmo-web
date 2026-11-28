@@ -191,7 +191,23 @@ async fn serve(settings: Settings) -> Result<(), String> {
   };
   let mail_token = settings.mail.credential()?;
   let mail = bmo_web_server::security::mail::named(settings.mail.base.as_ref(), mail_token.as_ref())?;
-  let service = service.calling_agency(agency.clone()).sending_mail(mail).in_zone(settings.time.zone()?);
+  let probe: Arc<dyn bmo_web_server::node_probe::NodeProbe> =
+    match (&settings.node_service.base, &settings.node_service.token) {
+      (Some(base), Some(token)) => {
+        Arc::new(bmo_web_server::node_probe::NodeService::new(base, token).map_err(|why| why.to_string())?)
+      }
+      (None, None) => Arc::new(bmo_web_server::node_probe::NoProbe),
+      _ => {
+        return Err(
+          "the node service's settings name its address and its token together, or neither".to_owned(),
+        );
+      }
+    };
+  let service = service
+    .calling_agency(agency.clone())
+    .probing_nodes(probe)
+    .sending_mail(mail)
+    .in_zone(settings.time.zone()?);
   // The membership domain's expiry, renewal and notices, run hourly on this service's own state and its
   // own advisory lock, as sumida's membership guide asks, and every applied plan whose period ended subscribed
   // again after them (docs/accounts.md, 「Supply」, 「An organisation's plans」).

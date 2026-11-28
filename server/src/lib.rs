@@ -23,6 +23,7 @@ pub mod machines;
 pub mod marks;
 pub mod messengers;
 pub mod migration;
+pub mod node_probe;
 pub mod nodes;
 pub mod org_memory;
 pub mod pairings;
@@ -93,6 +94,8 @@ pub struct Service {
   /// The agency the supply hook is registered at and whose personal supply an administrator reads, one that
   /// refuses every read where the settings name none (docs/accounts.md, 「Supply」).
   pub agency: Arc<dyn agency::Agency>,
+  /// What a person's node is asked of whether it holds a chat service's app; nothing where no node service is named.
+  pub node_probe: Arc<dyn node_probe::NodeProbe>,
   /// The owner's time zone, which a fixed line naming a moment tells it in; UTC until it is set.
   pub zone: chrono_tz::Tz,
   /// bmo-mail, which the platform's own mail goes through; one that sends nothing where the settings name none.
@@ -124,6 +127,12 @@ impl Service {
   /// read of whose personal supply serves which roads.
   pub fn calling_agency(mut self, agency: Arc<dyn agency::Agency>) -> Self {
     self.agency = agency;
+    self
+  }
+
+  /// The same service asking `probe` whether a person's node holds a chat service's app.
+  pub fn probing_nodes(mut self, probe: Arc<dyn node_probe::NodeProbe>) -> Self {
+    self.node_probe = probe;
     self
   }
 

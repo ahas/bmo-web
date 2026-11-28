@@ -26,6 +26,10 @@ pub struct Settings {
   /// supply roads are readable (docs/accounts.md, 「Supply」).
   #[serde(default)]
   pub agency: Unit,
+  /// The node service, asked as a caller whether a person's node holds a chat service's app; nothing set here asks
+  /// nothing and refuses nothing for it (docs/accounts.md, 「A person's messenger accounts」).
+  #[serde(default)]
+  pub node_service: Unit,
   /// Nothing set here leaves system mail not set up (docs/accounts.md, 「The platform's own mail」).
   #[serde(default)]
   pub mail: Mail,

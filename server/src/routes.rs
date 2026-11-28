@@ -84,6 +84,7 @@ pub async fn stand(
     nodes: None,
     pairings: Arc::default(),
     agency: Arc::new(crate::agency::NoAgency),
+    node_probe: Arc::new(crate::node_probe::NoProbe),
     zone: chrono_tz::UTC,
     mail: Arc::new(crate::security::mail::NoMail),
     tickets: Arc::default(),

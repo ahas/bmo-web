@@ -145,6 +145,40 @@ pub async fn set(
     );
   }
 
+  // An account read through the person's node asks that the node holds the service's app (its declared probe); a
+  // node that answers that it does not is refused, saying what to install, and one that cannot be asked is not.
+  if let Some(account) = account
+    && account.mode == bmo_web_client::MessengerMode::Node
+    && let Some(probe) = services.iter().find(|one| one.key == chat).and_then(|one| one.node_probe.clone())
+  {
+    let node = crate::invites::node_of(&service.db, service.nodes.as_deref(), user).await?.agent;
+
+    match node {
+      None => {
+        return Err(
+          Refusal::new(
+            StatusCode::CONFLICT,
+            "the person has no node of their own to read the account through",
+          )
+          .coded("no-node"),
+        );
+      }
+      Some(node) if service.node_probe.holds(&node, user, &probe).await == Some(false) => {
+        return Err(
+          Refusal::new(
+            StatusCode::CONFLICT,
+            format!(
+              "{chat} reads the account through {}, which the node {node} does not hold",
+              probe.missing
+            ),
+          )
+          .coded("not-installed"),
+        );
+      }
+      Some(_) => {}
+    }
+  }
+
   let value = account.map(|account| json!(account));
   let kind = crate::chain::kind(&service.db, &account_key(chat)).await?;
 

@@ -84,7 +84,7 @@ types; `server/client/` is the Rust crate the server answers with and that docum
 | `GET /users/{user}` | | `user`, `name` (the login), `fullName` (the person's name, empty where none stands), `administrator` (boolean), `senders` |
 | `GET /users/{user}/senders` | | `senders`: the sender numbers linked to the user; 404 where there is no such user |
 | `GET /users/{user}/messengers` | the user in `Owner-Key`, or the administrator | `items`: each chat service the receiver lists, `service`, `offered` (whether the chain lets the person use it) and `account` (`mode` `own` or `node`, `handle?`), or null (docs/accounts.md, 「A person's messenger accounts」); 403 for anyone else |
-| `PUT /users/{user}/messengers/{service}` | the same; `mode`, `handle?` | 200, the service and the account set; 403 `not-offered` for a service the chain does not let the person use, 400 `unknown-service` for one the receiver does not list |
+| `PUT /users/{user}/messengers/{service}` | the same; `mode`, `handle?` | 200, the service and the account set; 403 `not-offered` for a service the chain does not let the person use, 400 `unknown-service` for one the receiver does not list, 409 `not-installed` for `node` on a node that lacks the service's app, 409 `no-node` for a person with no node of their own |
 | `DELETE /users/{user}/messengers/{service}` | the same | 204: the account taken away |
 | `PUT /users/{user}/senders/{sender}` | `Owner-Role: administrator` | 204: the sender is linked to the user, or already was; 404 where there is no such user, 409 `sender-linked` where another user holds it, 403 for any other role |
 | `POST /users/{user}/password` | `current`, `next` | 204; 401 `wrong-password` where `current` does not match |
@@ -619,6 +619,7 @@ Each goes to the unit's base address with that unit's token as a bearer, as the 
 
 | Unit | Call | Route | Why |
 |---|---|---|---|
+| the node service | ask a person's node whether it holds a chat service's app | `POST /nodes/{nodeName}/runs`, as a caller | a messenger account read through the node (docs/accounts.md, 「A person's messenger accounts」) |
 | the receiver | read the chat services | `GET /providers` | the choices of `chat.services` and the accounts a person sets (docs/accounts.md, 「A person's messenger accounts」) |
 | the receiver | read a room's leaders | `GET /rooms/{chat}/leaders` | whether the one acting may let a person into a room (「Checks」, the entry check) |
 | the receiver | read a room's console members | `GET /rooms/{chat}/accounts`, answered `accounts`, each its `account` | whether the one letting a person in is a member of the room (「Checks」, the entry check) |

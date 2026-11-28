@@ -1047,6 +1047,12 @@ section states what each does.
   it and the account they set there, each kind declared afresh as it is read, so a service the receiver comes to
   list stands at once. A service the receiver lists with an app registration, `registration` with its `url` and
   the `fields` it gives, is answered with it, so the screen says what the person must do before their account reads.
+- **An account read through the person's node asks that the node holds the service's app.** A chat service that
+  reads an account through a node declares its probe, `nodeProbe` (bmo-chat's `docs/contract.md`); setting `node` on
+  it asks the node service to run that probe on the person's own node, as a caller of its runs (`[node_service]`,
+  the node service's `docs/api.md`, 「Runs」). A node that answers it does not hold it is refused 409
+  `not-installed`, naming what to install; a person with no node of their own is refused 409 `no-node`; and where no
+  node service is named, or it cannot be asked, nothing is refused for it.
 
 ### Phones
 

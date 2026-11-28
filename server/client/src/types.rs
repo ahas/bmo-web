@@ -1288,6 +1288,18 @@ pub struct MessengerRegistration {
   pub fields: Vec<String>,
 }
 
+/// How a person's node is asked whether it holds what a chat service reads their account through there, as the
+/// service declares it: a command for each shell a node takes one in, exiting 0 where it does, and what the person
+/// installs where it does not.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct ChatNodeProbe {
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub powershell: Option<String>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub linux: Option<String>,
+  pub missing: String,
+}
+
 /// One chat service as a person reads it: whether their organisation lets them use it, the account they set, and the
 /// app registration it needs where it declares one.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]

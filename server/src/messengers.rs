@@ -9,8 +9,10 @@ use axum::Router;
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::routing::get;
-use bmo_web_client::{ChainKind, ChainLevel, ChainMode, ChainPersonWriter, ChainShape};
-use serde::{Deserialize, Serialize};
+use bmo_web_client::{
+  ChainKind, ChainLevel, ChainMode, ChainPersonWriter, ChainShape, Messenger, MessengerAccount as Account,
+  MessengerSet, Messengers,
+};
 use serde_json::{Value, json};
 
 use crate::chain::{Link, Subject};
@@ -67,40 +69,15 @@ pub fn account_kind(service: &str) -> ChainKind {
   }
 }
 
-/// How a person uses a chat service: signed in with their own login, `handle` naming it where the service shows one,
-/// or through the account already signed in on their own node.
-#[derive(Clone, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct Account {
-  pub mode: Mode,
-  #[serde(default, skip_serializing_if = "Option::is_none")]
-  pub handle: Option<String>,
-}
-
-#[derive(Clone, Copy, Debug, Deserialize, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "kebab-case")]
-pub enum Mode {
-  Own,
-  Node,
-}
-
-/// One chat service as a person reads it: whether they are let use it, and the account they set there.
-#[derive(Debug, Serialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
-pub struct Messenger {
-  pub service: String,
-  pub offered: bool,
-  pub account: Option<Account>,
-}
-
 /// The kinds declared for the chat services the receiver lists now: their offer and an account kind for each.
-async fn declared(service: &Service) -> Result<Vec<String>, Refusal> {
+async fn declared(service: &Service) -> Result<Vec<crate::receiver::ChatService>, Refusal> {
   let services = service.receiver.chat_services().await?;
+  let keys: Vec<String> = services.iter().map(|one| one.key.clone()).collect();
 
-  crate::chain::declare(&service.db, &services_kind(services.clone())).await?;
+  crate::chain::declare(&service.db, &services_kind(keys)).await?;
 
   for one in &services {
-    crate::chain::declare(&service.db, &account_kind(one)).await?;
+    crate::chain::declare(&service.db, &account_kind(&one.key)).await?;
   }
 
   Ok(services)
@@ -130,13 +107,14 @@ pub async fn messengers(service: &Service, user: i32) -> Result<Vec<Messenger>, 
   let mut listed = Vec::new();
 
   for one in services {
-    let kind = crate::chain::kind(&service.db, &account_key(&one)).await?;
+    let kind = crate::chain::kind(&service.db, &account_key(&one.key)).await?;
     let (_, resolved) = crate::chain::resolve(&service.db, &kind, Subject::Person(user)).await?;
 
     listed.push(Messenger {
-      offered: offered.contains(&one),
+      offered: offered.contains(&one.key),
       account: resolved.value.and_then(|value| serde_json::from_value(value).ok()),
-      service: one,
+      registration: one.registration,
+      service: one.key,
     });
   }
 
@@ -154,7 +132,7 @@ pub async fn set(
 ) -> Result<(), Refusal> {
   let services = declared(service).await?;
 
-  if !services.iter().any(|one| one == chat) {
+  if !services.iter().any(|one| one.key == chat) {
     return Err(Refusal::bad(format!("no chat service is named {chat}")).coded("unknown-service"));
   }
 
@@ -189,10 +167,12 @@ async fn list_route(
   State(service): State<Service>,
   Path(user): Path<String>,
   headers: HeaderMap,
-) -> Answer<Value> {
+) -> Answer<Messengers> {
   let (user, _) = whose(&service, &headers, &user).await?;
 
-  Ok(Json(json!({ "items": messengers(&service, user).await? })))
+  Ok(Json(Messengers {
+    items: messengers(&service, user).await?,
+  }))
 }
 
 async fn put_route(
@@ -200,12 +180,15 @@ async fn put_route(
   Path((user, chat)): Path<(String, String)>,
   headers: HeaderMap,
   Body(account): Body<Account>,
-) -> Answer<Value> {
+) -> Answer<MessengerSet> {
   let (user, by) = whose(&service, &headers, &user).await?;
 
   set(&service, user, &chat, Some(&account), by).await?;
 
-  Ok(Json(json!({ "service": chat, "account": account })))
+  Ok(Json(MessengerSet {
+    service: chat,
+    account,
+  }))
 }
 
 async fn delete_route(

@@ -722,6 +722,45 @@ pub fn openapi() -> Value {
   );
   add!(
     "GET",
+    "/users/{user}/messengers",
+    "userMessengers",
+    "Messenger accounts",
+    "Every chat service the receiver lists, with whether the person's organisation lets them use it and the messenger account they set there; for the user themselves and the administrator.",
+    params: vec![string_path("user"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(200, json_answer::<Messengers>(&mut generator))],
+    codes: vec!["bad-request", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "PUT",
+    "/users/{user}/messengers/{service}",
+    "setUserMessenger",
+    "Messenger accounts",
+    "Sets the messenger account a person uses on a chat service their organisation lets them use: their own login, or the one signed in on their node.",
+    params: vec![string_path("user"), string_path("service"), owner_key(), owner_role()],
+    body: Some(json!(generator.subschema_for::<MessengerAccount>())),
+    answers: vec![(200, json_answer::<MessengerSet>(&mut generator))],
+    codes: vec!["bad-request", "unknown-service", "unauthorized", "forbidden", "not-offered", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "DELETE",
+    "/users/{user}/messengers/{service}",
+    "deleteUserMessenger",
+    "Messenger accounts",
+    "Takes a person's messenger account on a chat service away.",
+    params: vec![string_path("user"), string_path("service"), owner_key(), owner_role()],
+    body: None,
+    answers: vec![(204, no_answer())],
+    codes: vec!["bad-request", "unknown-service", "unauthorized", "forbidden", "not-in-force", "database", "failed"],
+    refusal: Refusal::Wire,
+    security: bearer()
+  );
+  add!(
+    "GET",
     "/users/{user}/agent",
     "userAgent",
     "BMO profiles",

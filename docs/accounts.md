@@ -1045,7 +1045,8 @@ section states what each does.
 - **A person's messenger accounts are their own:** the person reads and sets them, and the administrator does for
   anyone; anyone else is refused. Each chat service the receiver lists is answered with whether the person may use
   it and the account they set there, each kind declared afresh as it is read, so a service the receiver comes to
-  list stands at once.
+  list stands at once. A service the receiver lists with an app registration, `registration` with its `url` and
+  the `fields` it gives, is answered with it, so the screen says what the person must do before their account reads.
 
 ### Phones
 

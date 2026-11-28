@@ -46,7 +46,7 @@ import { SCREENS, tabAddress } from "../../../apps/web/app/domain/screens";
 
 describe("the settings dialog", () => {
   test("holds the reader's own sections alone, the voice briefing under its own name", () => {
-    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
+    expect(SETTINGS_SECTIONS.map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "messengers", "skills", "theme", "palette", "notifications", "briefing"]);
     expect(SETTINGS_SECTIONS.find((section) => section.key === "briefing")?.label).toBe("settings.label.briefing");
   });
 
@@ -59,9 +59,9 @@ describe("the settings dialog", () => {
     expect(keys).not.toContain("apps");
   });
 
-  test("shows a member their account, machine, own apps, skills, theme and palette, and the administrator the notifications and the player too", () => {
-    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "skills", "theme", "palette"]);
-    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "skills", "theme", "palette", "notifications", "briefing"]);
+  test("shows a member their account, machine, own apps, messengers, skills, theme and palette, and the administrator the notifications and the player too", () => {
+    expect(sectionsFor(false, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "messengers", "skills", "theme", "palette"]);
+    expect(sectionsFor(true, true).map((section) => section.key)).toEqual(["account", "machine", "personal-apps", "messengers", "skills", "theme", "palette", "notifications", "briefing"]);
   });
 
   test("shows the desktop app's section only in the app's window, to every reader", () => {
@@ -69,7 +69,7 @@ describe("the settings dialog", () => {
       expect(sectionsFor(administrator, user).map((section) => section.key)).not.toContain("desktop");
       expect(sectionsFor(administrator, user, true).map((section) => section.key)).toContain("desktop");
     }
-    expect(sectionsFor(false, true, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "skills", "theme", "palette"]);
+    expect(sectionsFor(false, true, true).map((section) => section.key)).toEqual(["account", "machine", "desktop", "personal-apps", "messengers", "skills", "theme", "palette"]);
   });
 
   test("shows no machine and no own apps to a login with no user, which holds no machine and made nothing", () => {

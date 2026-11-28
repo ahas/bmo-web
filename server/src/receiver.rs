@@ -14,6 +14,14 @@ pub struct MemberRights {
   pub take_out: bool,
 }
 
+/// A chat service as the receiver lists it: its key, and the app registration it declares where it needs one.
+#[derive(Clone, Debug, Default, Deserialize, PartialEq, Eq)]
+pub struct ChatService {
+  pub key: String,
+  #[serde(default)]
+  pub registration: Option<bmo_web_client::MessengerRegistration>,
+}
+
 /// The receiver, as the service asks it.
 #[async_trait::async_trait]
 pub trait Receiver: Send + Sync {
@@ -28,8 +36,9 @@ pub trait Receiver: Send + Sync {
   /// (`docs/boundary.md`, 「Gaps the console meets」).
   async fn member_rights(&self, room: i64, account: i32) -> MemberRights;
 
-  /// The chat services a room may be on, by key, as the receiver lists its providers.
-  async fn chat_services(&self) -> Result<Vec<String>, Refusal> {
+  /// The chat services a room may be on, by key, each with the app registration it declares, as the receiver lists
+  /// its providers.
+  async fn chat_services(&self) -> Result<Vec<ChatService>, Refusal> {
     Ok(vec![])
   }
 }
@@ -133,21 +142,14 @@ impl Receiver for ReceiverClient {
     }
   }
 
-  async fn chat_services(&self) -> Result<Vec<String>, Refusal> {
-    #[derive(Deserialize)]
-    struct Provider {
-      key: String,
-    }
-
+  async fn chat_services(&self) -> Result<Vec<ChatService>, Refusal> {
     #[derive(Deserialize)]
     struct Providers {
       #[serde(default)]
-      items: Vec<Provider>,
+      items: Vec<ChatService>,
     }
 
-    let listed = self.read::<Providers>("/providers", "the chat services").await?;
-
-    Ok(listed.items.into_iter().map(|provider| provider.key).collect())
+    Ok(self.read::<Providers>("/providers", "the chat services").await?.items)
   }
 }
 

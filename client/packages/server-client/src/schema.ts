@@ -1776,6 +1776,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{user}/messengers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Every chat service the receiver lists, with whether the person's organisation lets them use it and the messenger account they set there; for the user themselves and the administrator. */
+        get: operations["userMessengers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/users/{user}/messengers/{service}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Sets the messenger account a person uses on a chat service their organisation lets them use: their own login, or the one signed in on their node. */
+        put: operations["setUserMessenger"];
+        post?: never;
+        /** Takes a person's messenger account on a chat service away. */
+        delete: operations["deleteUserMessenger"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/{user}/name": {
         parameters: {
             query?: never;
@@ -2902,6 +2937,47 @@ export interface components {
         /** @description The people granted a unit's org memory write, by name then id. */
         MemoryWriters: {
             writers: components["schemas"]["MemoryWriter"][];
+        };
+        /**
+         * @description One chat service as a person reads it: whether their organisation lets them use it, the account they set, and the
+         *     app registration it needs where it declares one.
+         */
+        Messenger: {
+            account: components["schemas"]["MessengerAccount"] | null;
+            offered: boolean;
+            registration?: components["schemas"]["MessengerRegistration"] | null;
+            service: string;
+        };
+        /**
+         * @description A person's messenger account on one chat service: how they use it, and the handle of their own login where the
+         *     service shows one.
+         */
+        MessengerAccount: {
+            handle?: string | null;
+            mode: components["schemas"]["MessengerMode"];
+        };
+        /**
+         * @description How a person uses a chat service (docs/accounts.md, 「A person's messenger accounts」): `own`, their own login on
+         *     it, or `node`, the account already signed in on their own node.
+         * @enum {string}
+         */
+        MessengerMode: "own" | "node";
+        /**
+         * @description The app registration a chat service needs before a person's account reads on it, as the service declares it: where
+         *     it is made and the values it gives, which the person keeps in their secrets.
+         */
+        MessengerRegistration: {
+            fields: string[];
+            url: string;
+        };
+        /** @description The account a person set on a chat service. */
+        MessengerSet: {
+            account: components["schemas"]["MessengerAccount"];
+            service: string;
+        };
+        /** @description Every chat service the receiver lists, as a person reads them. */
+        Messengers: {
+            items: components["schemas"]["Messenger"][];
         };
         /** @description Where the account model stands, and why it is not in force where it is not. */
         ModelState: {
@@ -9276,6 +9352,118 @@ export interface operations {
                 content?: never;
             };
             /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-found, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    userMessengers: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Messengers"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    setUserMessenger: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MessengerAccount"];
+            };
+        };
+        responses: {
+            /** @description Answered. */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MessengerSet"];
+                };
+            };
+            /** @description A refusal or failure: bad-request, unknown-service, unauthorized, forbidden, not-offered, not-in-force, database, failed */
+            default: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WireError"];
+                };
+            };
+        };
+    };
+    deleteUserMessenger: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description The user of the login the call is made for, its id written as a decimal number. */
+                "Owner-Key": string;
+                /** @description The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator. */
+                "Owner-Role": "administrator" | "member";
+            };
+            path: {
+                user: string;
+                service: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done; no content. */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description A refusal or failure: bad-request, unknown-service, unauthorized, forbidden, not-in-force, database, failed */
             default: {
                 headers: {
                     [name: string]: unknown;

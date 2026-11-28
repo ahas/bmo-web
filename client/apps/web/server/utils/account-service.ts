@@ -1583,3 +1583,33 @@ export async function setChainRules(key: string, link: string, rules: ChainRuleV
 
 // The service's own call helpers under names of their own, for the modules that ask it beside this one.
 export { answered as accountAnswered, clientOf as accountClientOf, refusalOf as accountRefusalOf, sent as accountSent, userPath as accountUserPath };
+
+/** A person's messenger accounts (docs/accounts.md, 「A person's messenger accounts」): every chat service the
+ * receiver lists, whether their organisation lets them use it, and the account they set there. */
+export type MessengerView = Wire["Messenger"];
+export type MessengerAccountView = Wire["MessengerAccount"];
+
+/** Every chat service a person reads, with what their organisation lets them use and the account they set. */
+export async function messengersOf(user: UserId | number, caller: ProfileCaller, options: ServiceOptions = {}): Promise<MessengerView[]> {
+  const reply = await sent(options, clientOf(options).GET("/users/{user}/messengers", { params: { path: { user: userPath(user) }, header: profileHeaders(caller) } }));
+
+  return answered(reply).items;
+}
+
+/** A person's messenger account on a chat service set; refused `not-offered` where their organisation does not let
+ * them use it. */
+export async function setMessenger(user: UserId | number, service: string, account: MessengerAccountView, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(
+    options,
+    clientOf(options).PUT("/users/{user}/messengers/{service}", { params: { path: { user: userPath(user), service }, header: profileHeaders(caller) }, body: account })
+  );
+
+  answered(reply);
+}
+
+/** A person's messenger account on a chat service taken away. */
+export async function clearMessenger(user: UserId | number, service: string, caller: ProfileCaller, options: ServiceOptions = {}): Promise<void> {
+  const reply = await sent(options, clientOf(options).DELETE("/users/{user}/messengers/{service}", { params: { path: { user: userPath(user), service }, header: profileHeaders(caller) } }));
+
+  if (!reply.response.ok) throw refusalOf(reply.response, reply.error);
+}

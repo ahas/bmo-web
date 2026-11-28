@@ -922,7 +922,19 @@ async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisati
   let person = tree.person;
   let path = format!("/users/{}/messengers", person.0);
 
-  *tree._scratch.rooms.chat_services.lock().unwrap() = vec!["telegram".to_owned(), "teams".to_owned()];
+  *tree._scratch.rooms.chat_services.lock().unwrap() = vec![
+    bmo_web_server::receiver::ChatService {
+      key: "telegram".to_owned(),
+      registration: Some(bmo_web_client::MessengerRegistration {
+        url: "https://my.telegram.org".to_owned(),
+        fields: vec!["api_id".to_owned(), "api_hash".to_owned()],
+      }),
+    },
+    bmo_web_server::receiver::ChatService {
+      key: "teams".to_owned(),
+      registration: None,
+    },
+  ];
 
   let (status, listed) = asked(&tree.app, Method::GET, &path, None, person).await;
 
@@ -930,7 +942,10 @@ async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisati
   assert_eq!(
     listed["items"],
     json!([
-      { "service": "telegram", "offered": true, "account": null },
+      {
+        "service": "telegram", "offered": true, "account": null,
+        "registration": { "url": "https://my.telegram.org", "fields": ["api_id", "api_hash"] },
+      },
       { "service": "teams", "offered": true, "account": null },
     ])
   );
@@ -974,7 +989,10 @@ async fn a_person_sets_a_messenger_account_on_the_chat_services_their_organisati
   assert_eq!(
     listed["items"],
     json!([
-      { "service": "telegram", "offered": false, "account": null },
+      {
+        "service": "telegram", "offered": false, "account": null,
+        "registration": { "url": "https://my.telegram.org", "fields": ["api_id", "api_hash"] },
+      },
       { "service": "teams", "offered": true, "account": { "mode": "node" } },
     ])
   );

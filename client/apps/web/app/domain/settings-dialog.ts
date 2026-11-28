@@ -31,6 +31,7 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   { key: "machine", label: "settings.label.machine", icon: "i-material-symbols-computer-outline", administrator: false, user: true, load: () => import("~/components/SettingsMachine.vue") },
   { key: "desktop", label: "settings.label.desktop", icon: "i-material-symbols-desktop-windows-outline", administrator: false, user: false, app: true, load: () => import("~/components/SettingsDesktop.vue") },
   { key: "personal-apps", label: "settings.label.personal_apps", icon: "i-material-symbols-widgets-outline", administrator: false, user: true, load: () => import("~/components/SettingsPersonalApps.vue") },
+  { key: "messengers", label: "settings.label.messengers", icon: "i-material-symbols-forum-outline", administrator: false, user: true, load: () => import("~/components/SettingsMessengers.vue") },
   { key: "skills", label: "settings.label.skills", icon: "i-material-symbols-menu-book-outline", administrator: false, user: true, load: () => import("~/components/SettingsSkills.vue") },
   { key: "theme", label: "settings.label.theme", icon: "i-material-symbols-contrast", administrator: false, user: false, load: () => import("~/components/SettingsTheme.vue") },
   { key: "palette", label: "settings.label.palette", icon: "i-material-symbols-chat-bubble-outline", administrator: false, user: false, load: () => import("~/components/SettingsPalette.vue") },

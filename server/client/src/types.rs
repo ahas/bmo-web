@@ -1272,3 +1272,55 @@ pub struct Session {
 /// What a route that answers with nothing in particular sends: an empty object.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 pub struct Empty {}
+
+/// How a person uses a chat service (docs/accounts.md, 「A person's messenger accounts」): `own`, their own login on
+/// it, or `node`, the account already signed in on their own node.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "kebab-case")]
+pub enum MessengerMode {
+  Own,
+  Node,
+}
+
+/// A person's messenger account on one chat service: how they use it, and the handle of their own login where the
+/// service shows one.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct MessengerAccount {
+  pub mode: MessengerMode,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub handle: Option<String>,
+}
+
+/// The app registration a chat service needs before a person's account reads on it, as the service declares it: where
+/// it is made and the values it gives, which the person keeps in their secrets.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MessengerRegistration {
+  pub url: String,
+  pub fields: Vec<String>,
+}
+
+/// One chat service as a person reads it: whether their organisation lets them use it, the account they set, and the
+/// app registration it needs where it declares one.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct Messenger {
+  pub service: String,
+  pub offered: bool,
+  pub account: Option<MessengerAccount>,
+  #[serde(default, skip_serializing_if = "Option::is_none")]
+  pub registration: Option<MessengerRegistration>,
+}
+
+/// Every chat service the receiver lists, as a person reads them.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct Messengers {
+  pub items: Vec<Messenger>,
+}
+
+/// The account a person set on a chat service.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+pub struct MessengerSet {
+  pub service: String,
+  pub account: MessengerAccount,
+}

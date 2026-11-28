@@ -1847,6 +1847,7 @@ settings:
   title:
     settings: Settings
   label:
+    messengers: "Messenger accounts"
     account: Account
     agent: My supervisor
     briefing: Voice briefing
@@ -5245,3 +5246,26 @@ removal:
     run_failed: Could not delete permanently.
   status:
     loading: Loading what would be deleted…
+messengers:
+  label:
+    not_offered: "Not allowed by your organization"
+    mode: "Account you use on {service}"
+    mode_none: "Not set"
+    mode_own: "My own sign-in"
+    mode_node: "The account signed in on my PC"
+    handle: "Account name (optional)"
+  message:
+    registration: "{service} needs an app registration before messages can be read. Create an app at {url} and save the {fields} it gives you in Settings › Secrets."
+    intro: "Choose the messenger account you use on each chat service. You can set one only on a service your organization allows."
+    node_needs: "This messenger must be installed and signed in on your PC."
+  action:
+    save: "Save"
+    clear: "Remove"
+  status:
+    loading: "Loading messenger accounts"
+    saving: "Saving messenger account"
+  error:
+    read_failed: "Couldn't load your messenger accounts."
+    save_failed: "Couldn't save the messenger account."
+    no_user: "Only a signed-in user can set messenger accounts."
+    bad_mode: "The account must be your own sign-in or the one on your PC."

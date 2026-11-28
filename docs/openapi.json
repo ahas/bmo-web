@@ -2343,6 +2343,119 @@
         ],
         "type": "object"
       },
+      "Messenger": {
+        "description": "One chat service as a person reads it: whether their organisation lets them use it, the account they set, and the\napp registration it needs where it declares one.",
+        "properties": {
+          "account": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessengerAccount"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "offered": {
+            "type": "boolean"
+          },
+          "registration": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessengerRegistration"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "service": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "offered",
+          "account"
+        ],
+        "type": "object"
+      },
+      "MessengerAccount": {
+        "description": "A person's messenger account on one chat service: how they use it, and the handle of their own login where the\nservice shows one.",
+        "properties": {
+          "handle": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "$ref": "#/components/schemas/MessengerMode"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "type": "object"
+      },
+      "MessengerMode": {
+        "description": "How a person uses a chat service (docs/accounts.md, 「A person's messenger accounts」): `own`, their own login on\nit, or `node`, the account already signed in on their own node.",
+        "enum": [
+          "own",
+          "node"
+        ],
+        "type": "string"
+      },
+      "MessengerRegistration": {
+        "description": "The app registration a chat service needs before a person's account reads on it, as the service declares it: where\nit is made and the values it gives, which the person keeps in their secrets.",
+        "properties": {
+          "fields": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "url",
+          "fields"
+        ],
+        "type": "object"
+      },
+      "MessengerSet": {
+        "description": "The account a person set on a chat service.",
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/MessengerAccount"
+          },
+          "service": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "service",
+          "account"
+        ],
+        "type": "object"
+      },
+      "Messengers": {
+        "description": "Every chat service the receiver lists, as a person reads them.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/Messenger"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "type": "object"
+      },
       "ModelState": {
         "description": "Where the account model stands, and why it is not in force where it is not.",
         "properties": {
@@ -16336,6 +16449,254 @@
           "unauthorized",
           "forbidden",
           "not-found",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/messengers": {
+      "get": {
+        "operationId": "userMessengers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Messengers"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Every chat service the receiver lists, with whether the person's organisation lets them use it and the messenger account they set there; for the user themselves and the administrator.",
+        "tags": [
+          "Messenger accounts"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      }
+    },
+    "/users/{user}/messengers/{service}": {
+      "delete": {
+        "operationId": "deleteUserMessenger",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Done; no content."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unknown-service, unauthorized, forbidden, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Takes a person's messenger account on a chat service away.",
+        "tags": [
+          "Messenger accounts"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unknown-service",
+          "unauthorized",
+          "forbidden",
+          "not-in-force",
+          "database",
+          "failed"
+        ]
+      },
+      "put": {
+        "operationId": "setUserMessenger",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "service",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The user of the login the call is made for, its id written as a decimal number.",
+            "in": "header",
+            "name": "Owner-Key",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "description": "The role of the login the call is made for; a secret kind is changed by `administrator` alone, and a profile answers its holder or an administrator.",
+            "in": "header",
+            "name": "Owner-Role",
+            "required": true,
+            "schema": {
+              "enum": [
+                "administrator",
+                "member"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MessengerAccount"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MessengerSet"
+                }
+              }
+            },
+            "description": "Answered."
+          },
+          "default": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WireError"
+                }
+              }
+            },
+            "description": "A refusal or failure: bad-request, unknown-service, unauthorized, forbidden, not-offered, not-in-force, database, failed"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Sets the messenger account a person uses on a chat service their organisation lets them use: their own login, or the one signed in on their node.",
+        "tags": [
+          "Messenger accounts"
+        ],
+        "x-codes": [
+          "bad-request",
+          "unknown-service",
+          "unauthorized",
+          "forbidden",
+          "not-offered",
           "not-in-force",
           "database",
           "failed"

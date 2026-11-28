@@ -1851,6 +1851,7 @@ settings:
   title:
     settings: 設定
   label:
+    messengers: "メッセンジャーアカウント"
     account: アカウント
     agent: マイスーパーバイザー
     briefing: ボイスブリーフィング
@@ -5275,3 +5276,26 @@ removal:
     run_failed: 完全に削除できませんでした。
   status:
     loading: 削除する記録を読み込み中…
+messengers:
+  label:
+    not_offered: "組織で許可されていません"
+    mode: "{service}で使うアカウント"
+    mode_none: "設定しない"
+    mode_own: "自分のログイン"
+    mode_node: "自分のPCでログイン中のアカウント"
+    handle: "アカウント名（任意）"
+  message:
+    registration: "{service}でメッセージを読むには、先にアプリ登録が必要です。{url}でアプリを作成し、取得した{fields}を設定のシークレットに保存してください。"
+    intro: "チャットサービスごとに使うメッセンジャーアカウントを選びます。組織が許可したサービスにだけ設定できます。"
+    node_needs: "このメッセンジャーがPCにインストールされ、ログインしている必要があります。"
+  action:
+    save: "保存"
+    clear: "削除"
+  status:
+    loading: "メッセンジャーアカウントを読み込み中"
+    saving: "メッセンジャーアカウントを保存中"
+  error:
+    read_failed: "メッセンジャーアカウントを読み込めませんでした。"
+    save_failed: "メッセンジャーアカウントを保存できませんでした。"
+    no_user: "ログインしたユーザーだけがメッセンジャーアカウントを設定できます。"
+    bad_mode: "アカウントは自分のログインかPCのアカウントのどちらかです。"

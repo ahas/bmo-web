@@ -1851,6 +1851,7 @@ settings:
   title:
     settings: 设置
   label:
+    messengers: "通讯账号"
     account: 账号
     agent: 我的主管
     briefing: 语音简报
@@ -5275,3 +5276,26 @@ removal:
     run_failed: 无法永久删除。
   status:
     loading: 正在加载要删除的记录…
+messengers:
+  label:
+    not_offered: "组织未允许"
+    mode: "在 {service} 上使用的账号"
+    mode_none: "不设置"
+    mode_own: "我自己的登录"
+    mode_node: "我电脑上已登录的账号"
+    handle: "账号名称（可选）"
+  message:
+    registration: "{service} 需要先注册应用才能读取消息。请在 {url} 创建应用，并把得到的 {fields} 保存到设置中的密钥里。"
+    intro: "为每个聊天服务选择你使用的通讯账号。只能在组织允许的服务上设置。"
+    node_needs: "你的电脑上必须已安装并登录这个通讯软件。"
+  action:
+    save: "保存"
+    clear: "删除"
+  status:
+    loading: "正在加载通讯账号"
+    saving: "正在保存通讯账号"
+  error:
+    read_failed: "无法加载通讯账号。"
+    save_failed: "无法保存通讯账号。"
+    no_user: "只有已登录的用户才能设置通讯账号。"
+    bad_mode: "账号必须是你自己的登录或电脑上的账号。"

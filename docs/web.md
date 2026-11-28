@@ -7978,11 +7978,17 @@ screen」). The dialog is no screen of its own: `/account` takes the reader home
   the dialog's left under the title 설정, each section one line of an icon and its name; the open one
   is marked. The section's own name heads the right, with the dialog's close mark at its right end,
   and its content scrolls under it.
-  - The sections are 계정, 기기, 데스크톱, 내 개인 앱, 내 스킬, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정, 기기,
-    내 개인 앱, 내 스킬, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
+  - The sections are 계정, 기기, 데스크톱, 내 개인 앱, 메신저 계정, 내 스킬, 테마, 대화방, 알림 and 보이스브리핑. A member is shown 계정,
+    기기, 내 개인 앱, 메신저 계정, 내 스킬, 테마 and 대화방; 데스크톱 stands for any reader, but only in the desktop
     app's window (「데스크톱」); 알림 and 보이스브리핑 are the administrator's, since the console rings and plays
     briefings for the administrator alone. A login with no user of the account service, which holds no machine and made
     nothing of its own, is not shown 기기, 내 개인 앱 or 내 스킬, what they set standing against that user.
+  - **메신저 계정 sets the messenger account the reader uses on each chat service** (docs/accounts.md, 「A person's
+    messenger accounts」): each chat service the receiver lists stands as a row, one their organisation does not let
+    them use marked so and taking nothing; on one it does, a choice of 정하지 않음, 내 로그인, with the account's name
+    beside it, or 내 PC에 로그인된 계정, which says the messenger must be installed and signed in on their PC, then 저장,
+    and 지우기 where an account stands. A service that declares an app registration says under the choice that the registration comes
+    first, where it is made and which values it gives, to be kept in the reader's secrets.
   - **Every section is the reader's own.** The settings hold no door to 시스템 및 조직: a reader's BMO and their agents,
     their own logins, keys and the order their runs fall through, the apps turned on for them and their own secret
     space all stand on the matching tab of 시스템 및 조직 at 나, and the sidebar's 시스템 및 조직 entry leads them to the screen

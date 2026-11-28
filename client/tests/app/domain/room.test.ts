@@ -227,6 +227,14 @@ describe("the row that stands while the chat agent is working", () => {
     expect(answered?.look.avatar).toEqual(waiting);
   });
 
+  test("never wears another supervisor's face, whose answer was the room's last", () => {
+    const other = 10000002;
+    const faces: AvatarIndex = new Map([...face, [`person:${other}`, "/bmo/api/avatars/person/10000002?v=1"]]);
+    const kakia: ArchivedMessage = { ...archived(3, KO.line_195, "agent-b"), senderId: other, speaker: "agent-b" };
+
+    expect(botAvatar([archived(1, KO.line_199), bmo(2), kakia], faces).src).toBe("/bmo/api/avatars/person/10000001?v=300");
+  });
+
   test("takes the chat agent's number from what the chat agent has said in this room", () => {
     expect(botSpeaker([archived(1, KO.line_210), bmo(2)])).toEqual({ id: bot, name: "agent-a" });
   });

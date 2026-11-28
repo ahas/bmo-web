@@ -1398,10 +1398,11 @@ function lastAnswer(messages: readonly ArchivedMessage[]): ArchivedMessage | und
   return [...messages].reverse().find((message) => message.agent === true && message.notice !== true);
 }
 
-// What the row that stands while the chat agent works wears: the picture the answer it is waiting for will
-// wear, on the side that answer will stand on.
+// What the row that stands while the default answerer works wears: the picture its answer will wear, on the side
+// that answer will stand on, read off its own last answer, never another supervisor's.
 export function botAvatar(messages: readonly ArchivedMessage[], avatars: AvatarIndex): AvatarProps {
-  const said = lastAnswer(messages);
+  const answerer = defaultAnswererName();
+  const said = lastAnswer(messages.filter((message) => (message.voicedBy ?? message.speaker ?? answerer) === answerer));
 
   return said === undefined ? agentAvatar(avatars, defaultAnswererName()) : faceOf(said, avatars);
 }
